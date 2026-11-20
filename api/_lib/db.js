@@ -7,7 +7,10 @@ function base() {
 
 export async function db(path, { method = "GET", body, prefer } = {}) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  const headers = { apikey: key, Authorization: "Bearer " + key, "Content-Type": "application/json" };
+  // New-style secret keys (sb_secret_...) go in the apikey header only. Legacy service_role keys are JWTs
+  // ("eyJ...") and also go in Authorization.
+  const headers = { apikey: key, "Content-Type": "application/json" };
+  if (key.startsWith("eyJ")) headers.Authorization = "Bearer " + key;
   if (prefer) headers.Prefer = prefer;
   const r = await fetch(base() + path, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
   const text = await r.text();
