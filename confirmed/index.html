@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>You're confirmed · Lanier Leash</title>
+<meta name="description" content="Your Lanier Leash weekend email is confirmed.">
+<meta name="robots" content="noindex">
+<meta property="og:title" content="You're confirmed · Lanier Leash">
+<meta property="og:image" content="/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+
+<div class="mesh" aria-hidden="true" style="height:420px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+
+<main id="top" class="acct">
+  <div class="card" id="ok">
+    <span class="eyebrow">You're in</span>
+    <h1>Welcome to the pack 🐾</h1>
+    <p>Your email is confirmed. The weekend email lands <b>Thursday mornings</b> with dog-friendly events near you, a walk check and a few places to try. We just sent a welcome note too.</p>
+    <p class="fine">Tip: drag it to your Primary tab, or add hello@lanierleash.com to your contacts, so Thursday's email doesn't land in Promotions.</p>
+    <div class="btns"><a class="btn btn-coral" href="/events/">See this week's events</a><a class="btn btn-ghost" id="mg" href="/manage/">Change ZIP or radius</a></div>
+  </div>
+  <div class="card" id="bad" hidden>
+    <span class="eyebrow">Hmm</span>
+    <h1>That link didn't work</h1>
+    <p id="badTxt">It may be old or already used. Sign up again on the homepage and we'll send a fresh link.</p>
+    <div class="btns"><a class="btn btn-coral" href="/#top">Sign up again</a></div>
+  </div>
+</main>
+
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Listings link to their sources. Check with the organizer before you go.</div>
+</footer>
+
+<script src="/assets/data.js"></script>
+<script>
+(function () {
+  var L = window.LL, $ = function (s) { return document.querySelector(s); };
+  if (L.initMenu) L.initMenu();
+  var q = new URLSearchParams(location.search);
+  if (q.get("e")) {
+    $("#ok").hidden = true; $("#bad").hidden = false;
+    if (q.get("e") === "2") $("#badTxt").textContent = "Something went wrong on our end. Please tap the link in your email again in a minute.";
+  } else if (q.get("t")) $("#mg").href = "/manage/?t=" + encodeURIComponent(q.get("t"));
+})();
+</script>
+</body>
+</html>

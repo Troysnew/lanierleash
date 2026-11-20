@@ -1,0 +1,6 @@
+{
+  "name": "lanierleash",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" }
+}

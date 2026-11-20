@@ -477,3 +477,26 @@ footer .wrap.legal { display: block; border-top: 1px solid rgba(255,255,255,.08)
 .trust5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
 @media (max-width: 1160px) { .trust5 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .trust5 { grid-template-columns: 1fr; } }
+
+/* ---------- newsletter forms + account pages ---------- */
+.hp { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+.msg.err { color: var(--coral-dk); background: var(--coral-soft); }
+.formnote a { color: inherit; }
+button:disabled { opacity: .6; cursor: progress; }
+.acct { max-width: 620px; margin: 0 auto; padding: 56px 20px 80px; }
+.acct .card { background: #fff; border: 1px solid var(--line); border-radius: var(--r-lg); box-shadow: var(--sh); padding: 32px 28px; }
+.acct h1 { font-size: clamp(28px, 5vw, 40px); margin: 6px 0 12px; }
+.acct .eyebrow { color: var(--coral-btn); font-weight: 800; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; }
+.acct label { display: block; font-weight: 700; color: var(--navy); font-size: 14px; margin: 18px 0 6px; }
+.acct input, .acct select { width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.acct .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.acct .btns { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.acct .btn-ghost { background: transparent; border: 1px solid var(--line); color: var(--slate); }
+.acct .status { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800; }
+.acct .status.on { background: var(--ok-soft); color: var(--ok); }
+.acct .status.off { background: var(--coral-soft); color: var(--coral-dk); }
+.acct .status.wait { background: var(--unv-soft); color: var(--unv); }
+.acct .fine { color: var(--muted); font-size: 14px; }
+.acct .prose h2 { font-size: 20px; margin: 28px 0 8px; }
+.acct .prose p, .acct .prose li { color: var(--slate); }
+@media (max-width: 520px) { .acct .row2 { grid-template-columns: 1fr; } .acct .card { padding: 24px 18px; } }

@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy · Lanier Leash</title>
+<meta name="description" content="What Lanier Leash collects, why, and how to remove it.">
+<meta property="og:title" content="Privacy · Lanier Leash">
+<meta property="og:image" content="/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+
+<div class="mesh" aria-hidden="true" style="height:420px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+
+<main id="top" class="acct">
+  <div class="card prose">
+    <span class="eyebrow">Privacy</span>
+    <h1>Short and plain</h1>
+    <p class="fine">Last updated November 20, 2026</p>
+    <h2>What we collect</h2>
+    <p>If you sign up for the weekend email: your <b>email address</b>, your <b>ZIP code</b> and the <b>distance</b> you picked. We use the ZIP's rough center point to work out which events are near you. That's it. No name, no exact address, no tracking pixels in our emails.</p>
+    <p>If you change your ZIP or distance on the site without signing up, that's saved only in your own browser.</p>
+    <h2>How we use it</h2>
+    <p>Only to send the Thursday weekend email and the confirm and welcome notes. We never sell, rent or share your address. We don't run ads that use your data.</p>
+    <h2>Who handles it for us</h2>
+    <ul>
+      <li><b>Supabase</b> stores the subscriber list.</li>
+      <li><b>Resend</b> delivers the emails.</li>
+      <li><b>Vercel</b> hosts the site.</li>
+    </ul>
+    <p>The forecast comes from Open-Meteo and maps from OpenStreetMap. Your browser talks to them directly to show weather and maps; we don't send them anything about you.</p>
+    <h2>Leaving</h2>
+    <p>Every email has a one-click unsubscribe link. To have your address deleted entirely, reply to any email or write to <a href="mailto:hello@lanierleash.com">hello@lanierleash.com</a> and we'll remove it.</p>
+    <h2>Listings</h2>
+    <p>Lanier Leash is an independent local guide. We aren't affiliated with the venues, parks or agencies we list. Dog rules change, so check with the place before you go.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Listings link to their sources. Check with the organizer before you go.</div>
+</footer>
+
+<script src="/assets/data.js"></script>
+<script>
+(function () {
+  var L = window.LL, $ = function (s) { return document.querySelector(s); };
+  if (L.initMenu) L.initMenu();
+
+})();
+</script>
+</body>
+</html>
