@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dog events near Cumming and Lake Lanier · Lanier Leash</title>
+<meta name="description" content="Dog-friendly events, adoption days and foster events around Cumming, Lake Lanier and north metro Atlanta, with the dog rule and a source link on every listing.">
+<meta property="og:title" content="Dog events near Lake Lanier · Lanier Leash">
+<meta property="og:image" content="/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+
+<div class="mesh" aria-hidden="true" style="height:520px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links"><a href="/events/" aria-current="true">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+
+<main id="top">
+  <section class="page-hero">
+    <div class="wrap">
+      <span class="eyebrow">Dog events</span>
+      <h1>Dog events near you</h1>
+      <p class="lede">Yappy hours, adoption days and dog-friendly outings around Lake Lanier. Every event shows the dog rule, the distance from your ZIP, and a link to where we found it.</p>
+
+      <div class="controls">
+        <div class="zipbox"><svg class="ic"><use href="#u-radius"/></svg><label for="zip">ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code"></div>
+        <div class="seg" role="group" aria-label="Distance">
+          <button type="button" data-r="5">5 mi</button><button type="button" data-r="10">10 mi</button><button type="button" data-r="15">15 mi</button><button type="button" data-r="25">25 mi</button>
+        </div>
+        <label class="search"><svg class="ic" style="color:var(--muted)"><use href="#u-q"/></svg><span class="sr">Search events</span><input id="q" type="search" placeholder="Search events, venues, towns"></label>
+        <span class="ziperr" id="zipErr" hidden></span>
+      </div>
+      <div class="chips" role="group" aria-label="When">
+        <button class="chip" type="button" data-when="weekend">This weekend</button>
+        <button class="chip" type="button" data-when="30">Next 30 days</button>
+        <button class="chip" type="button" data-when="all">All upcoming</button>
+      </div>
+      <div class="chips" role="group" aria-label="Type">
+        <button class="chip" type="button" data-type="all">All types</button>
+        <button class="chip" type="button" data-type="dog"><svg class="ic"><use href="#i-cal"/></svg>Dog events</button>
+        <button class="chip" type="button" data-type="adopt"><svg class="ic"><use href="#i-adopt"/></svg>Adoption &amp; foster</button>
+      </div>
+      <p class="count" id="count" aria-live="polite"></p>
+    </div>
+  </section>
+
+  <section class="blk" style="padding-top:8px">
+    <div class="wrap">
+      <div class="evpage" id="list"><p class="loading">Loading events…</p></div>
+      <p class="note">Each event links to the page where we found it. Details change, so check the organizer's page before you go. Distances are straight-line miles from your ZIP. Events that run for several days are listed once, under the day they start.</p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Listings link to their sources. Check with the organizer before you go.</div>
+</footer>
+
+<script src="/assets/data.js"></script>
+<script>
+(function () {
+  var L = window.LL, $ = function (s) { return document.querySelector(s); };
+  var st = { when: "30", type: "all", q: "" };
+  try { var w = localStorage.getItem("ll-ev-when"); if (w) st.when = JSON.parse(w); } catch (e) {}
+  var DATA = null;
+  L.initMenu();
+  $("#zip").value = L.home.zip;
+
+  function inWindow(e) {
+    var t = L.todayISO();
+    if (st.when === "weekend") { var wk = L.weekend(); return e.date <= wk.to && e.last >= wk.from; }
+    if (st.when === "30") return e.date <= L.addDays(t, 30);
+    return true;
+  }
+  function matches(e) {
+    if (st.type === "dog" && e.type !== "dog") return false;
+    if (st.type === "adopt" && e.type === "dog") return false;
+    if (!st.q) return true;
+    return [e.title, e.venue, e.town, e.dog_rule, e.notes].join(" ").toLowerCase().indexOf(st.q) >= 0;
+  }
+  function card(e) {
+    var T = L.TYPE[e.type], esc = L.esc, ic = L.ic;
+    var when = e.multi ? "Through " + L.fmtShort(e.last) : L.timeRange(e);
+    var sub = e.multi ? L.timeRange(e) : "";
+    return '<article class="evcard" id="' + e.id + '">' +
+      '<div class="when">' + esc(when) + (sub && sub !== "Time TBA" ? "<small>" + esc(sub) + "</small>" : "") + "</div>" +
+      '<div style="min-width:0"><h3>' + (e.url ? '<a href="' + esc(e.url) + '" target="_blank" rel="noopener">' + esc(e.title) + "</a>" : esc(e.title)) + "</h3>" +
+      '<p class="m">' + esc([e.venue, e.town].filter(Boolean).join(" · ")) + (e.cost ? " · " + esc(e.cost) : "") + "</p>" +
+      '<p class="rule">' + ic("u-leash") + "<span>" + esc(e.dog_rule || "Dog rule not stated, check with the host") + "</span></p>" +
+      (e.notes ? '<p class="src">' + esc(e.notes) + "</p>" : "") +
+      '<div class="acts">' + (e.url ? '<a class="lnk" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Event page</a>" : "") +
+      '<button class="lnk" type="button" data-ics="' + e.id + '">' + ic("i-cal") + "Add to calendar</button></div>" +
+      (e.source_name ? '<p class="src">Found on ' + esc(e.source_name) + (e.checked ? " · " + esc(L.fmtChecked(e.checked)) : "") + "</p>" : "") +
+      "</div>" +
+      '<div class="side">' + (e.mi != null ? '<span class="mi">' + L.fmtMi(e.mi) + "</span>" : "") + '<span class="tag ' + T.cls + '">' + T.label + "</span></div></article>";
+  }
+  function render() {
+    if (!DATA) return;
+    var r = L.radius;
+    document.querySelectorAll(".seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(+b.dataset.r === r)); });
+    document.querySelectorAll("[data-when]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.when === st.when)); });
+    document.querySelectorAll("[data-type]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.type === st.type)); });
+    L.withMiles(DATA.events);
+    var list = DATA.events.filter(function (e) { return (e.mi == null || e.mi <= r) && inWindow(e) && matches(e); })
+      .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start_time || "99") < (b.start_time || "99") ? -1 : 1; });
+    var t = L.todayISO(), groups = {}, order = [];
+    list.forEach(function (e) { var k = e.date < t ? t : e.date; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(e); });
+    order.sort();
+    $("#list").innerHTML = list.length ? order.map(function (k) {
+      var tag = k === t ? "Today" : k === L.addDays(t, 1) ? "Tomorrow" : "";
+      return '<section class="daygrp"><h2>' + L.fmtLong(k) + (tag ? "<small>" + tag + "</small>" : "") + "</h2>" + groups[k].map(card).join("") + "</section>";
+    }).join("") : '<p class="empty">No events match within ' + r + " miles of " + L.esc(L.home.zip) + ". Try a wider radius or a longer time range.</p>";
+    var label = st.when === "weekend" ? "this weekend" : st.when === "30" ? "in the next 30 days" : "coming up";
+    $("#count").textContent = list.length + (list.length === 1 ? " event " : " events ") + label + " within " + r + " miles of " + L.home.zip;
+  }
+
+  document.querySelectorAll(".seg button").forEach(function (b) { b.addEventListener("click", function () { L.setRadius(+b.dataset.r); render(); }); });
+  document.querySelectorAll("[data-when]").forEach(function (b) { b.addEventListener("click", function () { st.when = b.dataset.when; try { localStorage.setItem("ll-ev-when", JSON.stringify(st.when)); } catch (e) {} render(); }); });
+  document.querySelectorAll("[data-type]").forEach(function (b) { b.addEventListener("click", function () { st.type = b.dataset.type; render(); }); });
+  $("#q").addEventListener("input", function (e) { st.q = e.target.value.trim().toLowerCase(); render(); });
+  $("#zip").addEventListener("input", function (e) {
+    var z = e.target.value.trim(), err = $("#zipErr");
+    if (!/^\d{5}$/.test(z)) return;
+    L.setZip(z).then(function () { err.hidden = true; render(); }).catch(function () { err.hidden = false; err.textContent = "We couldn't find ZIP " + z + "."; });
+  });
+  $("#list").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-ics]"); if (!b || !DATA) return;
+    var ev = DATA.events.filter(function (x) { return x.id === b.dataset.ics; })[0]; if (ev) L.downloadICS(ev);
+  });
+
+  L.load().then(function (d) { DATA = d; render(); }).catch(function () {
+    $("#list").innerHTML = '<p class="empty">We couldn’t load events right now. Please try again in a minute.</p>';
+  });
+})();
+</script>
+</body>
+</html>
