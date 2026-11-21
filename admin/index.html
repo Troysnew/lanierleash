@@ -36,6 +36,7 @@
     <span class="adm-tag">Admin</span>
     <nav class="adm-tabs" role="tablist">
       <button role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="pill" id="newN" hidden></span></button>
+      <button role="tab" data-tab="events" aria-selected="false">Events <span class="pill" id="sugN" hidden></span></button>
       <button role="tab" data-tab="subs" aria-selected="false">Subscribers</button>
       <button role="tab" data-tab="email" aria-selected="false">Emails</button>
     </nav>
@@ -67,6 +68,26 @@
         </select>
       </div>
       <div id="list" class="list"><p class="empty">Loading…</p></div>
+    </section>
+
+    <!-- Events -->
+    <section data-pane="events" hidden>
+      <div class="msg" id="evSetup" hidden>
+        <b>Set up the events calendar.</b> Move the site's current events into the admin so you can edit them here.
+        <div class="btns"><button class="btn btn-sm btn-coral" id="evImport" type="button">Import current events</button></div>
+      </div>
+      <div class="bar">
+        <div class="chips" id="evF">
+          <button data-v="upcoming" aria-pressed="true">On the site</button>
+          <button data-v="suggested" aria-pressed="false">Suggested <span id="sugN2"></span></button>
+          <button data-v="past" aria-pressed="false">Past</button>
+          <button data-v="hidden" aria-pressed="false">Hidden</button>
+        </div>
+        <button class="btn btn-sm btn-out" id="evRun" type="button" style="margin-left:auto">Check calendars now</button>
+        <button class="btn btn-sm btn-coral" id="evAdd" type="button" style="margin-left:0">+ Add event</button>
+      </div>
+      <p class="fine" id="evHelp"></p>
+      <div id="evList" class="list"><p class="empty">Loading…</p></div>
     </section>
 
     <!-- Subscribers -->
@@ -111,6 +132,37 @@
   </div>
 </div>
 
+<dialog id="evDlg" class="evdlg" aria-labelledby="evDlgH">
+  <form id="evForm" method="dialog" novalidate>
+    <div class="dh"><h2 id="evDlgH">Add event</h2><button type="button" class="x" id="evX" aria-label="Close">×</button></div>
+    <div class="fg">
+      <div class="full"><label for="e-title">Event name *</label><input id="e-title" name="title" maxlength="200" required></div>
+      <div><label for="e-date">Date *</label><input id="e-date" name="date" type="date" required></div>
+      <div><label for="e-end_date">Ends (multi-day only)</label><input id="e-end_date" name="end_date" type="date"></div>
+      <div><label for="e-start_time">Starts</label><input id="e-start_time" name="start_time" type="time"></div>
+      <div><label for="e-end_time">Ends</label><input id="e-end_time" name="end_time" type="time"></div>
+      <div><label for="e-type">Type</label><select id="e-type" name="type"><option value="dog">Dog event</option><option value="adopt">Adoption</option><option value="foster">Foster</option></select></div>
+      <div><label for="e-cost">Cost</label><input id="e-cost" name="cost" maxlength="80" placeholder="Free"></div>
+      <div class="full"><label for="e-venue">Venue</label><input id="e-venue" name="venue" maxlength="150" placeholder="Cherry Street Brewing"></div>
+      <div><label for="e-town">Town</label><input id="e-town" name="town" maxlength="80" placeholder="Cumming"></div>
+      <div><label for="e-address">Street address</label><input id="e-address" name="address" maxlength="200" placeholder="For the map and distances"></div>
+      <div class="full"><label for="e-dog_rule">Dog rule</label><input id="e-dog_rule" name="dog_rule" maxlength="400" placeholder="Leashed dogs welcome on the patio"></div>
+      <div class="full"><label for="e-url">Event link</label><input id="e-url" name="url" type="url" maxlength="600" placeholder="https://"></div>
+      <div><label for="e-source_name">Source name</label><input id="e-source_name" name="source_name" maxlength="120" placeholder="Venue Facebook page"></div>
+      <div><label for="e-checked">Checked on</label><input id="e-checked" name="checked" type="date"></div>
+      <div class="full"><label for="e-notes">Notes (shown on the site)</label><textarea id="e-notes" name="notes" rows="2" maxlength="800"></textarea></div>
+      <div class="full raw" id="evRaw" hidden></div>
+    </div>
+    <p class="msg" id="evMsg" hidden role="status"></p>
+    <div class="df">
+      <button class="btn btn-sm del" type="button" id="evDel">Delete</button>
+      <span style="flex:1"></span>
+      <button class="btn btn-sm btn-out" type="button" id="evDraft">Save, don't publish</button>
+      <button class="btn btn-sm btn-coral" type="submit" id="evSave">Save and publish</button>
+    </div>
+  </form>
+</dialog>
+
 <script>
 (function () {
   var $ = function (s, r) { return (r || document).querySelector(s); }, $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
@@ -139,7 +191,8 @@
 
   // ---------- login ----------
   function showLogin() { $("#app").hidden = true; $("#login").hidden = false; setTimeout(function () { $("#pw").focus(); }, 50); }
-  function showApp() { $("#login").hidden = true; $("#app").hidden = false; overview(); loadInbox(); }
+  function showApp() { $("#login").hidden = true; $("#app").hidden = false; overview(); loadInbox();
+    api("events", { qs: "&view=suggested" }).then(function (d) { var n = d.ok ? d.items.length : 0; $("#sugN").hidden = !n; $("#sugN").textContent = n; }).catch(function () {}); }
   $("#lf").addEventListener("submit", function (e) {
     e.preventDefault();
     var b = $("#lbtn"); b.disabled = true; $("#lmsg").hidden = true;
@@ -155,6 +208,7 @@
       $$(".adm-tabs [data-tab]").forEach(function (x) { x.setAttribute("aria-selected", String(x === t)); });
       $$("[data-pane]").forEach(function (p) { p.hidden = p.dataset.pane !== t.dataset.tab; });
       if (t.dataset.tab === "subs" && !st.subs) loadSubs();
+      if (t.dataset.tab === "events") loadEvents();
       if (t.dataset.tab === "email") { loadSends(); if (!$("#pf").src) preview(); }
     });
   });
@@ -186,7 +240,7 @@
   var STATUS_LABEL = { new: "To review", approved: "Approved", done: "Done", rejected: "Rejected" };
   var HINT = {
     pup: "Feature this pup to put it on the homepage right away.",
-    event: "Approve it, then send it to Claude to add to the events page.",
+    event: "Click Add to events to check the details and put it on the site.",
     place: "Approve it, then send it to Claude to add to the places page.",
     fix: "Check the listing, then mark Done once it's fixed.",
     claim: "Reply to confirm their details, then send it to Claude to add the green badge."
@@ -215,6 +269,7 @@
       '<label class="nl">Private note<textarea data-note rows="2" placeholder="Only you see this">' + esc(x.note) + "</textarea></label>" +
       '<div class="acts">' +
       (x.type === "pup" && x.photo ? '<button class="btn btn-sm ' + (x.featured_at ? "btn-out" : "btn-coral") + '" data-act="feature">' + (x.featured_at ? "Remove from homepage" : "★ Feature as Pup of the Week") + "</button>" : "") +
+      (x.type === "event" ? '<button class="btn btn-sm btn-coral" data-act="toevent">Add to events</button>' : "") +
       (x.status !== "approved" ? '<button class="btn btn-sm btn-out" data-act="approved">Approve</button>' : "") +
       (x.status !== "done" ? '<button class="btn btn-sm btn-out" data-act="done">Done</button>' : "") +
       (x.status !== "rejected" ? '<button class="btn btn-sm btn-out" data-act="rejected">Reject</button>' : "") +
@@ -237,6 +292,7 @@
   $("#list").addEventListener("click", function (e) {
     var btn = e.target.closest("[data-act]"); if (!btn) return;
     var el = btn.closest(".sub-card"), id = el.dataset.id, act = btn.dataset.act, x = st.items.find(function (i) { return i.id === id; });
+    if (act === "toevent") return window.__addFromSubmission(x);
     if (act === "copy") {
       var txt = x.typeLabel + ": " + x.title + "\n" + x.fields.map(function (f) { return f.label + ": " + f.value; }).join("\n") + (x.email ? "\nFrom: " + x.email : "");
       navigator.clipboard.writeText(txt).then(function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy details"; }, 1500); });
@@ -299,6 +355,129 @@
       }).join("") + "</tbody></table>" : '<p class="fine">No Thursday emails have gone out yet.</p>';
     }).catch(function () {});
   }
+
+
+  // ---------- events ----------
+  var ev = { view: "upcoming", items: [], editing: null, fromSub: null };
+  var EVHELP = {
+    upcoming: "Everything here shows on the site and in Thursday's email. Past events drop off on their own.",
+    suggested: "Found automatically in local calendars, or saved without publishing. Check the details, then publish or hide.",
+    past: "Events that have already happened (last 100).",
+    hidden: "Kept but not shown anywhere. Publish to bring one back."
+  };
+  chips("#evF", function (v) { ev.view = v; loadEvents(); });
+  function fmtD(iso) { var p = iso.split("-"); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", timeZone: "UTC" }); }
+  function fmtT(t) { if (!t) return ""; var h = +t.slice(0, 2), m = t.slice(3, 5); return (h % 12 || 12) + (m !== "00" ? ":" + m : "") + " " + (h < 12 ? "AM" : "PM"); }
+  function loadEvents() {
+    $("#evHelp").textContent = EVHELP[ev.view];
+    $("#evList").innerHTML = '<p class="empty">Loading…</p>';
+    api("events", { qs: "&view=" + ev.view }).then(function (d) {
+      if (!d.ok) { $("#evList").innerHTML = '<p class="empty">' + esc(d.error) + "</p>"; return; }
+      $("#evSetup").hidden = !d.empty;
+      ev.items = d.items; renderEvents();
+    }).catch(function () {});
+    api("events", { qs: "&view=suggested" }).then(function (d) {
+      var n = d.ok ? d.items.length : 0;
+      $("#sugN").hidden = !n; $("#sugN").textContent = n; $("#sugN2").textContent = n ? "(" + n + ")" : "";
+    }).catch(function () {});
+  }
+  var TY = { dog: "Dog event", adopt: "Adoption", foster: "Foster" };
+  function renderEvents() {
+    $("#evList").innerHTML = ev.items.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr><th>When</th><th>Event</th><th>Where</th><th></th></tr></thead><tbody>' + ev.items.map(function (x) {
+      var when = fmtD(x.date) + (x.end_date ? " – " + fmtD(x.end_date) : "") + (x.start_time ? "<br><small>" + fmtT(x.start_time) + (x.end_time ? "–" + fmtT(x.end_time) : "") + "</small>" : "");
+      var flags = (x.lat == null ? '<span class="sb sb-pending" title="No map location, so it won\'t show in distance searches or the email">No location</span> ' : "") +
+        (x.origin === "feed" ? '<span class="sb sb-feed">From ' + esc(x.source_name || "a calendar") + "</span> " : "");
+      return '<tr data-id="' + x.id + '"><td class="nw">' + when + '</td><td><b>' + esc(x.title) + '</b> <span class="ty ty-' + (x.type === "dog" ? "event" : "pup") + '">' + TY[x.type] + "</span><br>" + flags +
+        (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" class="small">Event page</a>' : "") + "</td><td>" + esc([x.venue, x.town].filter(Boolean).join(", ")) + (x.mi != null ? '<br><small class="muted">' + x.mi + " mi from Cumming</small>" : "") + '</td><td class="nw acts2">' +
+        '<button class="btn btn-sm btn-out" data-ev="edit">Edit</button>' +
+        (x.status !== "published" ? '<button class="btn btn-sm btn-coral" data-ev="published">Publish</button>' : "") +
+        (x.status !== "hidden" ? '<button class="btn btn-sm btn-out" data-ev="hidden">Hide</button>' : "") +
+        "</td></tr>";
+    }).join("") + "</tbody></table></div>" : '<p class="empty">' + (ev.view === "suggested" ? "No suggestions right now. New ones from local calendars show up here each morning." : ev.view === "upcoming" ? "No upcoming events. Add one, or check Suggested." : "Nothing here.") + "</p>";
+  }
+  $("#evList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-ev]"); if (!b) return;
+    var id = b.closest("tr").dataset.id, x = ev.items.find(function (i) { return i.id === id; });
+    if (b.dataset.ev === "edit") return openEvent(x);
+    b.disabled = true;
+    api("event_status", { body: { id: id, status: b.dataset.ev } }).then(function (d) { if (!d.ok) { b.disabled = false; return alert(d.error); } loadEvents(); }).catch(function () {});
+  });
+  $("#evImport").addEventListener("click", function () {
+    var b = this; b.disabled = true;
+    api("events_import", { body: {} }).then(function (d) { if (!d.ok) { b.disabled = false; return alert(d.error); } alert("Imported " + d.count + " events."); loadEvents(); }).catch(function () {});
+  });
+
+  // editor
+  var F = ["title", "date", "end_date", "start_time", "end_time", "type", "cost", "venue", "town", "address", "dog_rule", "url", "source_name", "checked", "notes"];
+  function today() { return new Intl.DateTimeFormat("en-CA", { timeZone: "America/New_York" }).format(new Date()); }
+  function openEvent(x, prefill) {
+    ev.editing = x || null; ev.fromSub = prefill && prefill.from_submission || null;
+    var v = x || prefill || {};
+    F.forEach(function (k) { $("#e-" + k).value = v[k] == null ? "" : v[k]; });
+    if (!$("#e-type").value) $("#e-type").value = "dog";
+    if (!$("#e-checked").value) $("#e-checked").value = today();
+    $("#evDlgH").textContent = x ? (x.status === "draft" ? "Review suggested event" : "Edit event") : "Add event";
+    $("#evDel").hidden = !x;
+    $("#evSave").textContent = x && x.status === "published" ? "Save" : "Save and publish";
+    $("#evDraft").hidden = !!(x && x.status === "published");
+    $("#evRaw").hidden = !(x && x.feed_raw); if (x && x.feed_raw) $("#evRaw").textContent = "What the calendar said: " + x.feed_raw;
+    $("#evMsg").hidden = true;
+    $$("#evForm [aria-invalid]").forEach(function (el) { el.removeAttribute("aria-invalid"); });
+    $("#evDlg").showModal();
+    $("#e-title").focus();
+  }
+  $("#evAdd").addEventListener("click", function () { openEvent(null); });
+  $("#evRun").addEventListener("click", function () {
+    var b = this; b.disabled = true; b.textContent = "Checking…";
+    fetch("/api/cron/events", { credentials: "same-origin" }).then(function (r) { return r.json(); }).then(function (d) {
+      if (!d.ok) return alert(d.error || "Couldn't check calendars.");
+      var bad = d.sources.filter(function (x) { return x.error; });
+      alert("Checked " + d.sources.length + " calendars. Found " + d.matched + " dog events, " + d.added + " new." + (bad.length ? "\n\nCouldn't reach: " + bad.map(function (x) { return x.name; }).join(", ") : ""));
+      if (d.added) { ev.view = "suggested"; $$("#evF button").forEach(function (x) { x.setAttribute("aria-pressed", String(x.dataset.v === "suggested")); }); }
+      loadEvents();
+    }).catch(function () { alert("Couldn't check calendars."); }).then(function () { b.disabled = false; b.textContent = "Check calendars now"; });
+  });
+  $("#evX").addEventListener("click", function () { $("#evDlg").close(); });
+  function saveEvent(publish) {
+    var data = { id: ev.editing ? ev.editing.id : undefined, publish: publish, from_submission: ev.fromSub || undefined };
+    F.forEach(function (k) { data[k] = $("#e-" + k).value.trim(); });
+    if (ev.editing) { data.lat = ev.editing.lat; data.lng = ev.editing.lng; }
+    var m = $("#evMsg"); m.hidden = false; m.classList.remove("err"); m.textContent = "Saving… (finding it on the map)";
+    $("#evSave").disabled = $("#evDraft").disabled = true;
+    api("event_save", { body: data }).then(function (d) {
+      if (!d.ok) {
+        m.textContent = d.error; m.classList.add("err");
+        if (d.field) { var el = $("#e-" + d.field); if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); } }
+        return;
+      }
+      if (d.warn) { ev.editing = d.item; m.textContent = "Saved. " + d.warn; m.classList.add("err"); }
+      else $("#evDlg").close();
+      if (ev.fromSub) { ev.fromSub = null; loadInbox(); overview(); }
+      loadEvents();
+    }).catch(function () {}).then(function () { $("#evSave").disabled = $("#evDraft").disabled = false; });
+  }
+  $("#evForm").addEventListener("submit", function (e) { e.preventDefault(); saveEvent(true); });
+  $("#evDraft").addEventListener("click", function () { saveEvent(false); });
+  $("#evDel").addEventListener("click", function () {
+    if (!ev.editing || !confirm("Delete this event for good?")) return;
+    api("event_delete", { body: { id: ev.editing.id } }).then(function () { $("#evDlg").close(); loadEvents(); }).catch(function () {});
+  });
+
+  // "5–8 PM" -> ["17:00", "20:00"]
+  function parseTimes(s) {
+    var re = /(\d{1,2})(?::(\d{2}))?\s*(a\.?m\.?|p\.?m\.?)?/gi, out = [], m;
+    while ((m = re.exec(s || "")) && out.length < 2) out.push({ h: +m[1], m: m[2] || "00", ap: m[3] ? m[3][0].toLowerCase() : "" });
+    if (!out.length) return ["", ""];
+    if (out[1] && !out[0].ap) out[0].ap = out[1].ap;
+    return out.map(function (t) { var h = t.h % 12 + (t.ap === "p" ? 12 : 0); if (!t.ap && t.h < 8) h += 12; return h > 23 ? "" : String(h).padStart(2, "0") + ":" + t.m; }).concat([""]).slice(0, 2);
+  }
+  window.__addFromSubmission = function (x) {
+    var d = x.data || {}, t = parseTimes(d.time);
+    openEvent(null, {
+      from_submission: x.id, title: d.title, date: d.date, start_time: t[0], end_time: t[1], venue: d.venue, town: d.town,
+      url: d.url, dog_rule: d.dog_rule, cost: d.cost, notes: d.details || "", source_name: d.url ? "Submitted by a reader" : "Reader submission", type: /adopt/i.test(d.title || "") ? "adopt" : "dog"
+    });
+  };
 
   api("me").then(function (d) { d.authed ? showApp() : showLogin(); }).catch(showLogin);
 })();

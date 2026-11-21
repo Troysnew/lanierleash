@@ -3,6 +3,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { siteUrl, etParts } from "./util.js";
+import { publishedEvents } from "./events.js";
 
 // ---------- CSV + dates (same rules as assets/data.js) ----------
 export function parseCSV(text) {
@@ -69,8 +70,9 @@ async function readData(name) {
 }
 
 export async function loadData(today) {
-  const [ev, pl] = await Promise.all([readData("events.csv"), readData("places.csv")]);
-  const events = parseCSV(ev).map((e) => {
+  // Events: the live calendar (falls back to the CSV). Places: the CSV.
+  const [ev, pl] = await Promise.all([publishedEvents(today), readData("places.csv")]);
+  const events = ev.events.map((e) => {
     e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
     e.multi = e.last !== e.date;
     e.id = slug(e.date + "-" + e.title);

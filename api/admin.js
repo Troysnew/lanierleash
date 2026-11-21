@@ -1,11 +1,17 @@
 // Everything the /admin/ page does. Log in once; a signed cookie keeps you in for 14 days.
 //   POST {action:"login", password} · POST {action:"logout"} · GET ?action=me
 //   GET  ?action=overview | submissions&status=&type= | subscribers[&format=csv] | sends | preview&type=&zip=&radius=
+//   GET  ?action=events&view=upcoming|suggested|past|hidden
+//   POST {action:"event_save", id?, ...fields, from_submission?} | {action:"event_status", id, status} | {action:"event_delete", id} | {action:"events_import"}
 //   POST {action:"update", id, status?, note?} | {action:"feature", id, on} | {action:"delete", id} | {action:"test_email", to, type, zip, radius}
 import {
   allSubscribers, recentSends, listSubmissions, submissionCounts, getSubmission, updateSubmission,
   deleteSubmission, deletePhoto, signPhotos,
+  listEvents, countEvents, insertEvents, getEvent, updateEvent, deleteEvent,
 } from "./_lib/db.js";
+import { cleanEvent, geocode, csvEvents } from "./_lib/events.js";
+import { miles } from "./_lib/content.js";
+import { etParts, DEFAULT_HOME } from "./_lib/util.js";
 import { send, message } from "./_lib/mail.js";
 import { SUBMIT_TYPES } from "./_lib/templates.js";
 import { buildPreview } from "./_lib/previewmail.js";
@@ -119,11 +125,63 @@ export default async function handler(req, res) {
         await send(message({ to, ...mail, subject: "[Test] " + mail.subject }));
         return json(res, 200, { ok: true, message: `Test sent to ${to}. Check Promotions or Spam if you don't see it.` });
       }
+      case "events": {
+        const today = etParts().date, view = q.view || "upcoming";
+        let rows;
+        if (view === "suggested") rows = await listEvents({ status: "draft" });
+        else if (view === "hidden") rows = await listEvents({ status: "hidden" });
+        else if (view === "past") rows = (await listEvents({ status: "published" })).filter((r) => (r.end_date || r.date) < today).reverse().slice(0, 100);
+        else rows = await listEvents({ status: "published", from: today });
+        const total = await countEvents();
+        return json(res, 200, { ok: true, empty: total === 0, items: rows.map((r) => ({ ...r, mi: r.lat != null ? Math.round(miles(DEFAULT_HOME, r.lat, r.lng) * 10) / 10 : null })) });
+      }
+      case "event_save": {
+        const c = cleanEvent(b);
+        if (!c.ok) return json(res, 400, c);
+        const ev = c.event;
+        const old = b.id ? await getEvent(String(b.id)) : null;
+        if (b.id && !old) return json(res, 404, { ok: false, error: "That event no longer exists." });
+        // Find coordinates when they're missing or the place changed.
+        const moved = !old || old.address !== ev.address || old.venue !== ev.venue || old.town !== ev.town;
+        let located = null;
+        if (ev.lat == null || ev.lng == null || moved) {
+          const hit = (ev.address || ev.venue || ev.town) ? await geocode(ev) : null;
+          if (hit) { ev.lat = hit.lat; ev.lng = hit.lng; located = hit.how; }
+          else if (moved) { ev.lat = null; ev.lng = null; }
+        }
+        let row;
+        if (old) row = await updateEvent(old.id, { ...ev, status: b.publish === false ? old.status : old.status === "draft" && b.publish ? "published" : old.status });
+        else row = (await insertEvents([{ ...ev, status: b.publish === false ? "draft" : "published", origin: b.from_submission ? "submission" : "manual" }]))[0];
+        if (b.from_submission) await updateSubmission(String(b.from_submission), { status: "done", reviewed_at: new Date().toISOString() }).catch(() => {});
+        const mi = row.lat != null ? Math.round(miles(DEFAULT_HOME, row.lat, row.lng) * 10) / 10 : null;
+        const warn = row.lat == null ? "We couldn't find this place on the map, so it won't show for distance searches or in the email. Add a street address and save again." :
+          located === "town" ? "We could only find the town, not the exact spot. Add a street address for an accurate distance." : "";
+        return json(res, 200, { ok: true, item: { ...row, mi }, warn });
+      }
+      case "event_status": {
+        if (!["published", "draft", "hidden"].includes(b.status)) return json(res, 400, { ok: false, error: "Bad status" });
+        const row = await updateEvent(String(b.id || ""), { status: b.status });
+        return row ? json(res, 200, { ok: true, item: row }) : json(res, 404, { ok: false, error: "Not found" });
+      }
+      case "event_delete": {
+        await deleteEvent(String(b.id || ""));
+        return json(res, 200, { ok: true });
+      }
+      case "events_import": {
+        if ((await countEvents()) > 0) return json(res, 400, { ok: false, error: "Events are already set up." });
+        const today = etParts().date;
+        const rows = (await csvEvents()).filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.title && (e.end_date || e.date) >= today).map((e) => {
+          const c = cleanEvent(e);
+          return c.ok ? { ...c.event, checked: e.checked || today, status: "published", origin: "starter" } : null;
+        }).filter(Boolean);
+        const out = rows.length ? await insertEvents(rows) : [];
+        return json(res, 200, { ok: true, count: out.length });
+      }
       default: return json(res, 400, { ok: false, error: "Unknown action" });
     }
   } catch (e) {
     log("admin failed", action, e.message);
-    const hint = /submissions/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
+    const hint = /(submissions|events)/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
       ? " The database needs the latest setup: run the newest part of schema.sql in Supabase." : "";
     return json(res, 500, { ok: false, error: "Something went wrong." + hint, detail: e.message.slice(0, 300) });
   }

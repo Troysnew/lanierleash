@@ -108,3 +108,32 @@ body.adm { background: #F3F6F8; }
   .sc-main dt { margin-top: 6px; }
   .bar .btn { margin-left: 0; }
 }
+
+/* events */
+.evt td { vertical-align: top; }
+.evt .nw { white-space: nowrap; }
+.evt small, .small { font-size: 12px; }
+.evt .ty { margin-left: 4px; vertical-align: 1px; }
+.acts2 { text-align: right; }
+.acts2 .btn { padding: 6px 12px; font-size: 13px; margin-left: 4px; }
+.sb-feed { background: var(--rd-soft); color: var(--rd); }
+#evSetup { background: var(--mint); color: var(--navy); font-weight: 500; margin-bottom: 14px; }
+.evdlg { border: 0; border-radius: 22px; padding: 0; width: min(680px, calc(100vw - 24px)); max-height: calc(100vh - 40px); box-shadow: var(--sh-lg); }
+.evdlg::backdrop { background: rgba(12,45,72,.45); }
+.evdlg form { padding: 22px 24px; }
+.evdlg .dh { display: flex; align-items: center; justify-content: space-between; }
+.evdlg h2 { font-size: 21px; margin: 0; }
+.evdlg .x { background: none; border: 0; font-size: 28px; line-height: 1; color: var(--muted); cursor: pointer; padding: 4px 8px; }
+.evdlg .fg { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+.evdlg .fg .full { grid-column: 1 / -1; }
+.evdlg .raw { margin-top: 12px; font-size: 13px; color: var(--muted); background: var(--bg); border-radius: 12px; padding: 10px 12px; white-space: pre-wrap; max-height: 140px; overflow: auto; }
+.evdlg .df { display: flex; gap: 8px; margin-top: 18px; align-items: center; flex-wrap: wrap; }
+.evdlg [aria-invalid="true"] { border-color: var(--coral-btn); box-shadow: 0 0 0 3px var(--coral-soft); }
+@media (max-width: 620px) {
+  .evdlg .fg { grid-template-columns: 1fr; }
+  .evt thead { display: none; }
+  .evt tr { display: grid; padding: 10px 0; border-bottom: 1px solid var(--line); }
+  .evt td { border: 0; padding: 3px 14px; }
+  .acts2 { text-align: left; }
+  .acts2 .btn { margin: 4px 4px 0 0; }
+}

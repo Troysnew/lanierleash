@@ -54,3 +54,28 @@ on conflict (id) do nothing;
 alter table public.submissions add column if not exists admin_note text;
 alter table public.submissions add column if not exists reviewed_at timestamptz;
 alter table public.submissions add column if not exists featured_at timestamptz;
+
+-- ---------- Events (added later; safe to run again) ----------
+-- The events calendar. "published" shows on the site and in the email; "draft" waits in the
+-- admin's Suggested list (from calendar feeds or submissions); "hidden" is kept but not shown.
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  status text not null default 'published' check (status in ('published', 'draft', 'hidden')),
+  date date not null,
+  end_date date,
+  start_time text,
+  end_time text,
+  title text not null,
+  type text not null default 'dog' check (type in ('dog', 'adopt', 'foster')),
+  venue text, town text, address text,
+  lat double precision, lng double precision,
+  cost text, dog_rule text, url text, source_name text, notes text,
+  checked date,
+  origin text not null default 'manual',      -- manual | starter | submission | feed
+  source_key text unique,                      -- feed item id, so the importer never adds a duplicate
+  feed_raw text,                               -- what the feed said, for review
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists events_date_idx on public.events (date);
+alter table public.events enable row level security;

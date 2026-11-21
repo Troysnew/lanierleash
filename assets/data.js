@@ -118,9 +118,16 @@
   function load() {
     if (cache) return cache;
     function get(u) { return fetch(u, { cache: "no-cache" }).then(function (r) { if (!r.ok) throw new Error(u + " " + r.status); return r.text(); }).then(parseCSV); }
-    cache = Promise.all([get("/data/events.csv"), get("/data/places.csv")]).then(function (res) {
+    // Events come from the live calendar (/api/events); the CSV is the fallback if that's unavailable.
+    function events() {
+      return fetch("/api/events").then(function (r) { if (!r.ok) throw new Error("api " + r.status); return r.json(); })
+        .then(function (d) { if (!d.ok || !d.events || !d.events.length) throw new Error("no api events"); return d.events; })
+        .catch(function () { return get("/data/events.csv"); });
+    }
+    cache = Promise.all([events(), get("/data/places.csv")]).then(function (res) {
       var t = todayISO();
       var events = res[0].filter(function (e) { return /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.title; }).map(function (e) {
+        ["end_date", "start_time", "end_time", "venue", "town", "address", "cost", "dog_rule", "url", "source_name", "notes", "checked"].forEach(function (k) { if (e[k] == null) e[k] = ""; });
         e.type = TYPE[e.type] ? e.type : "dog";
         e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
         e.multi = e.last !== e.date;

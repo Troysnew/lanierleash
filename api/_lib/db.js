@@ -172,3 +172,43 @@ export async function featuredPup() {
   const rows = await db("submissions?type=eq.pup&featured_at=not.is.null&select=data,photo_path,featured_at&order=featured_at.desc&limit=1");
   return rows[0] || null;
 }
+
+// ---------- events ----------
+export const EVENT_COLS = ["date", "end_date", "start_time", "end_time", "title", "type", "venue", "town", "address", "lat", "lng", "cost", "dog_rule", "url", "source_name", "notes", "checked"];
+
+export function listEvents({ status, from, to, limit = 500 } = {}) {
+  let q = `events?select=*&order=date.asc,start_time.asc&limit=${limit}`;
+  if (status && status !== "all") q += `&status=eq.${enc(status)}`;
+  if (from) q += `&or=(date.gte.${enc(from)},end_date.gte.${enc(from)})`;
+  if (to) q += `&date=lte.${enc(to)}`;
+  return db(q);
+}
+
+export async function countEvents() {
+  const rows = await db("events?select=id&limit=1");
+  return rows.length;
+}
+
+export async function insertEvents(rows) {
+  return db("events", { method: "POST", body: rows, prefer: "return=representation" });
+}
+
+// Feed imports: skip rows whose source_key already exists.
+export async function insertEventsIgnoreDupes(rows) {
+  if (!rows.length) return [];
+  return db("events?on_conflict=source_key", { method: "POST", body: rows, prefer: "return=representation,resolution=ignore-duplicates" });
+}
+
+export async function getEvent(id) {
+  const rows = await db(`events?id=eq.${enc(id)}&select=*&limit=1`);
+  return rows[0] || null;
+}
+
+export async function updateEvent(id, patch) {
+  const rows = await db(`events?id=eq.${enc(id)}`, { method: "PATCH", body: { ...patch, updated_at: new Date().toISOString() }, prefer: "return=representation" });
+  return rows[0];
+}
+
+export async function deleteEvent(id) {
+  await db(`events?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
+}
