@@ -139,16 +139,16 @@
   };
   // Keep in step with CATS in api/_lib/places.js. "group" powers the broader filters.
   var CAT = {
-    restaurant: { label: "Restaurants & patios", short: "Restaurant", icon: "i-dine", group: "food" },
-    brewery: { label: "Breweries & taprooms", short: "Brewery", icon: "i-brew", group: "food" },
-    winery: { label: "Wineries", short: "Winery", icon: "i-wine", group: "food" },
-    coffee: { label: "Coffee & cafes", short: "Coffee", icon: "i-coffee", group: "food" },
-    trail: { label: "Trails & greenways", short: "Trail", icon: "i-trail", group: "outdoors" },
-    park: { label: "Parks", short: "Park", icon: "i-park", group: "outdoors" },
-    dogpark: { label: "Dog parks", short: "Dog park", icon: "i-dogpark", group: "outdoors" },
-    lake: { label: "Lake access", short: "Lake", icon: "i-lake", group: "outdoors" },
-    shop: { label: "Pet stores & shops", short: "Shop", icon: "i-shop", group: "shops" },
-    stay: { label: "Hotels & stays", short: "Stay", icon: "i-stay", group: "stays" }
+    restaurant: { label: "Restaurants & patios", short: "Restaurant", icon: "i-dine", badge: "patio-dining", group: "food" },
+    brewery: { label: "Breweries & taprooms", short: "Brewery", icon: "i-brew", badge: "breweries", group: "food" },
+    winery: { label: "Wineries", short: "Winery", icon: "i-wine", badge: "wineries", group: "food" },
+    coffee: { label: "Coffee & cafes", short: "Coffee", icon: "i-coffee", badge: "coffee-and-cafes", group: "food" },
+    trail: { label: "Trails & greenways", short: "Trail", icon: "i-trail", badge: "parks-and-trails", group: "outdoors" },
+    park: { label: "Parks", short: "Park", icon: "i-park", badge: "parks", group: "outdoors" },
+    dogpark: { label: "Dog parks", short: "Dog park", icon: "i-dogpark", badge: "dog-parks", group: "outdoors" },
+    lake: { label: "Lake access", short: "Lake", icon: "i-lake", badge: "lake-activities", group: "outdoors" },
+    shop: { label: "Pet stores & shops", short: "Shop", icon: "i-shop", badge: "pet-friendly-shopping", group: "shops" },
+    stay: { label: "Hotels & stays", short: "Stay", icon: "i-stay", badge: "dog-friendly-lodging", group: "stays" }
   };
   var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
@@ -170,6 +170,20 @@
   }
   // Licensed real photos (Wikimedia Commons, public domain) by place id; filled from /assets/place-photos.js.
   var REAL = (typeof window !== "undefined" && window.LL_PHOTOS) || {};
+  // Ready-made share post for an event (the share panel adds the link). Same wording as the event page.
+  function sharePost(e) {
+    var D = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"], d = new Date(e.date + "T12:00:00");
+    var day = function (iso) { return D[new Date(iso + "T12:00:00").getDay()] + ", " + fmtShort(iso); };
+    var when = day(e.date) + (e.end_date && e.end_date > e.date ? " – " + day(e.end_date) : "") + (e.start_time ? " · " + timeRange(e) : "");
+    var where = [e.venue, e.town].filter(Boolean).join(", ");
+    return ["🐾 " + e.title, "📅 " + when, where && "📍 " + where, e.dog_rule && !/^no dog rule posted/i.test(e.dog_rule) && "🐕 " + e.dog_rule,
+      "Found on Lanier Leash, the free dog guide for Lake Lanier:"].filter(Boolean).join("\n");
+  }
+  function shareBtn(e, cls) {
+    return '<button class="' + (cls || "lnk") + '" type="button" data-share data-share-heading="Share this event" data-share-url="/events/' + e.id + '/" data-share-title="' + esc(e.title) + '" data-share-text="' + esc(sharePost(e)) + '">' + ic("u-share") + "Share</button>";
+  }
+  // Illustrated category badge (hexagon icon) as an <img>.
+  function catBadge(cat, px) { var c = CAT[cat] || CAT.park; return '<img class="cbadge" src="/img/icons/' + c.badge + (px > 48 ? "-192" : "-96") + '.webp" alt="" width="' + px + '" height="' + px + '">'; }
   function photoFor(p, i) { var x = REAL[p.id]; return x ? "/img/places/" + x.file : stockFor(p, i); }
   function photoCredit(p) { return REAL[p.id] || null; }
   // True when the picture is a generic tile or an AI illustration, not a real photo of the place.
@@ -278,7 +292,7 @@
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
-    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
+    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, catBadge: catBadge, sharePost: sharePost, shareBtn: shareBtn, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
     load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

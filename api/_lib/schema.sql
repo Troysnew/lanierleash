@@ -205,3 +205,24 @@ create table if not exists public.partner_events (
 );
 create index if not exists partner_events_day_idx on public.partner_events (day);
 alter table public.partner_events enable row level security;
+
+-- ---------- Dog of the Month (added later; safe to run again) ----------
+-- Pups are entered by putting the contest month ("2027-01") in submissions.data->>'dotm'.
+-- One vote per email per contest; it counts once the voter taps the link we email them (status confirmed).
+create table if not exists public.dotm_votes (
+  id uuid primary key default gen_random_uuid(),
+  contest text not null check (contest ~ '^\d{4}-\d{2}$'),
+  pup_id uuid not null,
+  email text not null check (email = lower(email)),
+  token text not null unique,
+  status text not null default 'pending' check (status in ('pending', 'confirmed')),
+  join_email boolean not null default false,
+  ip_hash text,
+  sent_at timestamptz,
+  created_at timestamptz not null default now(),
+  confirmed_at timestamptz,
+  unique (contest, email)
+);
+create index if not exists dotm_votes_contest_idx on public.dotm_votes (contest, status);
+create index if not exists dotm_votes_ip_idx on public.dotm_votes (ip_hash, created_at);
+alter table public.dotm_votes enable row level security;

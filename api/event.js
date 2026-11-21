@@ -2,7 +2,7 @@
 // <id> is slug(date + "-" + title), the same id the site and the email use.
 // ?format=ics returns a calendar file for the event.
 import { publishedEvents } from "./_lib/events.js";
-import { publishedPlaces, CATS } from "./_lib/places.js";
+import { publishedPlaces, CATS, catBadge } from "./_lib/places.js";
 import { slug, miles, fmtMi, timeRange, addDays } from "./_lib/content.js";
 import { esc } from "./_lib/templates.js";
 import { shell, sendHtml } from "./_lib/page.js";
@@ -18,6 +18,14 @@ const norm = (t) => slug(t).replace(/-(the|at|and)-/g, "-").replace(/^the-/, "")
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 
 export const eventId = (e) => slug(e.date + "-" + e.title);
+
+// The ready-made post for the share panel (the link is added after it).
+const NO_RULE = /^no dog rule posted/i;
+export function sharePost(e, when) {
+  const where = [e.venue, e.town].filter(Boolean).join(", ");
+  return [`🐾 ${e.title}`, `📅 ${when}${e.start_time ? " · " + timeRange(e) : ""}`, where && `📍 ${where}`,
+    e.dog_rule && !NO_RULE.test(e.dog_rule) && `🐕 ${e.dog_rule}`, "Found on Lanier Leash, the free dog guide for Lake Lanier:"].filter(Boolean).join("\n");
+}
 const lastDay = (e) => (e.end_date && e.end_date > e.date ? e.end_date : e.date);
 
 function icsText(s) { return String(s || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;"); }
@@ -100,8 +108,8 @@ export default async function handler(req, res) {
   const near = hasLL ? places.filter((p) => p.status !== "nodogs" && p.lat !== "" && (!place || p.id !== place.id))
     .map((p) => ({ ...p, mi: miles({ lat: +e.lat, lng: +e.lng }, p.lat, p.lng) })).filter((p) => p.mi != null && p.mi <= 5).sort((a, b) => a.mi - b.mi).slice(0, 4) : [];
   const sameVenue = e.venue ? events.filter((x) => x !== e && x.venue && norm(x.venue) === norm(e.venue) && lastDay(x) >= today).slice(0, 4) : [];
-  const evCard = (x) => `<a class="nearby" href="/events/${eventId(x)}/"><span class="cat">${ic("i-cal")}</span><span><b>${esc(x.title)}</b><small>${esc(longDate(x.date))} · ${esc(timeRange(x))}</small></span></a>`;
-  const plCard = (p) => `<a class="nearby" href="/places/${encodeURIComponent(p.id)}/"><span class="cat">${ic(ICON[p.category] || "i-park")}</span><span><b>${esc(p.name)}</b><small>${esc((CATS[p.category] || CATS.park).short)} · ${p.mi < 0.1 ? "steps away" : fmtMi(p.mi) + " away"}</small></span></a>`;
+  const evCard = (x) => `<a class="nearby" href="/events/${eventId(x)}/"><span class="cat cb"><img class="cbadge" src="/img/icons/events-calendar-96.webp" alt="" width="40" height="40"></span><span><b>${esc(x.title)}</b><small>${esc(longDate(x.date))} · ${esc(timeRange(x))}</small></span></a>`;
+  const plCard = (p) => `<a class="nearby" href="/places/${encodeURIComponent(p.id)}/"><span class="cat cb">${catBadge(p.category)}</span><span><b>${esc(p.name)}</b><small>${esc((CATS[p.category] || CATS.park).short)} · ${p.mi < 0.1 ? "steps away" : fmtMi(p.mi) + " away"}</small></span></a>`;
   const where = [e.venue, e.town].filter(Boolean).join(", ");
   const title = `${e.title} · ${when.replace(/^\w+, /, "")}${e.town ? " · " + e.town : ""} · Lanier Leash`;
   const venueInTitle = e.venue && e.title.toLowerCase().includes(e.venue.toLowerCase());
@@ -136,7 +144,7 @@ export default async function handler(req, res) {
       ${where ? `<a class="btn btn-coral" href="${esc(maps(e))}" target="_blank" rel="noopener">${ic("u-pin")}Directions</a>` : ""}
       <a class="btn btn-out" href="/events/${id}/?format=ics" download>${ic("i-cal")}Add to calendar</a>
       <a class="btn btn-out" href="${esc(gcal(e, id))}" target="_blank" rel="noopener">Google Calendar</a>
-      <button class="btn btn-out" type="button" id="share">${ic("u-arrow")}Share</button>
+      <button class="btn btn-out" type="button" data-share data-share-heading="Share this event" data-share-url="/events/${id}/" data-share-title="${esc(e.title)}" data-share-text="${esc(sharePost(e, when))}">${ic("u-share")}Share</button>
     </div>
     <p class="note">Plans change, so check the organizer's page before you go. <a href="${esc(fix)}">Something wrong?</a> Hosting a dog event? <a href="/submit/?type=event">Send it to us</a>.</p>
     ${place ? `<h2 class="h2s">About the venue</h2><div class="nearlist">${plCard({ ...place, mi: 0 }).replace(" · steps away", " · " + esc(place.town))}</div>` : ""}
@@ -149,13 +157,13 @@ export default async function handler(req, res) {
   </aside>
 </div></section>`;
 
-  const share = `<script>(function(){var b=document.getElementById("share");if(!b)return;b.addEventListener("click",function(){var u=location.href.split("?")[0],t=document.title;if(navigator.share){navigator.share({title:t,url:u}).catch(function(){});return}
-if(navigator.clipboard){navigator.clipboard.writeText(u).then(function(){b.lastChild.textContent="Link copied"}).catch(function(){prompt("Copy this link",u)})}else prompt("Copy this link",u)})})();</script>`;
+  const share = `<script src="/assets/share.js" defer></script>`;
   const map = hasLL ? `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>(function(){if(!window.L||!window.L.map)return;var ll=[${+e.lat},${+e.lng}];var m=window.L.map("map",{scrollWheelZoom:false}).setView(ll,14);
 window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(m);
 window.L.marker(ll,{icon:window.L.divIcon({className:"",html:'<div class="pin event"></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(m);})();</script>` : "";
-  const head = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`;
-  return sendHtml(res, 200, shell({ title, description, path: `/events/${id}/`, body, head, scripts: map + share, current: "events", noindex: past }), "public, s-maxage=300, stale-while-revalidate=3600");
+  const head = `<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">
+<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`;
+  return sendHtml(res, 200, shell({ title, description, path: `/events/${id}/`, body, head, scripts: map + share, current: "events", noindex: past, image: `/events/${id}/card.png` }), "public, s-maxage=300, stale-while-revalidate=3600");
 }

@@ -524,6 +524,7 @@
     return '<article class="sub-card st-' + x.status + '" data-id="' + x.id + '">' +
       '<div class="sc-head"><span class="ty ty-' + x.type + '">' + esc(x.typeLabel) + "</span>" +
       (x.featured_at ? '<span class="feat">★ Pup of the Week</span>' : "") +
+      (x.dotm && x.dotm.entered ? '<span class="feat">🏆 ' + (x.dotm.entered === x.dotm.open ? "Up for " : "Was up for ") + esc(x.dotm.enteredName) + '</span>' : x.dotm && x.dotm.wants ? '<span class="feat">Wants Dog of the Month</span>' : "") +
       '<span class="stt">' + STATUS_LABEL[x.status] + '</span><span class="when" title="' + esc(new Date(x.created_at).toLocaleString()) + '">' + when(x.created_at) + "</span></div>" +
       '<div class="sc-body">' + (x.photo ? '<a class="ph" href="' + esc(x.photo) + '" target="_blank" rel="noopener"><img src="' + esc(x.photo) + '" alt="Submitted photo of ' + esc(x.title) + '" loading="lazy"></a>' : "") +
       '<div class="sc-main"><h3>' + esc(x.title) + "</h3><dl>" +
@@ -536,6 +537,7 @@
       '<label class="nl">Private note<textarea data-note rows="2" placeholder="Only you see this">' + esc(x.note) + "</textarea></label>" +
       '<div class="acts">' +
       (x.type === "pup" && x.photo ? '<button class="btn btn-sm ' + (x.featured_at ? "btn-out" : "btn-coral") + '" data-act="feature">' + (x.featured_at ? "Remove from homepage" : "★ Feature as Pup of the Week") + "</button>" : "") +
+      (x.dotm && x.photo ? (x.dotm.entered === x.dotm.open ? '<button class="btn btn-sm btn-out" data-act="dotm-off">Remove from Dog of the Month</button>' : '<button class="btn btn-sm btn-out" data-act="dotm-on">🏆 Enter for ' + esc(x.dotm.openName) + ' Dog of the Month</button>') : "") +
       (x.type === "event" ? '<button class="btn btn-sm btn-coral" data-act="toevent">Add to events</button>' : "") +
       (x.type === "place" ? '<button class="btn btn-sm btn-coral" data-act="toplace">Add to places</button>' : "") +
       (x.status !== "approved" ? '<button class="btn btn-sm btn-out" data-act="approved">Approve</button>' : "") +
@@ -578,7 +580,7 @@
     }
     btn.disabled = true;
     var note = $("[data-note]", el).value;
-    var p = act === "feature" ? api("feature", { body: { id: id, on: !x.featured_at } }) : api("update", { body: { id: id, status: act, note: note } });
+    var p = act === "dotm-on" || act === "dotm-off" ? api("dotm", { body: { id: id, on: act === "dotm-on" } }) : act === "feature" ? api("feature", { body: { id: id, on: !x.featured_at } }) : api("update", { body: { id: id, status: act, note: note } });
     p.then(function (d) { if (!d.ok) { btn.disabled = false; return alert(d.error); } replaceItem(d.item); }).catch(function () {});
   });
   // Save notes when you click away.

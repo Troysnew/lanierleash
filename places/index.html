@@ -81,7 +81,7 @@
       <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
-    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/dog-of-the-month/">Dog of the Month</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
     <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/services/">Groomers &amp; trainers</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
@@ -142,7 +142,7 @@
     if (map && p.mi != null) links.push('<button class="lnk" type="button" data-sel="' + p.id + '">' + ic("u-radius") + "Show on map</button>");
     links.push('<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(p.name + (p.town ? ", " + p.town : "")) + '&amp;ref=place:' + encodeURIComponent(p.id) + '">Something wrong?</a>');
     return '<article class="pl' + (st.sel === p.id ? " on" : "") + '" id="' + p.id + '">' +
-      '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="cat">' + ic(c.icon) + "</span></div>" +
+      '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="cat cb">' + L.catBadge(p.category, 34) + "</span></div>" +
       '<div style="min-width:0"><div class="top"><h3><a href="/places/' + encodeURIComponent(p.id) + '/">' + esc(p.name) + '</a></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +
       '<p class="town"><button type="button" class="tl" data-cat="' + p.category + '" title="Show only ' + esc(c.label.toLowerCase()) + '">' + esc(c.short) + '</button> · <button type="button" class="tl" data-q="' + esc((p.town || "").split(" (")[0]) + '" title="Show places in ' + esc(p.town) + '">' + esc(p.town) + "</button></p>" +
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(p.dog_rule) + "</span></p>" +

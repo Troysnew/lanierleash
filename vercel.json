@@ -63,6 +63,34 @@
       "destination": "/api/event?feed=1"
     },
     {
+      "source": "/events/:id([a-z0-9-]+)/card.png",
+      "destination": "/api/og?event=:id"
+    },
+    {
+      "source": "/dog-of-the-month",
+      "destination": "/api/dotm?view=1"
+    },
+    {
+      "source": "/dog-of-the-month/",
+      "destination": "/api/dotm?view=1"
+    },
+    {
+      "source": "/dog-of-the-month/:id([a-z0-9-]+)/card.png",
+      "destination": "/api/og?pup=:id"
+    },
+    {
+      "source": "/dog-of-the-month/:id([a-z0-9-]+)/photo",
+      "destination": "/api/dotm?photo=:id"
+    },
+    {
+      "source": "/dog-of-the-month/:id([a-z0-9-]+)",
+      "destination": "/api/dotm?page=:id"
+    },
+    {
+      "source": "/dog-of-the-month/:id([a-z0-9-]+)/",
+      "destination": "/api/dotm?page=:id"
+    },
+    {
       "source": "/events/:id([a-z0-9-]+)",
       "destination": "/api/event?id=:id"
     },

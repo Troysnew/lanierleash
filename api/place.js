@@ -1,6 +1,6 @@
 // GET /places/<id>/ (rewritten to /api/place?id=<id>): one page per place, built on the server so
 // search engines can read it. Shows the dog rule, where it came from, a map and nearby places.
-import { publishedPlaces, CATS } from "./_lib/places.js";
+import { publishedPlaces, CATS, catBadge } from "./_lib/places.js";
 import { miles, fmtMi } from "./_lib/content.js";
 import { esc } from "./_lib/templates.js";
 import { shell, sendHtml } from "./_lib/page.js";
@@ -49,7 +49,7 @@ export default async function handler(req, res) {
     .map((x) => ({ ...x, mi: miles({ lat: +p.lat, lng: +p.lng }, x.lat, x.lng) })).filter((x) => x.mi != null && x.mi <= 15).sort((a, z) => a.mi - z.mi) : [];
   const sameKind = near.filter((x) => x.category === p.category).slice(0, 4);
   const other = near.filter((x) => x.category !== p.category && !sameKind.includes(x)).slice(0, 4);
-  const nearCard = (x) => `<a class="nearby" href="/places/${encodeURIComponent(x.id)}/"><span class="cat">${ic(ICON[x.category] || "i-park")}</span><span><b>${esc(x.name)}</b><small>${esc((CATS[x.category] || CATS.park).short)} · ${esc(x.town)} · ${x.mi < 0.1 ? "next door" : fmtMi(x.mi) + " away"}</small></span></a>`;
+  const nearCard = (x) => `<a class="nearby" href="/places/${encodeURIComponent(x.id)}/"><span class="cat cb">${catBadge(x.category)}</span><span><b>${esc(x.name)}</b><small>${esc((CATS[x.category] || CATS.park).short)} · ${esc(x.town)} · ${x.mi < 0.1 ? "next door" : fmtMi(x.mi) + " away"}</small></span></a>`;
 
   const isNo = p.status === "nodogs";
   const title = isNo ? `${p.name}, ${p.town}: are dogs allowed? · Lanier Leash` : `${p.name}, ${p.town}: dog rules · Lanier Leash`;

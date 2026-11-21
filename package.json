@@ -2,5 +2,10 @@
   "name": "lanierleash",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@vercel/og": "0.8.5"
+  }
 }

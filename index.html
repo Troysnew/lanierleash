@@ -121,7 +121,7 @@
         <article class="card c-pup photo-card" id="community">
           <img id="pupImg" src="/img/dalmatian.jpg" alt="A dalmatian smiling by the lake at sunset">
           <a class="btn btn-sm cta glass" style="color:var(--navy)" href="/submit/?type=pup"><svg class="ic" style="color:var(--coral-btn)"><use href="#u-camera"/></svg>Send your pup</a>
-          <div class="cap"><span class="k" id="pupK">Pup of the Week</span><b id="pupB">Your pup could be first</b><span id="pupS">Send a photo and a line about your dog. We pick one each week for the Thursday email.</span><a class="packlnk" id="pupL" href="/submit/?type=pup">Send yours for next week →</a></div>
+          <div class="cap"><span class="k" id="pupK">Pup of the Week</span><b id="pupB">Your pup could be first</b><span id="pupS">Send a photo and a line about your dog. We pick one each week for the Thursday email.</span><a class="packlnk" id="pupL" href="/submit/?type=pup">Send yours for next week →</a><a class="packlnk dotml" id="dotmL" href="/dog-of-the-month/">🏆 Vote for Dog of the Month →</a></div>
         </article>
 
         <article class="card c-issue">
@@ -223,7 +223,7 @@
       <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
-    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/dog-of-the-month/">Dog of the Month</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
     <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/services/">Groomers &amp; trainers</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
@@ -238,10 +238,10 @@
   var EVENTS = [], PLACES = [];
   var CATS = [
     { id: "all", label: "Everything", icon: "i-park", badge: "lanier-leash-emblem" },
-    { id: "food", label: "Food & drink", icon: "i-brew", badge: "patio-dining" },
+    { id: "food", label: "Food & drink", icon: "i-brew", badge: "food-and-drink" },
     { id: "trail", label: "Parks & trails", icon: "i-trail", badge: "parks-and-trails" },
     { id: "lake", label: "Lake access", icon: "i-lake", badge: "lake-activities" },
-    { id: "dogpark", label: "Dog parks", icon: "i-dogpark" },
+    { id: "dogpark", label: "Dog parks", icon: "i-dogpark", badge: "dog-parks" },
     { id: "events", label: "Events", icon: "i-cal", badge: "events-calendar" }
   ];
   var st = { r: L.radius, cat: "all", zip: L.home.zip };
@@ -293,7 +293,7 @@
     var list = PLACES.filter(function (p) { return inR(p) && catOk(p, cat); }).sort(function (a, b) { return a.mi - b.mi; }).slice(0, 12);
     $("#track").innerHTML = list.length ? list.map(function (p, i) {
       var b = L.BADGE[p.status];
-      return '<article class="pc" style="position:relative"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat">' + ic(L.CAT[p.category].icon) + '</span></div>' +
+      return '<article class="pc" style="position:relative"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat cb">' + L.catBadge(p.category, 44) + '</span></div>' +
         '<div class="bd"><h3><a class="stretch" href="/places/' + p.id + '/" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a></h3><p class="town">' + esc(p.town) + '</p><p class="rule">' + ic("u-leash") + '<span>' + esc(p.dog_rule) + '</span></p>' +
         '<div class="st"><span class="badge ' + b.cls + '">' + ic(b.icon) + b.label + '</span><span class="chk">' + esc(L.fmtChecked(p.checked).replace(/, \d{4}$/, "")) + '</span></div></div></article>';
     }).join("") : '<p class="empty">' + (PLACES.length ? 'Nothing in this category within ' + st.r + ' miles yet. <a href="/places/">See all places</a>.' : 'Loading places…') + '</p>';
@@ -574,6 +574,8 @@
 
 
 <script>
+/* Dog of the Month: voting this month picks next month's dog. */
+(function () { var M = ["January","February","March","April","May","June","July","August","September","October","November","December"], d = new Date(), el = document.getElementById("dotmL"); if (el) el.textContent = "🏆 Vote for " + M[(d.getMonth() + 1) % 12] + "'s Dog of the Month →"; })();
 /* Pup of the Week: picked in /admin/. Until one is picked, the card invites readers to send theirs. */
 (function () {
   fetch("/api/pup").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {

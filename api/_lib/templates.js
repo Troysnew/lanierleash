@@ -206,6 +206,7 @@ export const SUBMIT_TYPES = {
     { name: "owner", label: "Your first name", max: 60 },
     { name: "birthday", label: "Birthday", kind: "date" },
     { name: "consent", label: "Photo permission", kind: "check", required: true },
+    { name: "dotm_opt", label: "Enter Dog of the Month", kind: "check" },
   ] },
   event: { label: "Event suggestion", fields: [
     { name: "title", label: "Event name", required: true, max: 150 },
@@ -271,7 +272,7 @@ export function reviewEmail(row, photoUrl) {
 export function thanksEmail(row) {
   const d = row.data || {}, s = siteUrl();
   const what = {
-    pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.`],
+    pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.` + (d.dotm_opt ? ` You also entered Dog of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/dog-of-the-month/">lanierleash.com/dog-of-the-month</a> with a page you can share to get votes.` : "")],
     event: ["Thanks for the event tip!", "We'll check the details and add it to the events page if it's a fit. Dog rules change, so we confirm with the host or the event page first."],
     place: ["Thanks for the place tip!", "We'll check the dog rule and add it to the places page if it's a fit."],
     fix: ["Thanks for the fix!", "We'll check it and update the listing. Corrections like this keep the guide honest."],
@@ -279,5 +280,5 @@ export function thanksEmail(row) {
     sponsor: ["Thanks for your interest in sponsoring", "We'll reply within a few days with open dates and details."],
   }[row.type];
   const body = h2(what[0]) + p(what[1]) + p(`Reply to this email if you want to add anything.`) + button(s + "/events/", "See what's on this weekend");
-  return { subject: what[0].replace(/<[^>]+>/g, "").replace(/&#39;/g, "'").replace(/&amp;/g, "&"), html: layout({ preheader: what[1].replace(/<[^>]+>/g, ""), body }), text: `${what[0]}\n\n${what[1]}\n\nReply to this email if you want to add anything.\n\n${s}` };
+  return { subject: what[0].replace(/<[^>]+>/g, "").replace(/&#39;/g, "'").replace(/&amp;/g, "&"), html: layout({ preheader: what[1].replace(/<[^>]+>/g, ""), body }), text: `${what[0]}\n\n${what[1].replace(/<[^>]+>/g, "")}\n\nReply to this email if you want to add anything.\n\n${s}` };
 }
