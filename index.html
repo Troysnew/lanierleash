@@ -237,12 +237,12 @@
   var L = window.LL;
   var EVENTS = [], PLACES = [];
   var CATS = [
-    { id: "all", label: "Everything", icon: "i-park" },
-    { id: "food", label: "Food & drink", icon: "i-brew" },
-    { id: "trail", label: "Parks & trails", icon: "i-trail" },
-    { id: "lake", label: "Lake access", icon: "i-lake" },
+    { id: "all", label: "Everything", icon: "i-park", badge: "lanier-leash-emblem" },
+    { id: "food", label: "Food & drink", icon: "i-brew", badge: "patio-dining" },
+    { id: "trail", label: "Parks & trails", icon: "i-trail", badge: "parks-and-trails" },
+    { id: "lake", label: "Lake access", icon: "i-lake", badge: "lake-activities" },
     { id: "dogpark", label: "Dog parks", icon: "i-dogpark" },
-    { id: "events", label: "Events", icon: "i-cal" }
+    { id: "events", label: "Events", icon: "i-cal", badge: "events-calendar" }
   ];
   var st = { r: L.radius, cat: "all", zip: L.home.zip };
 
@@ -260,7 +260,7 @@
   function renderTiles() {
     $("#tiles").innerHTML = CATS.map(function (c) {
       var n = c.id === "events" ? L.groupRepeats(upcoming(30)).length : PLACES.filter(function (p) { return inR(p) && catOk(p, c.id); }).length;
-      return '<button class="tile" type="button" data-c="' + c.id + '" aria-pressed="' + (st.cat === c.id) + '"><span class="tb">' + ic(c.icon) + '</span><span>' + c.label + '<small>' + n + (c.id === "events" ? " coming up" : n === 1 ? " spot" : " spots") + '</small></span></button>';
+      return '<button class="tile" type="button" data-c="' + c.id + '" aria-pressed="' + (st.cat === c.id) + '">' + (c.badge ? '<span class="tb badge"><img src="/img/icons/' + c.badge + '-192.webp" alt="" width="72" height="72"></span>' : '<span class="tb">' + ic(c.icon) + '</span>') + '<span>' + c.label + '<small>' + n + (c.id === "events" ? " coming up" : n === 1 ? " spot" : " spots") + '</small></span></button>';
     }).join("");
   }
   function renderEvents() {
