@@ -60,7 +60,7 @@
   <section class="blk" style="padding-top:8px">
     <div class="wrap">
       <div class="evpage" id="list"><p class="loading">Loading events…</p></div>
-      <p class="note">Each event links to the page where we found it. Details change, so check the organizer's page before you go. Distances are straight-line miles from your ZIP. Events that run for several days are listed once, under the day they start.</p>
+      <p class="note"><b>Know an event we missed?</b> <a href="/submit/?type=event">Send it to us</a>. Each event links to the page where we found it. Details change, so check the organizer's page before you go. Distances are straight-line miles from your ZIP. Events that run for several days are listed once, under the day they start.</p>
     </div>
   </section>
 </main>
@@ -73,7 +73,7 @@
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
     <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li><li><a href="/submit/?type=pup">Send your pup</a></li><li><a href="/submit/?type=place">Suggest a spot</a></li><li><a href="/submit/?type=fix">Fix a listing</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
   <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Listings link to their sources. Check with the organizer before you go.</div>
@@ -112,7 +112,8 @@
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(e.dog_rule || "Dog rule not stated, check with the host") + "</span></p>" +
       (e.notes ? '<p class="src">' + esc(e.notes) + "</p>" : "") +
       '<div class="acts">' + (e.url ? '<a class="lnk" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Event page</a>" : "") +
-      '<button class="lnk" type="button" data-ics="' + e.id + '">' + ic("i-cal") + "Add to calendar</button></div>" +
+      '<button class="lnk" type="button" data-ics="' + e.id + '">' + ic("i-cal") + "Add to calendar</button>" +
+      '<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(e.title + " (" + L.fmtShort(e.date) + ")") + '&amp;ref=event:' + encodeURIComponent(e.id) + '">Something wrong?</a></div>' +
       (e.source_name ? '<p class="src">Found on ' + esc(e.source_name) + (e.checked ? " · " + esc(L.fmtChecked(e.checked)) : "") + "</p>" : "") +
       "</div>" +
       '<div class="side">' + (e.mi != null ? '<span class="mi">' + L.fmtMi(e.mi) + "</span>" : "") + '<span class="tag ' + T.cls + '">' + T.label + "</span></div></article>";

@@ -147,3 +147,80 @@ export function weeklyEmail(sub, issue) {
     text: t.join("\n") + textFooter(sub.token),
   };
 }
+
+// ---------- submissions ----------
+// One list of fields per form; /api/submit validates against it and the review email prints it.
+export const SUBMIT_TYPES = {
+  pup: { label: "Pup of the Week", emailRequired: true, fields: [
+    { name: "dog_name", label: "Dog's name", required: true, max: 60 },
+    { name: "age", label: "Age", max: 30 },
+    { name: "town", label: "Town", required: true, max: 60 },
+    { name: "story", label: "One line about your pup", required: true, max: 200 },
+    { name: "owner", label: "Your first name", max: 60 },
+    { name: "consent", label: "Photo permission", kind: "check", required: true },
+  ] },
+  event: { label: "Event suggestion", fields: [
+    { name: "title", label: "Event name", required: true, max: 150 },
+    { name: "date", label: "Date", kind: "date", required: true },
+    { name: "time", label: "Time", max: 60 },
+    { name: "venue", label: "Where", required: true, max: 150 },
+    { name: "town", label: "Town", required: true, max: 60 },
+    { name: "url", label: "Event link", kind: "url", max: 500 },
+    { name: "dog_rule", label: "Dog rule", max: 300 },
+    { name: "cost", label: "Cost", max: 60 },
+    { name: "details", label: "Anything else", max: 800 },
+  ] },
+  place: { label: "Place suggestion", fields: [
+    { name: "name", label: "Place name", required: true, max: 150 },
+    { name: "town", label: "Town", required: true, max: 60 },
+    { name: "category", label: "Type", max: 30 },
+    { name: "url", label: "Website or source", kind: "url", max: 500 },
+    { name: "dog_rule", label: "Dog rule", required: true, max: 300 },
+    { name: "details", label: "Anything else", max: 800 },
+  ] },
+  fix: { label: "Listing fix", fields: [
+    { name: "listing", label: "Which listing", required: true, max: 200 },
+    { name: "ref", label: "Listing id", max: 200 },
+    { name: "problem", label: "What's wrong", required: true, max: 800 },
+    { name: "source", label: "Where you saw it", kind: "url", max: 500 },
+  ] },
+  claim: { label: "Business claim", emailRequired: true, fields: [
+    { name: "business", label: "Business name", required: true, max: 150 },
+    { name: "contact_name", label: "Your name", required: true, max: 80 },
+    { name: "role", label: "Your role", max: 80 },
+    { name: "phone", label: "Phone", max: 40 },
+    { name: "website", label: "Website", kind: "url", max: 500 },
+    { name: "dog_rule", label: "Your dog rule", required: true, max: 400 },
+    { name: "details", label: "Anything else", max: 800 },
+  ] },
+};
+
+export function reviewEmail(row, photoUrl) {
+  const spec = SUBMIT_TYPES[row.type], d = row.data || {};
+  const rows = spec.fields.filter((f) => d[f.name] !== undefined && f.name !== "ref").map((f) =>
+    `<tr><td style="padding:7px 12px 7px 0;font:700 13px ${FONT};color:${C.muted};vertical-align:top;white-space:nowrap">${esc(f.label)}</td>` +
+    `<td style="padding:7px 0;font:14px/1.5 ${FONT};color:${C.slate}">${f.kind === "check" ? "Yes" : f.kind === "url" ? `<a href="${esc(d[f.name])}" style="color:${C.teal}">${esc(d[f.name])}</a>` : esc(d[f.name]).replace(/\n/g, "<br>")}</td></tr>`).join("");
+  const title = d.dog_name || d.title || d.name || d.listing || d.business || "New submission";
+  const body = `<div style="font:700 12px ${FONT};color:${C.coral};text-transform:uppercase;letter-spacing:.05em">New ${esc(spec.label.toLowerCase())}</div>` +
+    `<h1 style="margin:6px 0 16px;font:800 24px/1.2 ${FONT};color:${C.navy}">${esc(title)}</h1>` +
+    (photoUrl ? `<p style="margin:0 0 16px"><a href="${esc(photoUrl)}"><img src="${esc(photoUrl)}" width="360" alt="Submitted photo" style="display:block;max-width:100%;height:auto;border-radius:14px;border:0"></a></p>` : "") +
+    `<table role="presentation" cellspacing="0" cellpadding="0" border="0">${rows}` +
+    `<tr><td style="padding:7px 12px 7px 0;font:700 13px ${FONT};color:${C.muted}">From</td><td style="padding:7px 0;font:14px ${FONT};color:${C.slate}">${row.email ? esc(row.email) : "No email left"}</td></tr></table>` +
+    p(`${row.email ? "Hit Reply to answer them directly. " : ""}${d.ref ? "Listing id: " + esc(d.ref) + ". " : ""}All submissions are in Supabase → Table Editor → submissions.`, `margin-top:18px;color:${C.muted};font-size:13px`) +
+    (photoUrl ? p("The photo link works for 7 days. The original is in Supabase → Storage → submissions.", `color:${C.muted};font-size:13px`) : "");
+  const text = [`New ${spec.label.toLowerCase()}: ${title}`, ""].concat(spec.fields.filter((f) => d[f.name] !== undefined).map((f) => `${f.label}: ${f.kind === "check" ? "Yes" : d[f.name]}`), [`From: ${row.email || "no email"}`, photoUrl ? "Photo: " + photoUrl : ""]).join("\n");
+  return { subject: `[Lanier Leash] ${spec.label}: ${title}`.slice(0, 140), html: layout({ preheader: `New ${spec.label.toLowerCase()} from the site`, body }), text };
+}
+
+export function thanksEmail(row) {
+  const d = row.data || {}, s = siteUrl();
+  const what = {
+    pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.`],
+    event: ["Thanks for the event tip!", "We'll check the details and add it to the events page if it's a fit. Dog rules change, so we confirm with the host or the event page first."],
+    place: ["Thanks for the place tip!", "We'll check the dog rule and add it to the places page if it's a fit."],
+    fix: ["Thanks for the fix!", "We'll check it and update the listing. Corrections like this keep the guide honest."],
+    claim: ["Thanks, we got your listing request", "We'll reply within a few days to confirm your details. Once confirmed, your listing gets the green Venue confirmed badge."],
+  }[row.type];
+  const body = h2(what[0]) + p(what[1]) + p(`Reply to this email if you want to add anything.`) + button(s + "/events/", "See what's on this weekend");
+  return { subject: what[0].replace(/<[^>]+>/g, "").replace(/&#39;/g, "'").replace(/&amp;/g, "&"), html: layout({ preheader: what[1].replace(/<[^>]+>/g, ""), body }), text: `${what[0]}\n\n${what[1]}\n\nReply to this email if you want to add anything.\n\n${s}` };
+}

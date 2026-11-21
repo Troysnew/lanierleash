@@ -513,3 +513,35 @@ button:disabled { opacity: .6; cursor: progress; }
 .acct .prose h2 { font-size: 20px; margin: 28px 0 8px; }
 .acct .prose p, .acct .prose li { color: var(--slate); }
 @media (max-width: 520px) { .acct .row2 { grid-template-columns: 1fr; } .acct .card { padding: 24px 18px; } }
+
+/* ---------- submit page ---------- */
+.acct-wide { max-width: 760px; }
+.sub h2 { font-size: 22px; margin: 26px 0 4px; }
+.tchips { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 4px; }
+.tchip input { position: absolute; opacity: 0; pointer-events: none; }
+.tchip span { display: inline-flex; align-items: center; gap: 7px; padding: 9px 15px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); font-weight: 700; font-size: 14px; color: var(--slate); cursor: pointer; transition: background .15s, border-color .15s; }
+.tchip span .ic { width: 17px; height: 17px; color: var(--teal); }
+.tchip span:hover { border-color: var(--teal); }
+.tchip input:checked + span { background: var(--navy); border-color: var(--navy); color: #fff; }
+.tchip input:checked + span .ic { color: var(--aqua); }
+.tchip input:focus-visible + span { outline: 3px solid var(--aqua); outline-offset: 2px; }
+.sub fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.sub .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.sub .grid .full { grid-column: 1 / -1; }
+.sub .grid small { display: block; color: var(--muted); font-size: 12.5px; margin-top: 5px; }
+.sub textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 12px 14px; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); resize: vertical; min-height: 84px; }
+.sub [aria-invalid="true"] { border-color: var(--coral-btn); box-shadow: 0 0 0 3px var(--coral-soft); }
+.sub .req { color: var(--coral-btn); }
+.sub .chk { display: flex; gap: 10px; align-items: flex-start; font-weight: 500; color: var(--slate); font-size: 14px; line-height: 1.5; cursor: pointer; }
+.sub .chk input { width: 18px; height: 18px; margin: 2px 0 0; flex: none; accent-color: var(--teal); }
+.drop { display: block; position: relative; border: 2px dashed var(--mint-2); border-radius: 18px; background: var(--mint); cursor: pointer; overflow: hidden; margin: 0 !important; transition: border-color .15s; }
+.drop:hover { border-color: var(--teal); }
+.drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.dropin { display: grid; justify-items: center; gap: 4px; padding: 26px 16px; text-align: center; color: var(--muted); font-weight: 500; font-size: 14px; }
+.dropin .ic { width: 30px; height: 30px; color: var(--teal); }
+.dropin b { color: var(--navy); font-size: 16px; }
+.drop img { display: block; width: 100%; max-height: 360px; object-fit: cover; }
+.drop.has { border-style: solid; border-color: var(--teal); }
+#done h2 { margin-top: 18px; }
+@media (max-width: 560px) { .sub .grid { grid-template-columns: 1fr; } .tchip span { padding: 8px 12px; font-size: 13px; } }
+.lnk.fixl { color: var(--muted); font-weight: 600; margin-left: auto; font-size: 13px; }

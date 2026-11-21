@@ -30,3 +30,22 @@ create table if not exists public.sends (
 -- Only the server (service-role key) can read or write. No public policies on purpose.
 alter table public.subscribers enable row level security;
 alter table public.sends enable row level security;
+
+-- ---------- Submissions (added later; safe to run again) ----------
+-- Pup photos, event and place suggestions, listing fixes, business claims. Reviewed by hand.
+create table if not exists public.submissions (
+  id uuid primary key default gen_random_uuid(),
+  type text not null check (type in ('pup', 'event', 'place', 'fix', 'claim')),
+  status text not null default 'new' check (status in ('new', 'approved', 'rejected', 'done')),
+  email text,
+  data jsonb not null default '{}'::jsonb,
+  photo_path text,
+  ip_hash text,
+  created_at timestamptz not null default now()
+);
+create index if not exists submissions_created_idx on public.submissions (created_at desc);
+alter table public.submissions enable row level security;
+
+-- Private bucket for pup photos (only the server can read or write).
+insert into storage.buckets (id, name, public) values ('submissions', 'submissions', false)
+on conflict (id) do nothing;

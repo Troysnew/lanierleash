@@ -66,7 +66,7 @@
     <div class="wrap">
       <div class="sh"><div><span class="eyebrow">How we check</span><h2>What the badges mean</h2></div><p>Dog rules change. Every place shows where its rule came from and the date we last looked, so you can judge for yourself.</p></div>
       <div class="trust trust5" id="badges"></div>
-      <p class="note">Distances are straight-line miles from your ZIP, not driving distance. Photos on this page are illustrations, not pictures of the places. Lake Lanier parks are run by the U.S. Army Corps of Engineers and counties; swim beaches often have different pet rules than the rest of the park.</p>
+      <p class="note"><b>Know a spot we missed?</b> <a href="/submit/?type=place">Suggest a place</a>. Distances are straight-line miles from your ZIP, not driving distance. Photos on this page are illustrations, not pictures of the places. Lake Lanier parks are run by the U.S. Army Corps of Engineers and counties; swim beaches often have different pet rules than the rest of the park.</p>
     </div>
   </section>
 </main>
@@ -79,7 +79,7 @@
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
     <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li><li><a href="/submit/?type=pup">Send your pup</a></li><li><a href="/submit/?type=place">Suggest a spot</a></li><li><a href="/submit/?type=fix">Fix a listing</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
   <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Map data © OpenStreetMap contributors. Rules change, so check before you go.</div>
@@ -126,6 +126,7 @@
     if (p.source_url) links.push('<a class="lnk" href="' + esc(p.source_url) + '" target="_blank" rel="noopener">' + ic("u-check") + "Source" + "</a>");
     if (p.website && p.website !== p.source_url) links.push('<a class="lnk" href="' + esc(p.website) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Website</a>");
     links.push('<a class="lnk" href="' + esc(L.mapsLink(p)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>");
+    links.push('<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(p.name + (p.town ? ", " + p.town : "")) + '&amp;ref=place:' + encodeURIComponent(p.id) + '">Something wrong?</a>');
     return '<article class="pl' + (st.sel === p.id ? " on" : "") + '" id="' + p.id + '">' +
       '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="cat">' + ic(c.icon) + "</span></div>" +
       '<div style="min-width:0"><div class="top"><h3><button type="button" data-sel="' + p.id + '">' + esc(p.name) + '</button></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +

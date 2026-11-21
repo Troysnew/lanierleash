@@ -68,3 +68,40 @@ export async function claimWeek(week, subject) {
 export async function finishWeek(week, patch) {
   await db(`sends?week=eq.${enc(week)}`, { method: "PATCH", body: patch, prefer: "return=minimal" });
 }
+
+// ---------- submissions + photo storage ----------
+function storageHeaders(extra) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const h = { apikey: key, ...extra };
+  if (key.startsWith("eyJ")) h.Authorization = "Bearer " + key;
+  return h;
+}
+
+export async function insertSubmission(row) {
+  const rows = await db("submissions", { method: "POST", body: row, prefer: "return=representation" });
+  return rows[0];
+}
+
+export async function recentSubmissions(ipHash, sinceIso) {
+  return db(`submissions?ip_hash=eq.${enc(ipHash)}&created_at=gte.${enc(sinceIso)}&select=id`);
+}
+
+export async function uploadPhoto(path, buf, contentType) {
+  const r = await fetch(base().replace("/rest/v1/", "/storage/v1/") + "object/submissions/" + path, {
+    method: "POST", headers: storageHeaders({ "Content-Type": contentType, "x-upsert": "false" }), body: buf,
+  });
+  if (!r.ok) throw new Error(`storage upload ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  return path;
+}
+
+// A link to a private photo that works for 7 days (for the review email).
+export async function signedPhotoUrl(path) {
+  const root = base().replace("/rest/v1/", "/storage/v1");
+  const r = await fetch(root + "/object/sign/submissions/" + path, {
+    method: "POST", headers: storageHeaders({ "Content-Type": "application/json" }), body: JSON.stringify({ expiresIn: 7 * 24 * 3600 }),
+  });
+  if (!r.ok) return null;
+  const j = await r.json();
+  const u = j.signedURL || j.signedUrl;
+  return u ? root + (u.startsWith("/") ? u : "/" + u) : null;
+}
