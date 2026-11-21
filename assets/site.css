@@ -329,9 +329,9 @@ section.blk { padding-block: 72px 0; }
 
 /* trust row */
 .trust { margin-top: 26px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.tr { display: flex; gap: 14px; align-items: flex-start; background: var(--white); border: 1px solid var(--line); border-radius: 22px; padding: 18px; }
+.tr { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 16px 18px; }
 .tr .badge { flex: none; }
-.tr p { font-size: 14px; color: var(--muted); }
+.tr p { font-size: 14.5px; line-height: 1.5; color: var(--muted); margin: 0; }
 @media (max-width: 860px) { .trust { grid-template-columns: 1fr; } }
 
 /* adventure banner */
