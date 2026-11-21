@@ -293,7 +293,7 @@
     var list = PLACES.filter(function (p) { return inR(p) && catOk(p, cat); }).sort(function (a, b) { return a.mi - b.mi; }).slice(0, 12);
     $("#track").innerHTML = list.length ? list.map(function (p, i) {
       var b = L.BADGE[p.status];
-      return '<article class="pc" style="position:relative"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat">' + ic(L.CAT[p.category].icon) + '</span></div>' +
+      return '<article class="pc" style="position:relative"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat">' + ic(L.CAT[p.category].icon) + '</span></div>' +
         '<div class="bd"><h3><a class="stretch" href="/places/' + p.id + '/" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a></h3><p class="town">' + esc(p.town) + '</p><p class="rule">' + ic("u-leash") + '<span>' + esc(p.dog_rule) + '</span></p>' +
         '<div class="st"><span class="badge ' + b.cls + '">' + ic(b.icon) + b.label + '</span><span class="chk">' + esc(L.fmtChecked(p.checked).replace(/, \d{4}$/, "")) + '</span></div></div></article>';
     }).join("") : '<p class="empty">' + (PLACES.length ? 'Nothing in this category within ' + st.r + ' miles yet. <a href="/places/">See all places</a>.' : 'Loading places…') + '</p>';

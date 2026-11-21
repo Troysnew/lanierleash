@@ -172,6 +172,9 @@
   var REAL = (typeof window !== "undefined" && window.LL_PHOTOS) || {};
   function photoFor(p, i) { var x = REAL[p.id]; return x ? "/img/places/" + x.file : stockFor(p, i); }
   function photoCredit(p) { return REAL[p.id] || null; }
+  // True when the picture is a generic tile or an AI illustration, not a real photo of the place.
+  function isGeneric(p) { var x = REAL[p.id]; return !x || !!x.illustration; }
+  function genTag(p) { return isGeneric(p) ? '<span class="gen" title="Illustration, not a photo of this place">Illustration</span>' : ""; }
 
   // ---------- loading ----------
   var cache = null;
@@ -275,7 +278,7 @@
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
-    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, photoCredit: photoCredit,
+    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
     load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

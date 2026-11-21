@@ -142,7 +142,7 @@
     if (map && p.mi != null) links.push('<button class="lnk" type="button" data-sel="' + p.id + '">' + ic("u-radius") + "Show on map</button>");
     links.push('<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(p.name + (p.town ? ", " + p.town : "")) + '&amp;ref=place:' + encodeURIComponent(p.id) + '">Something wrong?</a>');
     return '<article class="pl' + (st.sel === p.id ? " on" : "") + '" id="' + p.id + '">' +
-      '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="cat">' + ic(c.icon) + "</span></div>" +
+      '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="cat">' + ic(c.icon) + "</span></div>" +
       '<div style="min-width:0"><div class="top"><h3><a href="/places/' + encodeURIComponent(p.id) + '/">' + esc(p.name) + '</a></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +
       '<p class="town"><button type="button" class="tl" data-cat="' + p.category + '" title="Show only ' + esc(c.label.toLowerCase()) + '">' + esc(c.short) + '</button> · <button type="button" class="tl" data-q="' + esc((p.town || "").split(" (")[0]) + '" title="Show places in ' + esc(p.town) + '">' + esc(p.town) + "</button></p>" +
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(p.dog_rule) + "</span></p>" +
