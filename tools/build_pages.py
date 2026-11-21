@@ -85,20 +85,26 @@ def tel(p):
     return f'<a href="tel:+1{d[-10:]}">{esc(p)}</a>' if len(d) >= 10 else esc(p)
 
 
-def org_card(r, extra=""):
+def org_id(r):
+    return "vet-" + re.sub(r"[^a-z0-9]+", "-", r["name"].lower().replace("&", "and")).strip("-")[:80]
+
+
+def org_card(r, extra="", fb=False):
     bits = []
     if r.get("address"): bits.append(f'<p class="addr">{ic("u-pin")}<a href="https://www.google.com/maps/search/?api=1&amp;query={esc(r["name"] + ", " + r["address"])}" target="_blank" rel="noopener">{esc(r["address"])}</a></p>')
     if r.get("phone"): bits.append(f'<p class="addr">{ic("u-phone")}{tel(r["phone"])}</p>')
     links = []
     if r.get("website"): links.append(f'<a class="lnk" href="{esc(r["website"])}" target="_blank" rel="noopener">{ic("u-arrow")}Website</a>')
     if r.get("events_url"): links.append(f'<a class="lnk" href="{esc(r["events_url"])}" target="_blank" rel="noopener">{ic("i-cal")}Adoption events</a>')
+    if fb and r.get("address"): links.append(f'<a class="lnk" href="https://www.google.com/maps/search/?api=1&amp;query={esc(r["name"] + ", " + r["address"])}" target="_blank" rel="noopener">{ic("u-arrow")}Google reviews</a>')
     if r.get("source_url") and r.get("source_url") != r.get("website"): links.append(f'<a class="lnk" href="{esc(r["source_url"])}" target="_blank" rel="noopener">{ic("u-check")}Source</a>')
     name = f'<a href="{esc(r["website"])}" target="_blank" rel="noopener">{esc(r["name"])}</a>' if r.get("website") else esc(r["name"])
     tags = " ".join(x for x, on in (("adopt", r.get("adopt") == "yes"), ("foster", r.get("foster") == "yes")) if on)
     ll = f' data-lat="{r["lat"]}" data-lng="{r["lng"]}"' if r.get("lat") and r.get("lng") else ""
     town = "By phone, 24/7" if r.get("kind") == "poison line" else esc(r.get("town")) if ll else "Statewide" if r.get("town") == "Statewide" else (esc(r.get("town")) + " · serves the whole area" if r.get("town") else "Serves the whole area")
-    return (f'<article class="org" data-tags="{tags}"{ll}><div class="top"><h3>{name}</h3><span class="town">{town}<b class="dist"></b></span></div>'
-            f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}<div class="acts">{"".join(links)}</div></article>')
+    fbattr = f' data-fb="{org_id(r)}"' if fb else ""
+    return (f'<article class="org" data-tags="{tags}"{ll}{fbattr}><div class="top"><h3>{name}</h3><span class="town">{town}<b class="dist"></b></span></div>'
+            f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}{'<div class="ofb" hidden></div>' if fb else ""}<div class="acts">{"".join(links)}</div></article>')
 
 
 ADOPT_JS = """<script>(function(){function show(v){document.querySelectorAll(".org").forEach(function(o){o.hidden=!!v&&(" "+o.dataset.tags+" ").indexOf(" "+v+" ")<0});
@@ -165,7 +171,7 @@ def emergency_section():
         facts = [("Hours", r.get("hours"))]
         dl = '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in facts if v) + "</dl>"
         call = f'<p class="ercall"><a class="btn btn-coral btn-sm" href="tel:{esc(re.sub(r"[^0-9+]", "", r["phone"]))}">Call {esc(r["phone"])}</a></p>' if r.get("phone") else ""
-        return org_card(dict(r, phone="") if call else r, dl + call)
+        return org_card(dict(r, phone="") if call else r, dl + call, fb=r["kind"] != "poison line")
     er = [r for r in rows if r["kind"] == "24/7 emergency"]
     ah = [r for r in rows if r["kind"].startswith("after-hours")]
     po = [r for r in rows if r["kind"] == "poison line"]
@@ -175,6 +181,17 @@ def emergency_section():
             f'<h3 class="h3s">After hours and urgent care</h3><p class="fine">Evenings, weekends and holidays. Urgent care clinics send life-threatening cases to a 24/7 hospital.</p><div class="orgs">{"".join(card(r) for r in ah)}</div>'
             f'<h3 class="h3s">Pet poison lines</h3><p class="fine">Open 24/7, with a consultation fee. Have the package or plant name ready.</p><div class="orgs">{"".join(card(r) for r in po)}</div>'
             f'</div></section>')
+
+
+# Clinics people visit get thumbs + preset tags; pantries and bill-help programs don't.
+FB_KINDS = {"low-cost vet", "spay/neuter clinic", "vaccine clinic"}
+
+
+def vet_ids():
+    """Every vet card with feedback, so /api/feedback accepts only these ids."""
+    ids = [org_id(r) for r in csv.DictReader(open(ROOT / "data/vetcare.csv", encoding="utf-8")) if r["kind"] in FB_KINDS]
+    ids += [org_id(r) for r in csv.DictReader(open(ROOT / "data/emergency_vets.csv", encoding="utf-8")) if r["kind"] != "poison line"]
+    return sorted(set(ids))
 
 
 def vetcare():
@@ -188,12 +205,12 @@ def vetcare():
         def extra(r):
             dl = [(lbl, r.get(f)) for lbl, f in (("Services", "services"), ("Cost", "cost_note"), ("Who can use it", "eligibility")) if r.get(f)]
             return '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in dl) + "</dl>" if dl else ""
-        out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(org_card(r, extra(r)) for r in g)}</div></div></section>')
+        out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(org_card(r, extra(r), fb=k in FB_KINDS) for r in g)}</div></div></section>')
     body = hero("Low-cost vet care", "Affordable vet care near Lake Lanier",
                 "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + emergency_section() + '<section class="blk ptsec"><div class="wrap"><div class="ptwrap" id="partners" hidden></div></div></section>' + "".join(out) + \
         f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Prices are from each clinic\'s own price list and change often, so confirm when you book. For an emergency, call your vet or one of the <a href="#emergency">emergency hospitals above</a> right away.</p></div></section>'
     return shell("/vet-care/", "Low-cost vet care, spay and neuter near Cumming, GA · Lanier Leash",
-                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS + partner_js(["vet"]))
+                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS + partner_js(["vet"]) + '<script src="/assets/orgfeedback.js" defer></script>')
 
 
 def rel_links(slug):
@@ -220,31 +237,9 @@ def tips():
 
 
 def pack():
-    body = hero("The pack", "Meet the Lake Lanier pack",
-                'Local pups sent in by their people. Every week one becomes Pup of the Week on the homepage and in the email. <a href="/submit/?type=pup">Add your pup</a>.') + \
-        """<section class="blk" style="padding-top:20px"><div class="wrap">
-  <div class="bday" id="bday" hidden></div>
-  <div class="packgrid" id="pack"><p class="loading">Loading the pack…</p></div>
-  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Add your pup to the pack</b><p>Send a photo, a name and one line about them. Add a birthday and we'll give them a shout-out that week.</p><a class="btn btn-coral" href="/submit/?type=pup">""" + ic("u-camera") + """Send your pup</a></div>
-</div></section>"""
-    script = """<script>
-(function () {
-  var esc = window.LL.esc;
-  fetch("/api/pack").then(function (r) { return r.json(); }).then(function (d) {
-    var g = document.getElementById("pack");
-    if (d.birthdays && d.birthdays.length) {
-      var b = document.getElementById("bday"); b.hidden = false;
-      b.innerHTML = "<b>🎂 Pack birthdays this week</b> " + d.birthdays.map(function (x) { return esc(x.name) + (x.town ? " of " + esc(x.town) : "") + " <small>(" + esc(x.day) + ")</small>"; }).join(" · ");
-    }
-    if (!d.pups || !d.pups.length) { g.innerHTML = '<p class="empty">The pack is just getting started. <a href="/submit/?type=pup">Be the first to send your pup</a>.</p>'; return; }
-    g.innerHTML = d.pups.map(function (p) {
-      return '<figure class="pup">' + '<img src="' + esc(p.photo) + '" alt="' + esc(p.name) + (p.town ? ' from ' + esc(p.town) : '') + '" loading="lazy">' +
-        (p.featured ? '<span class="pow">★ Pup of the Week</span>' : '') +
-        '<figcaption><b>' + esc(p.name) + (p.age ? ', ' + esc(p.age) : '') + '</b><span>' + esc([p.town, p.owner ? 'with ' + p.owner : ''].filter(Boolean).join(' · ')) + '</span>' + (p.story ? '<em>' + esc(p.story) + '</em>' : '') + '</figcaption></figure>';
-    }).join("");
-  }).catch(function () { document.getElementById("pack").innerHTML = '<p class="empty">We couldn’t load the pack right now. Try again in a minute.</p>'; });
-})();
-</script>"""
+    # Riley is always in the pack; the hero links Dog of the Month.
+    body = '<section class="page-hero"><div class="wrap"><span class="eyebrow">The pack</span><h1>Meet the Lake Lanier pack</h1><p class="lede">Local pups sent in by their people. Every week one becomes Pup of the Week on the homepage and in the email, and every month readers vote for <a href="/dog-of-the-month/">Dog of the Month</a>. <a href="/submit/?type=pup">Add your pup</a>.</p></div></section><section class="blk" style="padding-top:20px"><div class="wrap">\n  <div class="bday" id="bday" hidden></div>\n  <div class="packgrid" id="pack"><p class="loading">Loading the pack…</p></div>\n  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Add your pup to the pack</b><p>Send a photo, a name and one line about them. Add a birthday and we\'ll give them a shout-out that week.</p><a class="btn btn-coral" href="/submit/?type=pup"><svg class="ic" aria-hidden="true"><use href="#u-camera"/></svg>Send your pup</a></div>\n</div></section>'
+    script = '<script>\n(function () {\n  var esc = window.LL.esc;\n  fetch("/api/pack").then(function (r) { return r.json(); }).then(function (d) {\n    var g = document.getElementById("pack");\n    if (d.birthdays && d.birthdays.length) {\n      var b = document.getElementById("bday"); b.hidden = false;\n      b.innerHTML = "<b>🎂 Pack birthdays this week</b> " + d.birthdays.map(function (x) { return esc(x.name) + (x.town ? " of " + esc(x.town) : "") + " <small>(" + esc(x.day) + ")</small>"; }).join(" · ");\n    }\n    // Riley (our co-founder) is always in the pack, so it\'s never empty.\n    var riley = { name: "Riley", town: "Cumming", owner: "Troy", photo: "/img/hero.jpg", story: "Co-founder. Works for pizza crust.", founder: true };\n    var pups = (d.pups || []).concat([riley]);\n    g.innerHTML = pups.map(function (p) {\n      return \'<figure class="pup">\' + \'<img src="\' + esc(p.photo) + \'" alt="\' + esc(p.name) + (p.town ? \' from \' + esc(p.town) : \'\') + \'" loading="lazy">\' +\n        (p.featured ? \'<span class="pow">★ Pup of the Week</span>\' : p.founder ? \'<span class="pow">Co-founder</span>\' : \'\') +\n        \'<figcaption><b>\' + esc(p.name) + (p.age ? \', \' + esc(p.age) : \'\') + \'</b><span>\' + esc([p.town, p.owner ? \'with \' + p.owner : \'\'].filter(Boolean).join(\' · \')) + \'</span>\' + (p.story ? \'<em>\' + esc(p.story) + \'</em>\' : \'\') + \'</figcaption></figure>\';\n    }).join("") + (pups.length === 1 ? \'<a class="pup pupnext" href="/submit/?type=pup"><b>Your pup next?</b><span>Riley is lonely. Send a photo and a line about your dog.</span></a>\' : \'\');\n  }).catch(function () { document.getElementById("pack").innerHTML = \'<p class="empty">We couldn’t load the pack right now. Try again in a minute.</p>\'; });\n})();\n</script>'
     return shell("/pack/", "The pack: local dogs of Lake Lanier · Lanier Leash", "Photos of local pups from around Cumming and Lake Lanier, sent in by their people. Add yours.", body, script)
 
 
@@ -387,6 +382,8 @@ if __name__ == "__main__":
         s = f.read_text(encoding="utf-8")
         n = re.sub(r"<footer>.*?</footer>", lambda m: FOOTER, s, count=1, flags=re.S)
         if n != s: f.write_text(n, encoding="utf-8"); print("footer", f.parent.name)
+    (ROOT / "data/vet-ids.json").write_text(json.dumps(vet_ids()), encoding="utf-8")
+    print("vet ids", len(vet_ids()))
     f = ROOT / "index.html"; s = f.read_text(encoding="utf-8")
     n = re.sub(r"<footer>.*?</footer>", lambda m: FOOTER, s, count=1, flags=re.S)
     if n != s: f.write_text(n, encoding="utf-8"); print("footer home")

@@ -272,6 +272,9 @@ export function approvedPups(limit = 120) {
 export function feedbackFor(placeId) {
   return db(`place_feedback?place_id=eq.${enc(placeId)}&select=vote,tags,voter&limit=5000`);
 }
+export function feedbackForMany(ids) {
+  return db(`place_feedback?place_id=in.(${ids.map(enc).join(",")})&select=place_id,vote,tags,voter&limit=20000`);
+}
 export function recentFeedbackBy(voter, sinceIso) {
   return db(`place_feedback?voter=eq.${enc(voter)}&updated_at=gte.${enc(sinceIso)}&select=place_id`);
 }

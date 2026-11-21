@@ -23,8 +23,31 @@ export const TAGS = {
     { id: "dirty", label: "Messy or poorly kept" },
   ],
 };
-export const TAG_LABEL = Object.fromEntries([...TAGS.up, ...TAGS.down].map((t) => [t.id, t.label]));
-export const FLAG_TAGS = new Set(TAGS.down.filter((t) => t.flag).map((t) => t.id));
+// Vets and clinics (ids start with "vet-"): about the visit, not the dog rule.
+export const VET_TAGS = {
+  up: [
+    { id: "kind", label: "Kind, caring staff" },
+    { id: "gentle", label: "Gentle with nervous dogs" },
+    { id: "explained", label: "Explained everything" },
+    { id: "fair", label: "Fair prices" },
+    { id: "asquoted", label: "Price matched the quote" },
+    { id: "appt", label: "Easy to get an appointment" },
+    { id: "fast", label: "Short wait" },
+    { id: "clean", label: "Clean clinic" },
+  ],
+  down: [
+    { id: "pricier", label: "Prices higher than listed", flag: true },
+    { id: "closed", label: "Closed or moved", flag: true },
+    { id: "nonew", label: "Not taking new patients", flag: true },
+    { id: "wait", label: "Long wait" },
+    { id: "phone", label: "Hard to reach by phone" },
+    { id: "rushed", label: "Felt rushed" },
+    { id: "fees", label: "Surprise fees" },
+  ],
+};
+export const tagsFor = (id) => (String(id).startsWith("vet-") ? VET_TAGS : TAGS);
+export const TAG_LABEL = Object.fromEntries([...TAGS.up, ...TAGS.down, ...VET_TAGS.up, ...VET_TAGS.down].map((t) => [t.id, t.label]));
+export const FLAG_TAGS = new Set([...TAGS.down, ...VET_TAGS.down].filter((t) => t.flag).map((t) => t.id));
 
 // Same privacy-safe visitor id the submit form uses: a salted hash of the IP, never the IP itself.
 export function voterHash(req) {
@@ -33,10 +56,10 @@ export function voterHash(req) {
 }
 
 // vote: 1, -1, or 0 (take my vote back). Tags must match the vote's side.
-export function cleanFeedback(input) {
+export function cleanFeedback(input, T = TAGS) {
   const vote = [1, -1, 0].includes(+input.vote) ? +input.vote : null;
   if (vote === null) return { ok: false, error: "Pick thumbs up or down." };
-  const allowed = new Set((vote === 1 ? TAGS.up : vote === -1 ? TAGS.down : []).map((t) => t.id));
+  const allowed = new Set((vote === 1 ? T.up : vote === -1 ? T.down : []).map((t) => t.id));
   const tags = [...new Set((Array.isArray(input.tags) ? input.tags : []).map(String))].filter((t) => allowed.has(t)).slice(0, 8);
   return { ok: true, vote, tags };
 }

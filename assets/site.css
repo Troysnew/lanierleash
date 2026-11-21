@@ -988,3 +988,20 @@ a.chip b { color: var(--muted); font-weight: 700; }
 @media (max-width: 760px) { .dentry { grid-template-columns: 1fr; gap: 18px; } .dentry .dbig { aspect-ratio: 1; } .dwin { grid-template-columns: 1fr; text-align: left; } .dwin img { width: 100%; height: auto; aspect-ratio: 4 / 3; } }
 .sharegrid .sb { line-height: 1; }
 .sharegrid .sb.fb { font-size: 22px; align-items: end; padding-top: 6px; box-sizing: border-box; overflow: hidden; }
+
+/* Thumbs + preset tags on vet cards */
+.ofb { display: grid; gap: 8px; padding: 10px 12px; border-radius: 14px; background: #F3F6F8; }
+.ofbrow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.ofbq { font-size: 13.5px; font-weight: 700; color: var(--navy); margin-right: auto; }
+.oth { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; color: var(--slate, #334155); font: inherit; font-size: 14px; font-weight: 700; cursor: pointer; }
+.oth .ic { font-size: 16px; } .oth.down .ic { transform: scaleY(-1); }
+.oth.up:hover, .oth.up[aria-pressed="true"] { border-color: var(--teal); background: var(--mint); color: var(--navy); }
+.oth.down:hover, .oth.down[aria-pressed="true"] { border-color: #E2A33B; background: #fff4e0; color: #8a5300; }
+.ofb .said { display: flex; flex-wrap: wrap; gap: 6px; }
+.ofb .said span { font-size: 12.5px; padding: 4px 9px; border-radius: 999px; font-weight: 600; }
+.ofb .said .good { background: var(--mint); color: var(--navy); } .ofb .said .bad { background: #fff4e0; color: #8a5300; }
+.ofbtags p { margin: 0 0 6px; font-size: 13px; color: var(--muted); }
+.ofbtags .chips { margin-top: 0; gap: 6px; }
+.ofbtags .chip { padding: 6px 11px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--slate, #334155); }
+.ofbtags .chip[aria-pressed="true"] { border-color: var(--teal); background: var(--mint); color: var(--navy); }
+.ofbmsg { margin: 0; font-size: 12.5px; color: var(--muted); } .ofbmsg:empty { display: none; }
