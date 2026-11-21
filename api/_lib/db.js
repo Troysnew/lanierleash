@@ -317,3 +317,29 @@ export function logLostMsg(row) { return db("lost_found_msgs", { method: "POST",
 export function recentLostMsgs(col, val, sinceIso) {
   return db(`lost_found_msgs?${col}=eq.${enc(val)}&created_at=gte.${enc(sinceIso)}&select=id`);
 }
+
+// ---------- Featured partners ----------
+export function listPartners() { return db("partners?select=*&order=created_at.desc&limit=500"); }
+export async function getPartner(id) {
+  const rows = await db(`partners?id=eq.${enc(id)}&select=*&limit=1`);
+  return rows[0] || null;
+}
+export async function insertPartner(row) {
+  const rows = await db("partners", { method: "POST", body: row, prefer: "return=representation" });
+  return rows[0];
+}
+export async function updatePartner(id, patch) {
+  const rows = await db(`partners?id=eq.${enc(id)}`, { method: "PATCH", body: { ...patch, updated_at: new Date().toISOString() }, prefer: "return=representation" });
+  return rows[0];
+}
+export async function deletePartner(id) {
+  await db(`partner_events?partner_id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+  await db(`partners?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
+}
+// One row per visitor, partner, kind and day (the unique key drops repeats), so counts are people, not reloads.
+export function logPartnerEvent(row) {
+  return db("partner_events?on_conflict=partner_id,kind,day,visitor", { method: "POST", body: [row], prefer: "return=minimal,resolution=ignore-duplicates" });
+}
+export function partnerEventsSince(dayIso) {
+  return pageAll(`partner_events?day=gte.${enc(dayIso)}&select=partner_id,kind,day&order=day.desc`);
+}

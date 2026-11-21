@@ -103,6 +103,16 @@ function placeRow(pl, s) {
     `<div style="color:${C.muted}">${esc(pl.town)} · ${fmtMi(pl.mi)} · <span style="color:${conf ? C.ok : C.warn};font-weight:700">${conf ? "Official rule" : "Unconfirmed, call ahead"}</span></div>` +
     (pl.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(pl.dog_rule)}</div>` : "") + `</td></tr>`;
 }
+function partnerRow(x, s) {
+  const url = `${s}/partners/${esc(x.id)}/`;
+  return `<tr><td width="76" valign="top" style="padding:12px 12px 12px 0;border-top:1px solid ${C.line}">` +
+    (x.photos && x.photos[0] ? `<a href="${url}"><img src="${s}${esc(x.photos[0])}" width="64" height="64" alt="" style="display:block;width:64px;height:64px;object-fit:cover;border-radius:12px;border:0"></a>` : "") +
+    `</td><td valign="top" style="padding:12px 0;border-top:1px solid ${C.line};font:14px/1.5 ${FONT};color:${C.slate}">` +
+    `<a href="${url}" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(x.name)}</a>` +
+    `<div style="color:${C.muted}">${esc(x.catLabel)}${x.town ? " · " + esc(x.town) : ""}${x.mi != null ? " · " + fmtMi(x.mi) : ""}</div>` +
+    (x.tagline ? `<div>${esc(x.tagline)}</div>` : "") +
+    (x.offer ? `<div style="margin-top:3px;font-weight:700;color:${C.coral}">🎁 ${esc(x.offer)}</div>` : "") + `</td></tr>`;
+}
 function lostRow(x, s) {
   const url = `${s}/lost-found/${esc(x.id)}/`;
   return `<tr><td width="76" valign="top" style="padding:12px 12px 12px 0;border-top:1px solid ${C.line}">` +
@@ -151,6 +161,8 @@ export function weeklyEmail(sub, issue) {
   if (issue.ongoing.length) body += h2("Ongoing") + table(issue.ongoing.map((e) => eventRow(e, s)).join(""));
   if (issue.later.length) body += h2("Coming up") + table(issue.later.map((e) => eventRow(e, s)).join(""));
   if (issue.sponsor) body += sponsorBlock(issue.sponsor);
+  if (issue.partners && issue.partners.length) body += `<div style="margin-top:28px;font:800 11px ${FONT};color:${C.warn};text-transform:uppercase;letter-spacing:.08em">Sponsored</div>` + h2("From our featured partners").replace("margin:28px 0 10px", "margin:4px 0 10px") + table(issue.partners.map((x) => partnerRow(x, s)).join("")) +
+    p(`Featured partners pay to appear here. It never changes a dog rule or a badge. <a href="${s}/advertise/#partners" style="color:${C.teal}">How it works</a>.`, `font-size:12px;color:${C.muted};margin-top:8px`);
   if (issue.lost && issue.lost.length) body += h2("Help bring them home") + p(`Missing near you. Seen one? Tap to message the owner.`, `margin:0 0 4px`) + table(issue.lost.map((x) => lostRow(x, s)).join("")) +
     p(`<a href="${s}/lost-found/" style="color:${C.teal}">See the lost &amp; found board</a> or post a pet free.`, `font-size:13px;margin-top:8px`);
   if (issue.places.length) body += h2("Places to try") + table(issue.places.map((pl) => placeRow(pl, s)).join(""));
@@ -165,6 +177,7 @@ export function weeklyEmail(sub, issue) {
   tl("This weekend", issue.events); tl("Ongoing", issue.ongoing); tl("Coming up", issue.later);
   if (issue.sponsor) t.push(`SPONSORED BY ${issue.sponsor.name.toUpperCase()}: ${issue.sponsor.text}${issue.sponsor.url ? " " + issue.sponsor.url : ""}`, "");
   if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");
+  if (issue.partners && issue.partners.length) { t.push("FROM OUR FEATURED PARTNERS (SPONSORED)"); issue.partners.forEach((x) => t.push(`- ${x.name}, ${x.catLabel}${x.town ? ", " + x.town : ""}${x.offer ? ". " + x.offer : ""}\n  ${s}/partners/${x.id}/`)); t.push(""); }
   if (issue.lost && issue.lost.length) { t.push("HELP BRING THEM HOME"); issue.lost.forEach((x) => t.push(`- ${x.headline} (${x.looks}), last seen near ${x.last_seen}, ${x.town}\n  ${s}/lost-found/${x.id}/`)); t.push(""); }
   if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)}): ${pl.dog_rule}\n  ${s}/places/${pl.id}/`)); }
 

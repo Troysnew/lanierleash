@@ -170,3 +170,38 @@ create table if not exists public.lost_found_msgs (
 );
 create index if not exists lost_found_msgs_ip_idx on public.lost_found_msgs (ip_hash, created_at);
 alter table public.lost_found_msgs enable row level security;
+
+-- ---------- Featured partners (added later; safe to run again) ----------
+-- Paid monthly listings: a labeled "Sponsored" card on the matching page plus the partner's own page.
+-- Running = status 'active' and today between starts_on and ends_on (ends_on blank = no end date).
+create table if not exists public.partners (
+  id text primary key,                          -- used in the page address: /partners/<id>/
+  status text not null default 'active' check (status in ('active', 'paused')),
+  name text not null,
+  category text not null,
+  tagline text, about text, services text,
+  address text, town text, lat double precision, lng double precision,
+  phone text, website text, booking_url text, hours_text text, offer text,
+  photos text[] not null default '{}',          -- private storage paths, served through /partners/<id>/photo/<n>
+  place_id text,                                -- their listing in the places directory, if any
+  email_mention boolean not null default true,  -- featured in the first Thursday email of each month
+  starts_on date not null, ends_on date,
+  contact_email text, notes text,               -- private: for the monthly report and your billing notes
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.partners enable row level security;
+
+-- Page views and taps for the monthly report. "visitor" is a scrambled code that changes every day,
+-- so one person counts once per day and can't be followed from day to day.
+create table if not exists public.partner_events (
+  id uuid primary key default gen_random_uuid(),
+  partner_id text not null,
+  kind text not null,
+  day date not null,
+  visitor text not null,
+  created_at timestamptz not null default now(),
+  unique (partner_id, kind, day, visitor)
+);
+create index if not exists partner_events_day_idx on public.partner_events (day);
+alter table public.partner_events enable row level security;

@@ -21,7 +21,7 @@ FOOTER = """<footer>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
     <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/services/">Groomers &amp; trainers</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
   <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
@@ -129,6 +129,12 @@ document.querySelectorAll(".orglist, .orgs").forEach(function(g){var c=[].slice.
 run();document.addEventListener("ll:home",run);})();</script>"""
 
 
+def partner_js(cats, max_n=2):
+    return f'''<script src="/assets/partners.js"></script>
+<script>(function(){{var el=document.getElementById("partners");function go(){{window.LLPartners&&window.LLPartners.render(el,{json.dumps(cats)},{{max:{max_n}}}).then(function(n){{var e=document.getElementById("ptEmpty");if(e)e.hidden=n>0;}});}}go();document.addEventListener("ll:home",go);}})();</script>'''
+PARTNER_JS = True
+
+
 def adopt():
     rows = list(csv.DictReader(open(ROOT / "data/rescues.csv", encoding="utf-8")))
     groups = [("county shelter", "County shelters", "Open-admission shelters run by the counties. Low fees, lots of dogs, and they need fosters."),
@@ -184,10 +190,10 @@ def vetcare():
             return '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in dl) + "</dl>" if dl else ""
         out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(org_card(r, extra(r)) for r in g)}</div></div></section>')
     body = hero("Low-cost vet care", "Affordable vet care near Lake Lanier",
-                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + emergency_section() + "".join(out) + \
+                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + emergency_section() + '<section class="blk ptsec"><div class="wrap"><div class="ptwrap" id="partners" hidden></div></div></section>' + "".join(out) + \
         f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Prices are from each clinic\'s own price list and change often, so confirm when you book. For an emergency, call your vet or one of the <a href="#emergency">emergency hospitals above</a> right away.</p></div></section>'
     return shell("/vet-care/", "Low-cost vet care, spay and neuter near Cumming, GA · Lanier Leash",
-                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS)
+                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS + partner_js(["vet"]))
 
 
 def rel_links(slug):
@@ -260,6 +266,30 @@ def about():
     return shell("/about/", "About Lanier Leash", "Lanier Leash is a free, independent guide to dog-friendly events and places around Cumming, Lake Lanier and north metro Atlanta.", body)
 
 
+def services():
+    body = hero("Dog services", "Groomers, trainers and daycare near Lake Lanier",
+                "Local businesses that look after dogs around Cumming, Gainesville and north metro Atlanta. Looking for a vet? See <a href='/vet-care/'>vet care</a>, with <a href='/vet-care/#emergency'>emergency vets</a> first.") + \
+        """<section class="blk" style="padding-top:20px"><div class="wrap">
+  <div class="ptwrap" id="partners" hidden></div>
+  <div class="empty" id="ptEmpty" style="text-align:left;max-width:680px">We're building this page now. Know a great groomer, trainer or daycare near the lake? <a href="/submit/?type=place&amp;category=other">Tell us about them</a>.</div>
+  <div class="lfhelp" style="margin-top:30px">
+    <div><h2 class="h2s">Choosing a groomer or daycare</h2><ul class="ticks">
+      <li>Ask to see where dogs wait and play. Clean, cool and supervised is what you want.</li>
+      <li>Ask which vaccines they require. Good places ask for rabies, DHPP and Bordetella.</li>
+      <li>For daycare, ask about a trial day and how they group dogs by size and energy.</li>
+    </ul></div>
+    <div><h2 class="h2s">Choosing a trainer</h2><ul class="ticks">
+      <li>Look for reward-based methods. Ask how they handle a dog who gets it wrong.</li>
+      <li>Certifications like CPDT-KA mean they passed an independent exam.</li>
+      <li>Watch a class first if you can. Dogs and people should both look relaxed.</li>
+    </ul></div>
+  </div>
+  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Run a dog business near the lake?</b><p>Featured partners get their own page here and a spot in the Thursday email.</p><a class="btn btn-coral" href="/advertise/#partners">""" + ic("u-heart") + """Become a partner</a></div>
+</div></section>"""
+    return shell("/services/", "Dog groomers, trainers and daycare near Cumming, GA · Lanier Leash",
+                 "Dog groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta.", body, partner_js(["groomer", "trainer", "daycare", "other"], 6))
+
+
 def advertise():
     body = hero("Advertise", "Reach local dog owners every Thursday",
                 "One sponsor per email, clearly labeled, in front of dog owners around Cumming and Lake Lanier who are planning their weekend.") + \
@@ -285,15 +315,26 @@ def advertise():
       </tbody>
     </table></div>
     <p class="fine">Just want to promote one dog event? Ask and we'll quote it. Rescues and shelters never pay to list adoption events.</p>
+    <h2 class="h2s" id="partners">Featured partner listings</h2>
+    <p>For vets, groomers, trainers, daycares, pet stores and dog-friendly restaurants, breweries and stays.</p>
+    <ul class="ticks">
+      <li><b>Your own page on Lanier Leash.</b> Photos, services, hours, call and booking buttons, and an offer just for our readers.</li>
+      <li><b>A labeled card at the top of the right page.</b> Vet care for vets, dog services for groomers, trainers and daycares, and your category in places for everyone else.</li>
+      <li><b>A mention in the first Thursday email of every month.</b></li>
+      <li><b>A monthly report.</b> How many people saw your page and tapped call, directions, booking or your offer.</li>
+      <li><b>Two partners per category at most</b>, so your spot stays worth having.</li>
+    </ul>
+    <p><b>$79 a month</b>, or <b>$790 a year</b> (two months free). Founding partners get their first month free. Cancel anytime; your page comes down at the end of the month you've paid for. We send a simple invoice or payment link.</p>
+    <p><a class="btn btn-coral btn-sm" href="/submit/?type=sponsor&amp;interest=partner">""" + ic("u-heart") + """Ask about a partner listing</a></p>
     <h2 class="h2s">The rules</h2>
-    <p>Sponsors are always labeled "Sponsor." Sponsoring never changes a dog rule, a badge or whether a place is listed. Businesses that aren't dog-friendly can't sponsor. A free listing is open to every dog-friendly business: <a href="/submit/?type=claim">claim yours</a>.</p>
+    <p>Sponsors and partners are always labeled "Sponsored." Paying never changes a dog rule, a badge, reader reports or whether a place is listed, and the emergency vet list is never sponsored or reordered. Vets must be licensed. Businesses that aren't dog-friendly can't sponsor. A free listing is open to every dog-friendly business: <a href="/submit/?type=claim">claim yours</a>.</p>
   </div>
   <aside class="joincard"><b>Interested?</b><p>Tell us a little about your business and what you'd like to promote. We'll reply within a few days.</p><a class="btn btn-coral" href="/submit/?type=sponsor">""" + ic("u-heart") + """Ask about sponsoring</a></aside>
 </div></section>"""
     return shell("/advertise/", "Advertise with Lanier Leash", "Sponsor the Lanier Leash Thursday email and reach dog owners around Cumming and Lake Lanier. Founding sponsors get their first three issues free.", body)
 
 
-PAGES = {"adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise}
+PAGES = {"adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise, "services": services}
 
 if __name__ == "__main__":
     for name, fn in PAGES.items():

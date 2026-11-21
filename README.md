@@ -60,3 +60,13 @@ Every event has its own page at `/events/<date>-<title-slug>/` (`api/event.js`):
 - You get an email for each new post. Hide or delete posts in Admin → Lost & found.
 - Lost pets posted in the last 14 days show in the weekly email for readers within range, and on the homepage.
 - Needs the "Lost & found" SQL block in `api/_lib/schema.sql`.
+
+## Featured partners
+Local businesses (vets, groomers, trainers, daycares, pet stores, dog-friendly restaurants and stays) can pay monthly for a featured partner listing. Prices are on `/advertise/#partners`.
+- Each partner gets a page at `/partners/<id>/` with photos, services, hours, call and booking buttons and a reader offer, plus a labeled "Sponsored" card on the matching page. Vets show on `/vet-care/`, below the emergency list and never inside it. Groomers, trainers and daycares show on `/services/`. Everyone else shows in their category on `/places/`.
+- At most two partners per category at a time. The admin enforces this when you save.
+- Add and edit partners in Admin → Partners. A partner shows only between "Starts" and "Paid through". You get an email 7 days before, and the day before, a partner's listing ends.
+- Partners with "Feature in the email" ticked appear, labeled Sponsored, in the first Thursday email of each month.
+- Page views and taps are counted once per person per day, using a code that changes daily. "Copy report" in the admin gives you a monthly summary to send them.
+- Payment is handled outside the site (an invoice or a Stripe payment link).
+- Needs the "Featured partners" SQL block in `api/_lib/schema.sql`.

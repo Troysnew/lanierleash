@@ -6,10 +6,14 @@
 //   GET  ?action=places&view=published|draft|hidden · GET ?action=sponsor
 //   POST {action:"place_save", id?, ...fields, publish?, from_submission?} | {action:"place_status", id, status} | {action:"place_delete", id} | {action:"places_import"}
 //   POST {action:"sponsor_save", name, text, url, until, on}
+//   GET  ?action=partners · POST {action:"partner_save", id?, ...fields} | {action:"partner_photo", id, photo} | {action:"partner_photo_delete", id, n} | {action:"partner_delete", id}
 //   GET  ?action=lostfound&view=live|pending|hidden|all · POST {action:"lf_status", id, status:hidden|active} | {action:"lf_delete", id}
 //   POST {action:"update", id, status?, note?} | {action:"feature", id, on} | {action:"delete", id} | {action:"test_email", to, type, zip, radius}
+import crypto from "node:crypto";
 import { allFeedback, listLost, updateLost, lostBy, deleteLost } from "./_lib/db.js";
 import { toPublic as lfPublic, isLive } from "./_lib/lostfound.js";
+import { listPartners, getPartner, insertPartner, updatePartner, deletePartner, partnerEventsSince, uploadPhoto } from "./_lib/db.js";
+import { PCATS, MAX_PER_CAT, EVENT_KINDS, cleanPartner, partnerId, isRunning } from "./_lib/partners.js";
 import { FLAG_TAGS, TAG_LABEL } from "./_lib/feedback.js";
 import {
   allSubscribers, recentSends, listSubmissions, submissionCounts, getSubmission, updateSubmission,
@@ -278,6 +282,78 @@ export default async function handler(req, res) {
         return json(res, 200, { ok: true, sponsor: c.sponsor });
       }
 
+      case "partners": {
+        const today = etParts().date, since = new Date(Date.now() - 30 * 864e5).toISOString().slice(0, 10), month = today.slice(0, 7) + "-01";
+        const [rows, events] = await Promise.all([listPartners(), partnerEventsSince(since < month ? since : month).catch(() => [])]);
+        const zero = () => Object.fromEntries(EVENT_KINDS.map((k) => [k, 0]));
+        const stats = {};
+        for (const e of events) {
+          const s = stats[e.partner_id] || (stats[e.partner_id] = { d30: zero(), month: zero() });
+          if (e.day >= since) s.d30[e.kind]++;
+          if (e.day >= month) s.month[e.kind]++;
+        }
+        const photos = await signPhotos(rows.flatMap((r) => r.photos || []));
+        return json(res, 200, { ok: true, cats: PCATS, max: MAX_PER_CAT, items: rows.map((r) => ({
+          ...r, running: isRunning(r, today), state: r.status === "paused" ? "paused" : r.starts_on > today ? "scheduled" : r.ends_on && r.ends_on < today ? "ended" : "running",
+          stats: stats[r.id] || { d30: zero(), month: zero() }, thumbs: (r.photos || []).map((p) => photos[p] || null),
+        })) });
+      }
+      case "partner_save": {
+        const c = cleanPartner(b);
+        if (!c.ok) return json(res, 400, c);
+        const p = c.partner, today = etParts().date;
+        const old = b.id ? await getPartner(String(b.id)) : null;
+        if (b.id && !old) return json(res, 404, { ok: false, error: "Not found" });
+        // Two partners per category at a time.
+        if (p.status === "active" && (!p.ends_on || p.ends_on >= today)) {
+          const others = (await listPartners()).filter((r) => r.id !== (old && old.id) && r.category === p.category && r.status === "active" && (!r.ends_on || r.ends_on >= today)
+            && (!p.ends_on || r.starts_on <= p.ends_on) && (!r.ends_on || p.starts_on <= r.ends_on));
+          if (others.length >= MAX_PER_CAT) return json(res, 400, { ok: false, error: `There are already ${MAX_PER_CAT} ${PCATS[p.category].label.toLowerCase()} partners for those dates (${others.map((r) => r.name).join(", ")}). Pause one, change the dates, or save this one as paused.` });
+        }
+        let warn = "";
+        const moved = !old || old.address !== p.address || old.town !== p.town;
+        if ((p.address || p.town) && (p.lat == null || p.lng == null || (moved && b.lat === (old && old.lat)))) {
+          const hit = await geocode({ address: p.address, venue: p.name, town: p.town }).catch(() => null);
+          if (hit) { p.lat = hit.lat; p.lng = hit.lng; } else warn = "We couldn't find that address on the map, so distances won't show. Add latitude and longitude by hand.";
+        }
+        let row;
+        if (old) row = await updatePartner(old.id, p);
+        else {
+          let id = partnerId(p), n = 1;
+          while (await getPartner(id)) id = partnerId(p) + "-" + ++n;
+          row = await insertPartner({ id, ...p });
+        }
+        return json(res, 200, { ok: true, item: row, warn });
+      }
+      case "partner_photo": {
+        const r = await getPartner(String(b.id || ""));
+        if (!r) return json(res, 404, { ok: false, error: "Save the partner first." });
+        if ((r.photos || []).length >= 4) return json(res, 400, { ok: false, error: "Four photos at most. Remove one first." });
+        const m = /^data:(image\/(jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.photo || ""));
+        if (!m) return json(res, 400, { ok: false, error: "That photo didn't work. Try a JPG or PNG." });
+        const buf = Buffer.from(m[3], "base64");
+        if (buf.length > 3.5 * 1024 * 1024) return json(res, 400, { ok: false, error: "That photo is too big." });
+        const path = await uploadPhoto(`partners/${r.id}/${crypto.randomUUID()}.${m[2] === "jpeg" ? "jpg" : m[2]}`, buf, m[1]);
+        const upd = await updatePartner(r.id, { photos: [...(r.photos || []), path] });
+        return json(res, 200, { ok: true, item: upd });
+      }
+      case "partner_photo_delete": {
+        const r = await getPartner(String(b.id || ""));
+        if (!r) return json(res, 404, { ok: false, error: "Not found" });
+        const n = +b.n, list = [...(r.photos || [])];
+        if (!(n >= 0 && n < list.length)) return json(res, 400, { ok: false, error: "No such photo" });
+        const [gone] = list.splice(n, 1);
+        if (b.first) list.unshift(gone); else await deletePhoto(gone).catch((e) => log("photo delete failed", e.message));
+        const upd = await updatePartner(r.id, { photos: list });
+        return json(res, 200, { ok: true, item: upd });
+      }
+      case "partner_delete": {
+        const r = await getPartner(String(b.id || ""));
+        if (!r) return json(res, 404, { ok: false, error: "Not found" });
+        for (const p of r.photos || []) await deletePhoto(p).catch((e) => log("photo delete failed", e.message));
+        await deletePartner(r.id);
+        return json(res, 200, { ok: true });
+      }
       case "lostfound": {
         const view = q.view || "live", now = Date.now();
         let rows = await listLost({});

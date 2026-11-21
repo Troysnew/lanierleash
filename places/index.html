@@ -53,7 +53,7 @@
   <section class="blk" style="padding-top:4px">
     <div class="wrap">
       <div class="pgrid">
-        <div class="plist" id="list"><p class="loading">Loading places…</p></div>
+        <div class="plist"><div class="ptwrap" id="ptPlaces" hidden></div><div id="list"><p class="loading">Loading places…</p></div></div>
         <div class="mapcol">
           <div class="mapbox"><div id="map" role="region" aria-label="Map of places"></div></div>
           <div class="legend" id="legend"></div>
@@ -79,7 +79,7 @@
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
     <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/services/">Groomers &amp; trainers</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
   <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
@@ -87,6 +87,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="/assets/data.js"></script>
+<script src="/assets/partners.js"></script>
 <script src="/assets/hours.js"></script>
 <script>
 (function () {
@@ -170,6 +171,7 @@
     var list = inR.filter(matches).sort(function (a, b) { return (a.mi == null ? 999 : a.mi) - (b.mi == null ? 999 : b.mi); });
     $("#list").innerHTML = list.length ? list.map(card).join("") : '<p class="empty">Nothing matches within ' + r + " miles of " + esc(L.home.zip) + ". Try a wider radius or another category.</p>";
     syncURL();
+    partners();
     $("#count").textContent = list.length + (list.length === 1 ? " place" : " places") + " within " + r + " miles of " + L.home.zip;
 
     if (map) {
@@ -190,6 +192,13 @@
       });
       if (fit) { map.invalidateSize(); map.fitBounds(ring.getBounds(), { padding: [10, 10] }); setTimeout(function () { map.invalidateSize(); map.fitBounds(ring.getBounds(), { padding: [10, 10] }); }, 300); }
     }
+  }
+  // Featured partners (labeled Sponsored) for the category being viewed. Nothing on "All".
+  var PT = { food: ["restaurant", "brewery", "winery", "coffee"], shops: ["shop"], stays: ["stay"], restaurant: ["restaurant"], brewery: ["brewery"], winery: ["winery"], coffee: ["coffee"], shop: ["shop"], stay: ["stay"] };
+  function partners() {
+    var el = document.getElementById("ptPlaces"), cats = PT[st.cat];
+    if (!cats || !window.LLPartners) { el.hidden = true; el.innerHTML = ""; return; }
+    window.LLPartners.render(el, cats);
   }
   function select(id, fromList) {
     st.sel = id;

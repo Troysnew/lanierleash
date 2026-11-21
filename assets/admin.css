@@ -142,3 +142,4 @@ body.adm { background: #F3F6F8; }
 .tbl .rulec { max-width: 380px; font-size: 13.5px; }
 .adm label.chk { display: flex; align-items: center; gap: 8px; font-weight: 600; }
 .adm label.chk input { width: auto; }
+.ptthumbs { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 8px; } .ptthumbs figure { margin: 0; width: 120px; } .ptthumbs img { width: 120px; height: 90px; object-fit: cover; border-radius: 10px; display: block; } .ptthumbs figcaption { font-size: 12px; margin-top: 4px; }

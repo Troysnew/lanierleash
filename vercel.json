@@ -35,6 +35,18 @@
   ],
   "rewrites": [
     {
+      "source": "/partners/:id([a-z0-9-]+)/photo/:n([0-9])",
+      "destination": "/api/partners?photo=:id&n=:n"
+    },
+    {
+      "source": "/partners/:id([a-z0-9-]+)",
+      "destination": "/api/partners?page=:id"
+    },
+    {
+      "source": "/partners/:id([a-z0-9-]+)/",
+      "destination": "/api/partners?page=:id"
+    },
+    {
       "source": "/lost-found/:id([a-z0-9-]+)/photo",
       "destination": "/api/lostfound?photo=:id"
     },

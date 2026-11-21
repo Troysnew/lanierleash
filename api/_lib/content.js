@@ -6,7 +6,8 @@ import { siteUrl, etParts } from "./util.js";
 import { publishedEvents } from "./events.js";
 import { publishedPlaces } from "./places.js";
 import { activeSponsor } from "./sponsor.js";
-import { approvedPups, boardPosts } from "./db.js";
+import { approvedPups, boardPosts, listPartners } from "./db.js";
+import { isRunning, toPublic as partnerPublic } from "./partners.js";
 import { isLive, toPublic as lostPublic } from "./lostfound.js";
 
 // ---------- CSV + dates (same rules as assets/data.js) ----------
@@ -75,7 +76,7 @@ async function readData(name) {
 
 export async function loadData(today) {
   // Events and places come from the database (each falls back to its CSV).
-  const [ev, pl, sponsor, pups, lostRows] = await Promise.all([publishedEvents(today), publishedPlaces(), activeSponsor(today).catch(() => null), approvedPups(500).catch(() => []), boardPosts().catch(() => [])]);
+  const [ev, pl, sponsor, pups, lostRows, partnerRows] = await Promise.all([publishedEvents(today), publishedPlaces(), activeSponsor(today).catch(() => null), approvedPups(500).catch(() => []), boardPosts().catch(() => []), listPartners().catch(() => [])]);
   const events = ev.events.map((e) => {
     e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
     e.multi = e.last !== e.date;
@@ -85,7 +86,9 @@ export async function loadData(today) {
   const places = pl.places.filter((p) => p.status !== "nodogs");
   // Lost pets posted in the last 14 days that are still missing (found pets are on the board).
   const lost = lostRows.filter((r) => isLive(r) && r.kind === "lost" && Date.now() - Date.parse(r.confirmed_at || r.created_at) < 14 * 864e5).map(lostPublic);
-  return { events, places, sponsor, lost, birthdays: birthdaysThisWeek(pups, today) };
+  // Featured partners who asked to be in the email (shown in the first Thursday issue of each month).
+  const partners = partnerRows.filter((r) => isRunning(r, today) && r.email_mention !== false).map(partnerPublic);
+  return { events, places, sponsor, lost, partners, birthdays: birthdaysThisWeek(pups, today) };
 }
 
 // Pack pups whose birthday (month and day) falls in the 7 days starting `today`.
@@ -186,5 +189,6 @@ export function buildIssue(sub, data, wx, today = etParts().date) {
     : wx ? `Your dog weekend near ${sub.zip}: ${wx.head.toLowerCase()}` : `Your dog weekend near ${sub.zip}`;
 
   const lost = (data.lost || []).map((x) => ({ ...x })).filter(near).sort((a, b) => a.mi - b.mi).slice(0, 4);
-  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, lost, events: weekendList, ongoing, later, places: picks, sponsor: data.sponsor || null, birthdays: (data.birthdays || []).slice(0, 8) };
+  const partners = +today.slice(8, 10) <= 7 ? (data.partners || []).map((x) => ({ ...x, mi: miles(home, x.lat, x.lng) })).filter((x) => x.mi == null || x.mi <= r + 10).sort((a, b) => (a.mi ?? 999) - (b.mi ?? 999)).slice(0, 2) : [];
+  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, lost, partners, events: weekendList, ongoing, later, places: picks, sponsor: data.sponsor || null, birthdays: (data.birthdays || []).slice(0, 8) };
 }

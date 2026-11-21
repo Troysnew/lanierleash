@@ -38,6 +38,7 @@
       <button role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="pill" id="newN" hidden></span></button>
       <button role="tab" data-tab="events" aria-selected="false">Events <span class="pill" id="sugN" hidden></span></button>
       <button role="tab" data-tab="places" aria-selected="false">Places</button>
+      <button role="tab" data-tab="partners" aria-selected="false">Partners</button>
       <button role="tab" data-tab="lost" aria-selected="false">Lost &amp; found</button>
       <button role="tab" data-tab="subs" aria-selected="false">Subscribers</button>
       <button role="tab" data-tab="email" aria-selected="false">Emails</button>
@@ -114,6 +115,15 @@
     </section>
 
     <!-- Subscribers -->
+    <!-- Partners -->
+    <section data-pane="partners" hidden>
+      <div class="bar">
+        <p class="fine" style="margin:0">Featured partners pay monthly for a labeled card and their own page. They show only between their start and end dates, so set the end date to the last day they've paid for. Two per category at a time.</p>
+        <button class="btn btn-sm btn-coral" id="ptAdd" type="button" style="margin-left:auto">+ Add partner</button>
+      </div>
+      <div id="ptList" class="list"><p class="empty">Loading…</p></div>
+    </section>
+
     <!-- Lost & found -->
     <section data-pane="lost" hidden>
       <div class="bar">
@@ -211,6 +221,42 @@
   </form>
 </dialog>
 
+<dialog id="ptDlg" class="evdlg" aria-labelledby="ptDlgH">
+  <form id="ptForm" method="dialog" novalidate>
+    <div class="dh"><h2 id="ptDlgH">Add partner</h2><button type="button" class="x" id="ptX" aria-label="Close">×</button></div>
+    <div class="fg">
+      <div class="full"><label for="t-name">Business name *</label><input id="t-name" maxlength="100"></div>
+      <div><label for="t-category">Category *</label><select id="t-category"></select></div>
+      <div><label for="t-status">Status</label><select id="t-status"><option value="active">Active</option><option value="paused">Paused (hidden)</option></select></div>
+      <div><label for="t-starts_on">Starts *</label><input id="t-starts_on" type="date"></div>
+      <div><label for="t-ends_on">Paid through</label><input id="t-ends_on" type="date"><small>Last day it shows. Blank = no end.</small></div>
+      <div class="full"><label for="t-tagline">One-line pitch (on their card)</label><input id="t-tagline" maxlength="140" placeholder="Fear-free grooming for big and small dogs, five minutes from the lake"></div>
+      <div class="full"><label for="t-offer">Reader offer</label><input id="t-offer" maxlength="160" placeholder="$10 off your first groom. Mention Lanier Leash."></div>
+      <div class="full"><label for="t-about">About (their page)</label><textarea id="t-about" rows="4" maxlength="1500"></textarea></div>
+      <div class="full"><label for="t-services">Services (one per line)</label><textarea id="t-services" rows="3" maxlength="600" placeholder="Full groom&#10;Bath and brush&#10;Nail trims, walk-in"></textarea></div>
+      <div><label for="t-town">Town</label><input id="t-town" maxlength="60" placeholder="Cumming"></div>
+      <div><label for="t-address">Street address</label><input id="t-address" maxlength="200"></div>
+      <div><label for="t-phone">Phone</label><input id="t-phone" maxlength="30"></div>
+      <div><label for="t-website">Website</label><input id="t-website" type="url" maxlength="400" placeholder="https://"></div>
+      <div><label for="t-booking_url">Booking link</label><input id="t-booking_url" type="url" maxlength="400" placeholder="https://"></div>
+      <div><label for="t-place_id">Their places listing (id)</label><input id="t-place_id" maxlength="90" placeholder="e.g. cherry-street-brewing"><small>Links their page to reader reports.</small></div>
+      <div class="full"><label for="t-hours_text">Hours</label><input id="t-hours_text" maxlength="300" placeholder="Tue–Sat 8 AM–5 PM"></div>
+      <div><label for="t-contact_email">Their email (private)</label><input id="t-contact_email" type="email" maxlength="200"><small>For sending the monthly report.</small></div>
+      <div><label class="small" style="display:flex;gap:8px;align-items:center;margin-top:30px"><input type="checkbox" id="t-email_mention" checked>Feature in the first Thursday email each month</label></div>
+      <div class="full"><label for="t-notes">Private notes (billing, contact)</label><textarea id="t-notes" rows="2" maxlength="1000"></textarea></div>
+      <div><label for="t-lat">Latitude</label><input id="t-lat" inputmode="decimal" placeholder="Found automatically"></div>
+      <div><label for="t-lng">Longitude</label><input id="t-lng" inputmode="decimal" placeholder="Found automatically"></div>
+      <div class="full" id="ptPhotos"><label>Photos (up to 4; the first is the main one)</label><div class="ptthumbs" id="ptThumbs"></div><input type="file" id="ptFile" accept="image/jpeg,image/png,image/webp,image/*"><small id="ptPhotoHint">Save the partner first, then add photos.</small></div>
+    </div>
+    <p class="msg" id="ptMsg" hidden role="status"></p>
+    <div class="df">
+      <button class="btn btn-sm del" type="button" id="ptDel">Delete</button>
+      <a class="btn btn-sm btn-out" id="ptView" target="_blank" rel="noopener" hidden>View page</a>
+      <span style="flex:1"></span>
+      <button class="btn btn-sm btn-coral" type="submit" id="ptSave">Save</button>
+    </div>
+  </form>
+</dialog>
 <dialog id="plDlg" class="evdlg" aria-labelledby="plDlgH">
   <form id="plForm" method="dialog" novalidate>
     <div class="dh"><h2 id="plDlgH">Add place</h2><button type="button" class="x" id="plX" aria-label="Close">×</button></div>
@@ -294,6 +340,7 @@
       if (t.dataset.tab === "events") loadEvents();
       if (t.dataset.tab === "places") loadPlaces();
       if (t.dataset.tab === "lost") loadLost();
+      if (t.dataset.tab === "partners") loadPartners();
       if (t.dataset.tab === "email") { loadSends(); loadSponsor(); if (!$("#pf").src) preview(); }
     });
   });
@@ -302,6 +349,108 @@
       b.addEventListener("click", function () { $$(sel + " button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); cb(b.dataset.v); });
     });
   }
+
+  // ---------- partners ----------
+  var pt = { items: [], cats: {}, editing: null };
+  var TF = ["name", "category", "status", "starts_on", "ends_on", "tagline", "offer", "about", "services", "town", "address", "phone", "website", "booking_url", "place_id", "hours_text", "contact_email", "notes", "lat", "lng"];
+  var PTST = { running: ["Showing", "active"], scheduled: ["Starts later", "pending"], ended: ["Ended", "unsubscribed"], paused: ["Paused", "unsubscribed"] };
+  var KL = { view: "page views", card: "card taps", call: "calls", directions: "directions", booking: "booking taps", website: "website taps", offer: "offer views" };
+  function ptStats(s) { return ["view", "card", "call", "directions", "booking", "website", "offer"].filter(function (k) { return s[k]; }).map(function (k) { return s[k] + " " + KL[k]; }).join(" · ") || "No visits yet"; }
+  function loadPartners() {
+    $("#ptList").innerHTML = '<p class="empty">Loading…</p>';
+    api("partners").then(function (d) {
+      if (!d.ok) { $("#ptList").innerHTML = '<p class="empty">' + esc(d.error) + (/relation|does not exist|schema/i.test(d.error || "") ? " Run the partners SQL in Supabase first." : "") + "</p>"; return; }
+      pt.items = d.items; pt.cats = d.cats;
+      if (!$("#t-category").options.length) $("#t-category").innerHTML = Object.keys(d.cats).map(function (k) { return '<option value="' + k + '">' + esc(d.cats[k].label) + "</option>"; }).join("");
+      if (!d.items.length) { $("#ptList").innerHTML = '<p class="empty">No partners yet. When a business signs up, add them here.</p>'; return; }
+      $("#ptList").innerHTML = '<div class="tablewrap"><table class="tbl evt"><thead><tr><th></th><th>Partner</th><th>Dates</th><th>Last 30 days</th><th></th></tr></thead><tbody>' + d.items.map(function (x) {
+        var stt = PTST[x.state] || PTST.paused;
+        return '<tr data-id="' + esc(x.id) + '"><td>' + (x.thumbs[0] ? '<img src="' + esc(x.thumbs[0]) + '" alt="" style="width:56px;height:56px;object-fit:cover;border-radius:10px">' : "") + "</td>" +
+          "<td><b>" + esc(x.name) + '</b><br><small class="muted">' + esc((d.cats[x.category] || {}).label || x.category) + (x.town ? " · " + esc(x.town) : "") + "</small>" + (x.lat == null ? '<br><span class="sb sb-pending">No map location</span>' : "") + "</td>" +
+          '<td class="nw"><span class="sb sb-' + stt[1] + '">' + stt[0] + "</span><br><small>" + esc(x.starts_on) + " → " + esc(x.ends_on || "no end") + "</small></td>" +
+          '<td><small>' + esc(ptStats(x.stats.d30)) + "</small></td>" +
+          '<td class="nw acts2"><button class="btn btn-sm btn-out" data-pt="edit">Edit</button><button class="btn btn-sm btn-out" data-pt="report">Copy report</button>' + (x.running ? '<a class="btn btn-sm btn-out" href="/partners/' + esc(x.id) + '/" target="_blank" rel="noopener">View</a>' : "") + "</td></tr>";
+      }).join("") + "</tbody></table></div>";
+    }).catch(function () {});
+  }
+  function report(x) {
+    var s = x.stats.month, mon = new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    var lines = ["Lanier Leash partner report: " + x.name + ", " + mon + " so far", ""];
+    ["view", "card", "call", "directions", "booking", "website", "offer"].forEach(function (k) { if (s[k] || k === "view") lines.push("- " + (s[k] || 0) + " " + KL[k]); });
+    lines.push("", "Counts are people per day (someone who visits twice in a day counts once).", "Your page: https://lanierleash.com/partners/" + x.id + "/");
+    return lines.join("\n");
+  }
+  function drawThumbs() {
+    var x = pt.editing;
+    $("#ptFile").hidden = !x || (x.photos || []).length >= 4;
+    $("#ptPhotoHint").textContent = !x ? "Save the partner first, then add photos." : (x.photos || []).length >= 4 ? "Four photos is the limit." : "JPG or PNG. Shrunk automatically.";
+    $("#ptThumbs").innerHTML = x && x.thumbs ? x.thumbs.map(function (u, i) { return '<figure><img src="' + esc(u || "") + '" alt=""><figcaption>' + (i ? '<button type="button" class="small" data-ph="first" data-n="' + i + '">Make main</button> ' : "<b>Main</b> ") + '<button type="button" class="small" data-ph="del" data-n="' + i + '">Remove</button></figcaption></figure>'; }).join("") : "";
+  }
+  function openPartner(x) {
+    pt.editing = x || null;
+    TF.forEach(function (k) { $("#t-" + k).value = x && x[k] != null ? x[k] : ""; });
+    if (!x) { $("#t-status").value = "active"; $("#t-category").value = "groomer"; $("#t-starts_on").value = today(); }
+    $("#t-email_mention").checked = x ? x.email_mention !== false : true;
+    $("#ptDlgH").textContent = x ? "Edit partner" : "Add partner";
+    $("#ptDel").hidden = !x; $("#ptView").hidden = !(x && x.running); if (x) $("#ptView").href = "/partners/" + encodeURIComponent(x.id) + "/";
+    $("#ptMsg").hidden = true; drawThumbs();
+    $("#ptDlg").showModal(); $("#t-name").focus();
+  }
+  function refreshEditing(id) {
+    return api("partners").then(function (d) { if (!d.ok) return; pt.items = d.items; pt.editing = d.items.filter(function (x) { return x.id === id; })[0] || null; drawThumbs(); loadPartners(); });
+  }
+  $("#ptAdd").addEventListener("click", function () { if (!$("#t-category").options.length) { loadPartners(); setTimeout(function () { openPartner(null); }, 600); } else openPartner(null); });
+  $("#ptX").addEventListener("click", function () { $("#ptDlg").close(); });
+  $("#ptForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var data = { id: pt.editing ? pt.editing.id : undefined, email_mention: $("#t-email_mention").checked };
+    TF.forEach(function (k) { data[k] = $("#t-" + k).value.trim(); });
+    var m = $("#ptMsg"); m.hidden = false; m.classList.remove("err"); m.textContent = "Saving… (finding it on the map)";
+    $("#ptSave").disabled = true;
+    api("partner_save", { body: data }).then(function (d) {
+      if (!d.ok) { m.textContent = d.error; m.classList.add("err"); return; }
+      var isNew = !pt.editing;
+      return refreshEditing(d.item.id).then(function () {
+        if (pt.editing) { $("#t-lat").value = pt.editing.lat == null ? "" : pt.editing.lat; $("#t-lng").value = pt.editing.lng == null ? "" : pt.editing.lng; $("#ptDel").hidden = false; $("#ptView").hidden = !pt.editing.running; $("#ptView").href = "/partners/" + encodeURIComponent(pt.editing.id) + "/"; $("#ptDlgH").textContent = "Edit partner"; }
+        m.textContent = d.warn ? "Saved. " + d.warn : isNew ? "Saved. Now add photos below." : "Saved."; if (d.warn) m.classList.add("err");
+      });
+    }).catch(function () {}).then(function () { $("#ptSave").disabled = false; });
+  });
+  function shrinkImg(file) {
+    return new Promise(function (ok, bad) {
+      var img = new Image();
+      img.onload = function () { var s = Math.min(1, 1600 / Math.max(img.width, img.height)), c = document.createElement("canvas"); c.width = Math.round(img.width * s); c.height = Math.round(img.height * s); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(img.src); ok(c.toDataURL("image/jpeg", 0.85)); };
+      img.onerror = function () { bad(new Error("Couldn't read that photo.")); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  $("#ptFile").addEventListener("change", function () {
+    var f = this.files && this.files[0], m = $("#ptMsg"); if (!f || !pt.editing) return;
+    m.hidden = false; m.classList.remove("err"); m.textContent = "Uploading…";
+    shrinkImg(f).then(function (data) { return api("partner_photo", { body: { id: pt.editing.id, photo: data } }); }).then(function (d) {
+      $("#ptFile").value = "";
+      if (!d.ok) { m.textContent = d.error; m.classList.add("err"); return; }
+      m.textContent = "Photo added."; return refreshEditing(pt.editing.id);
+    }).catch(function (e) { m.textContent = e.message || "Upload failed."; m.classList.add("err"); });
+  });
+  $("#ptThumbs").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-ph]"); if (!b || !pt.editing) return;
+    if (b.dataset.ph === "del" && !confirm("Remove this photo?")) return;
+    api("partner_photo_delete", { body: { id: pt.editing.id, n: +b.dataset.n, first: b.dataset.ph === "first" } }).then(function (d) { if (d.ok) refreshEditing(pt.editing.id); });
+  });
+  $("#ptDel").addEventListener("click", function () {
+    if (!pt.editing || !confirm("Delete " + pt.editing.name + " and their photos for good? To stop showing them, set Status to Paused instead.")) return;
+    api("partner_delete", { body: { id: pt.editing.id } }).then(function () { $("#ptDlg").close(); loadPartners(); }).catch(function () {});
+  });
+  $("#ptList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pt]"); if (!b) return;
+    var x = pt.items.filter(function (i) { return i.id === b.closest("tr").dataset.id; })[0]; if (!x) return;
+    if (b.dataset.pt === "edit") openPartner(x);
+    if (b.dataset.pt === "report") {
+      var txt = report(x), done = function () { b.textContent = "Copied!"; setTimeout(function () { b.textContent = "Copy report"; }, 1800); };
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(done, function () { prompt("Copy this report:", txt); }); else prompt("Copy this report:", txt);
+    }
+  });
 
   // ---------- lost & found ----------
   var lfView = "live";
