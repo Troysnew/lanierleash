@@ -30,6 +30,6 @@ export default async function handler(req, res) {
   } catch (e) {
     log("feedback failed", e.message);
     // Table not set up yet: the page just hides the feedback box.
-    return json(res, 503, { ok: false, error: "Feedback isn't available right now." });
+    return json(res, 503, { ok: false, error: "Feedback isn't available right now.", detail: String(e.message || "").replace(/https?:\/\/\S+/g, "").slice(0, 160) });
   }
 }
