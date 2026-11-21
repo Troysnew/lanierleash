@@ -49,3 +49,8 @@ alter table public.submissions enable row level security;
 -- Private bucket for pup photos (only the server can read or write).
 insert into storage.buckets (id, name, public) values ('submissions', 'submissions', false)
 on conflict (id) do nothing;
+
+-- ---------- Admin page columns (added later; safe to run again) ----------
+alter table public.submissions add column if not exists admin_note text;
+alter table public.submissions add column if not exists reviewed_at timestamptz;
+alter table public.submissions add column if not exists featured_at timestamptz;

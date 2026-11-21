@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Admin · Lanier Leash</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+<link rel="stylesheet" href="/assets/admin.css">
+</head>
+<body class="adm">
+<script src="/assets/icons.js"></script>
+
+<!-- Login -->
+<main id="login" class="adm-login" hidden>
+  <form class="card" id="lf">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <h1>Admin</h1>
+    <label for="pw">Password</label>
+    <input id="pw" type="password" autocomplete="current-password" required>
+    <p class="msg err" id="lmsg" hidden role="alert"></p>
+    <button class="btn btn-coral" type="submit" id="lbtn">Log in</button>
+    <p class="fine">You'll stay logged in on this device for 14 days.</p>
+  </form>
+</main>
+
+<!-- App -->
+<div id="app" hidden>
+  <header class="adm-top">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <span class="adm-tag">Admin</span>
+    <nav class="adm-tabs" role="tablist">
+      <button role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="pill" id="newN" hidden></span></button>
+      <button role="tab" data-tab="subs" aria-selected="false">Subscribers</button>
+      <button role="tab" data-tab="email" aria-selected="false">Emails</button>
+    </nav>
+    <button class="adm-out" id="out" type="button">Log out</button>
+  </header>
+
+  <div class="adm-wrap">
+    <section class="stats" id="stats" aria-label="At a glance">
+      <div><b id="sActive">–</b><span>subscribers</span></div>
+      <div><b id="sWeek">–</b><span>new this week</span></div>
+      <div><b id="sNew">–</b><span>submissions to review</span></div>
+      <div><b id="sLast">–</b><span id="sLastL">last Thursday email</span></div>
+    </section>
+    <p class="msg err" id="warn" hidden></p>
+
+    <!-- Inbox -->
+    <section data-pane="inbox">
+      <div class="bar">
+        <div class="chips" id="stF">
+          <button data-v="new" aria-pressed="true">To review</button>
+          <button data-v="approved" aria-pressed="false">Approved</button>
+          <button data-v="done" aria-pressed="false">Done</button>
+          <button data-v="rejected" aria-pressed="false">Rejected</button>
+          <button data-v="all" aria-pressed="false">All</button>
+        </div>
+        <select id="tyF" aria-label="Type">
+          <option value="all">All types</option><option value="pup">Pups</option><option value="event">Events</option>
+          <option value="place">Places</option><option value="fix">Fixes</option><option value="claim">Business claims</option>
+        </select>
+      </div>
+      <div id="list" class="list"><p class="empty">Loading…</p></div>
+    </section>
+
+    <!-- Subscribers -->
+    <section data-pane="subs" hidden>
+      <div class="bar">
+        <input id="sq" type="search" placeholder="Search email or ZIP" aria-label="Search subscribers">
+        <div class="chips" id="ssF">
+          <button data-v="active" aria-pressed="true">Active</button>
+          <button data-v="pending" aria-pressed="false">Waiting to confirm</button>
+          <button data-v="unsubscribed" aria-pressed="false">Unsubscribed</button>
+          <button data-v="all" aria-pressed="false">All</button>
+        </div>
+        <a class="btn btn-sm btn-out" href="/api/admin?action=subscribers&amp;format=csv">Download CSV</a>
+      </div>
+      <div class="tablewrap"><table class="tbl"><thead><tr><th>Email</th><th>ZIP</th><th>Radius</th><th>Status</th><th>Joined</th></tr></thead><tbody id="stb"></tbody></table></div>
+      <p class="fine" id="scount"></p>
+    </section>
+
+    <!-- Emails -->
+    <section data-pane="email" hidden>
+      <div class="egrid">
+        <div class="card ecard">
+          <h2>Preview an email</h2>
+          <div class="row3">
+            <div><label for="pType">Email</label><select id="pType"><option value="weekly">Thursday weekly</option><option value="confirm">Confirm</option><option value="welcome">Welcome</option></select></div>
+            <div><label for="pZip">ZIP</label><input id="pZip" value="30041" inputmode="numeric" maxlength="5"></div>
+            <div><label for="pRad">Radius</label><select id="pRad"><option>5</option><option>10</option><option selected>15</option><option>25</option></select></div>
+          </div>
+          <div class="btns"><button class="btn btn-sm btn-coral" id="pGo" type="button">Show preview</button></div>
+          <h2 style="margin-top:26px">Send yourself a test</h2>
+          <label for="tTo">Send the email above to</label>
+          <input id="tTo" type="email" placeholder="you@example.com" autocomplete="email">
+          <div class="btns"><button class="btn btn-sm btn-out" id="tGo" type="button">Send test</button></div>
+          <p class="msg" id="tmsg" hidden role="status"></p>
+          <h2 style="margin-top:26px">Thursday sends</h2>
+          <div id="sends"><p class="fine">Loading…</p></div>
+          <p class="fine">The weekly email goes out Thursdays at 7 AM Eastern to everyone subscribed.</p>
+        </div>
+        <div class="card pframe"><iframe id="pf" title="Email preview"></iframe></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+(function () {
+  var $ = function (s, r) { return (r || document).querySelector(s); }, $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]; }); };
+  var st = { status: "new", type: "all", subs: null, sStatus: "active", items: [] };
+
+  function api(action, opts) {
+    opts = opts || {};
+    var url = "/api/admin" + (opts.body ? "" : "?action=" + action + (opts.qs || ""));
+    var init = opts.body ? { method: "POST", headers: { "Content-Type": "application/json", "X-Admin": "1" }, body: JSON.stringify(Object.assign({ action: action }, opts.body)), credentials: "same-origin" } : { credentials: "same-origin" };
+    return fetch(url, init).then(function (r) {
+      return r.json().catch(function () { return { ok: false, error: "Server error (" + r.status + ")" }; }).then(function (d) {
+        if (r.status === 401 && action !== "login") { showLogin(); throw new Error("login"); }
+        return d;
+      });
+    });
+  }
+  function when(iso) {
+    if (!iso) return "";
+    var d = new Date(iso), s = (Date.now() - d) / 1000;
+    if (s < 60) return "just now"; if (s < 3600) return Math.round(s / 60) + " min ago"; if (s < 86400) return Math.round(s / 3600) + " hr ago";
+    if (s < 7 * 86400) return Math.round(s / 86400) + (Math.round(s / 86400) === 1 ? " day ago" : " days ago");
+    return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: d.getFullYear() === new Date().getFullYear() ? undefined : "numeric" });
+  }
+  function date(iso) { return iso ? new Date(iso).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""; }
+
+  // ---------- login ----------
+  function showLogin() { $("#app").hidden = true; $("#login").hidden = false; setTimeout(function () { $("#pw").focus(); }, 50); }
+  function showApp() { $("#login").hidden = true; $("#app").hidden = false; overview(); loadInbox(); }
+  $("#lf").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var b = $("#lbtn"); b.disabled = true; $("#lmsg").hidden = true;
+    api("login", { body: { password: $("#pw").value } }).then(function (d) {
+      if (d.ok) { $("#pw").value = ""; showApp(); } else { $("#lmsg").hidden = false; $("#lmsg").textContent = d.error || "Couldn't log in."; }
+    }).catch(function () {}).then(function () { b.disabled = false; });
+  });
+  $("#out").addEventListener("click", function () { api("logout", { body: {} }).then(showLogin); });
+
+  // ---------- tabs ----------
+  $$(".adm-tabs [data-tab]").forEach(function (t) {
+    t.addEventListener("click", function () {
+      $$(".adm-tabs [data-tab]").forEach(function (x) { x.setAttribute("aria-selected", String(x === t)); });
+      $$("[data-pane]").forEach(function (p) { p.hidden = p.dataset.pane !== t.dataset.tab; });
+      if (t.dataset.tab === "subs" && !st.subs) loadSubs();
+      if (t.dataset.tab === "email") { loadSends(); if (!$("#pf").src) preview(); }
+    });
+  });
+  function chips(sel, cb) {
+    $$(sel + " button").forEach(function (b) {
+      b.addEventListener("click", function () { $$(sel + " button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); cb(b.dataset.v); });
+    });
+  }
+
+  // ---------- overview ----------
+  function overview() {
+    api("overview").then(function (d) {
+      if (!d.ok) { $("#warn").hidden = false; $("#warn").textContent = d.error; return; }
+      var s = d.subscribers || {}, n = (d.submissions || {}).new || 0;
+      $("#sActive").textContent = s.active || 0;
+      $("#sWeek").textContent = s.newThisWeek || 0;
+      $("#sNew").textContent = n;
+      $("#newN").hidden = !n; $("#newN").textContent = n;
+      var ls = d.lastSend;
+      $("#sLast").textContent = ls ? (ls.status === "sent" ? ls.count : ls.status) : "None yet";
+      $("#sLastL").textContent = ls ? (ls.status === "sent" ? "sent " + date(ls.week + "T12:00:00") : "last send " + date(ls.week + "T12:00:00")) : "Thursday emails";
+      if (!d.mailingAddress) { $("#warn").hidden = false; $("#warn").textContent = "MAILING_ADDRESS is empty in Vercel, so the Thursday email won't send."; }
+    }).catch(function () {});
+  }
+
+  // ---------- inbox ----------
+  chips("#stF", function (v) { st.status = v; loadInbox(); });
+  $("#tyF").addEventListener("change", function () { st.type = this.value; loadInbox(); });
+  var STATUS_LABEL = { new: "To review", approved: "Approved", done: "Done", rejected: "Rejected" };
+  var HINT = {
+    pup: "Feature this pup to put it on the homepage right away.",
+    event: "Approve it, then send it to Claude to add to the events page.",
+    place: "Approve it, then send it to Claude to add to the places page.",
+    fix: "Check the listing, then mark Done once it's fixed.",
+    claim: "Reply to confirm their details, then send it to Claude to add the green badge."
+  };
+  function loadInbox() {
+    $("#list").innerHTML = '<p class="empty">Loading…</p>';
+    api("submissions", { qs: "&status=" + st.status + "&type=" + st.type }).then(function (d) {
+      if (!d.ok) { $("#list").innerHTML = '<p class="empty">' + esc(d.error) + "</p>"; return; }
+      st.items = d.items; renderInbox();
+    }).catch(function () {});
+  }
+  function card(x) {
+    var reply = x.email ? "mailto:" + encodeURIComponent(x.email) + "?subject=" + encodeURIComponent("Re: your Lanier Leash " + x.typeLabel.toLowerCase() + " (" + x.title + ")") : "";
+    return '<article class="sub-card st-' + x.status + '" data-id="' + x.id + '">' +
+      '<div class="sc-head"><span class="ty ty-' + x.type + '">' + esc(x.typeLabel) + "</span>" +
+      (x.featured_at ? '<span class="feat">★ Pup of the Week</span>' : "") +
+      '<span class="stt">' + STATUS_LABEL[x.status] + '</span><span class="when" title="' + esc(new Date(x.created_at).toLocaleString()) + '">' + when(x.created_at) + "</span></div>" +
+      '<div class="sc-body">' + (x.photo ? '<a class="ph" href="' + esc(x.photo) + '" target="_blank" rel="noopener"><img src="' + esc(x.photo) + '" alt="Submitted photo of ' + esc(x.title) + '" loading="lazy"></a>' : "") +
+      '<div class="sc-main"><h3>' + esc(x.title) + "</h3><dl>" +
+      x.fields.filter(function (f) { return f.label !== "Listing id"; }).map(function (f) {
+        var v = f.kind === "url" ? '<a href="' + esc(f.value) + '" target="_blank" rel="noopener">' + esc(f.value) + "</a>" : esc(f.value).replace(/\n/g, "<br>");
+        return "<dt>" + esc(f.label) + "</dt><dd>" + v + "</dd>";
+      }).join("") +
+      "<dt>From</dt><dd>" + (x.email ? esc(x.email) : '<span class="muted">No email left</span>') + "</dd></dl>" +
+      '<p class="hint">' + (x.featured_at ? "On the homepage now as Pup of the Week." : HINT[x.type]) + "</p>" +
+      '<label class="nl">Private note<textarea data-note rows="2" placeholder="Only you see this">' + esc(x.note) + "</textarea></label>" +
+      '<div class="acts">' +
+      (x.type === "pup" && x.photo ? '<button class="btn btn-sm ' + (x.featured_at ? "btn-out" : "btn-coral") + '" data-act="feature">' + (x.featured_at ? "Remove from homepage" : "★ Feature as Pup of the Week") + "</button>" : "") +
+      (x.status !== "approved" ? '<button class="btn btn-sm btn-out" data-act="approved">Approve</button>' : "") +
+      (x.status !== "done" ? '<button class="btn btn-sm btn-out" data-act="done">Done</button>' : "") +
+      (x.status !== "rejected" ? '<button class="btn btn-sm btn-out" data-act="rejected">Reject</button>' : "") +
+      (x.status !== "new" ? '<button class="btn btn-sm btn-out" data-act="new">Back to review</button>' : "") +
+      (reply ? '<a class="btn btn-sm btn-out" href="' + reply + '">Reply</a>' : "") +
+      '<button class="btn btn-sm btn-out" data-act="copy">Copy details</button>' +
+      '<button class="btn btn-sm del" data-act="delete">Delete</button>' +
+      "</div></div></div></article>";
+  }
+  function renderInbox() {
+    $("#list").innerHTML = st.items.length ? st.items.map(card).join("") :
+      '<p class="empty">' + (st.status === "new" ? "Nothing to review. Nice." : "Nothing here.") + "</p>";
+  }
+  function replaceItem(item) {
+    var i = st.items.findIndex(function (x) { return x.id === item.id; });
+    if (i < 0) return;
+    if (st.status !== "all" && item.status !== st.status) st.items.splice(i, 1); else st.items[i] = item;
+    renderInbox(); overview();
+  }
+  $("#list").addEventListener("click", function (e) {
+    var btn = e.target.closest("[data-act]"); if (!btn) return;
+    var el = btn.closest(".sub-card"), id = el.dataset.id, act = btn.dataset.act, x = st.items.find(function (i) { return i.id === id; });
+    if (act === "copy") {
+      var txt = x.typeLabel + ": " + x.title + "\n" + x.fields.map(function (f) { return f.label + ": " + f.value; }).join("\n") + (x.email ? "\nFrom: " + x.email : "");
+      navigator.clipboard.writeText(txt).then(function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy details"; }, 1500); });
+      return;
+    }
+    if (act === "delete") {
+      if (!confirm("Delete this submission" + (x.photo ? " and its photo" : "") + " for good? This can't be undone.")) return;
+      btn.disabled = true;
+      api("delete", { body: { id: id } }).then(function (d) {
+        if (!d.ok) return alert(d.error);
+        st.items = st.items.filter(function (i) { return i.id !== id; }); renderInbox(); overview();
+      }).catch(function () {});
+      return;
+    }
+    btn.disabled = true;
+    var note = $("[data-note]", el).value;
+    var p = act === "feature" ? api("feature", { body: { id: id, on: !x.featured_at } }) : api("update", { body: { id: id, status: act, note: note } });
+    p.then(function (d) { if (!d.ok) { btn.disabled = false; return alert(d.error); } replaceItem(d.item); }).catch(function () {});
+  });
+  // Save notes when you click away.
+  $("#list").addEventListener("change", function (e) {
+    if (!e.target.matches("[data-note]")) return;
+    var id = e.target.closest(".sub-card").dataset.id, x = st.items.find(function (i) { return i.id === id; });
+    api("update", { body: { id: id, note: e.target.value } }).then(function (d) { if (d.ok) x.note = d.item.note; }).catch(function () {});
+  });
+
+  // ---------- subscribers ----------
+  chips("#ssF", function (v) { st.sStatus = v; renderSubs(); });
+  $("#sq").addEventListener("input", renderSubs);
+  function loadSubs() {
+    $("#stb").innerHTML = '<tr><td colspan="5" class="empty">Loading…</td></tr>';
+    api("subscribers").then(function (d) { st.subs = d.ok ? d.items : []; renderSubs(); }).catch(function () {});
+  }
+  var SL = { active: "Active", pending: "Waiting", unsubscribed: "Unsubscribed" };
+  function renderSubs() {
+    if (!st.subs) return;
+    var q = $("#sq").value.trim().toLowerCase();
+    var rows = st.subs.filter(function (s) { return (st.sStatus === "all" || s.status === st.sStatus) && (!q || s.email.indexOf(q) >= 0 || s.zip.indexOf(q) === 0); });
+    $("#stb").innerHTML = rows.length ? rows.slice(0, 500).map(function (s) {
+      return "<tr><td>" + esc(s.email) + "</td><td>" + esc(s.zip) + "</td><td>" + s.radius + ' mi</td><td><span class="sb sb-' + s.status + '">' + SL[s.status] + "</span></td><td>" + date(s.confirmed_at || s.created_at) + "</td></tr>";
+    }).join("") : '<tr><td colspan="5" class="empty">No subscribers here yet.</td></tr>';
+    $("#scount").textContent = rows.length + (rows.length === 1 ? " person" : " people") + (rows.length > 500 ? " (showing the first 500; download the CSV for all)" : "");
+  }
+
+  // ---------- emails ----------
+  function pq() { return "&type=" + $("#pType").value + "&zip=" + encodeURIComponent($("#pZip").value.trim()) + "&radius=" + $("#pRad").value; }
+  function preview() { $("#pf").src = "/api/admin?action=preview" + pq() + "&_=" + Date.now(); }
+  $("#pGo").addEventListener("click", preview);
+  $("#tGo").addEventListener("click", function () {
+    var b = this, m = $("#tmsg"); b.disabled = true; m.hidden = false; m.classList.remove("err"); m.textContent = "Sending…";
+    api("test_email", { body: { to: $("#tTo").value.trim(), type: $("#pType").value, zip: $("#pZip").value.trim(), radius: +$("#pRad").value } }).then(function (d) {
+      m.textContent = d.ok ? d.message : d.error; m.classList.toggle("err", !d.ok);
+    }).catch(function () {}).then(function () { b.disabled = false; });
+  });
+  function loadSends() {
+    api("sends").then(function (d) {
+      if (!d.ok) return;
+      $("#sends").innerHTML = d.items.length ? '<table class="tbl sm"><thead><tr><th>Week</th><th>Status</th><th>Sent to</th></tr></thead><tbody>' + d.items.map(function (s) {
+        return "<tr><td>" + date(s.week + "T12:00:00") + '</td><td><span class="sb sb-' + (s.status === "sent" ? "active" : s.status === "failed" ? "unsubscribed" : "pending") + '">' + esc(s.status) + "</span>" + (s.error ? '<br><small class="muted">' + esc(s.error.slice(0, 120)) + "</small>" : "") + "</td><td>" + (s.count || 0) + "</td></tr>";
+      }).join("") + "</tbody></table>" : '<p class="fine">No Thursday emails have gone out yet.</p>';
+    }).catch(function () {});
+  }
+
+  api("me").then(function (d) { d.authed ? showApp() : showLogin(); }).catch(showLogin);
+})();
+</script>
+</body>
+</html>

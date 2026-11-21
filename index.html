@@ -116,9 +116,9 @@
         </article>
 
         <article class="card c-pup photo-card" id="community">
-          <img src="/img/dalmatian.jpg" alt="A dalmatian smiling by the lake at sunset">
+          <img id="pupImg" src="/img/dalmatian.jpg" alt="A dalmatian smiling by the lake at sunset">
           <a class="btn btn-sm cta glass" style="color:var(--navy)" href="/submit/?type=pup"><svg class="ic" style="color:var(--coral-btn)"><use href="#u-camera"/></svg>Send your pup</a>
-          <div class="cap"><span class="k">Pup of the week · sample</span><b>Pepper, 3, Buford</b><span>Has never missed a sunset swim at the lake.</span></div>
+          <div class="cap"><span class="k" id="pupK">Pup of the week · sample</span><b id="pupB">Pepper, 3, Buford</b><span id="pupS">Has never missed a sunset swim at the lake.</span></div>
         </article>
 
         <article class="card c-issue">
@@ -541,5 +541,24 @@
 })();
 </script>
 
+
+<script>
+/* Pup of the Week: picked in /admin/. Falls back to the sample card if there isn't one. */
+(function () {
+  fetch("/api/pup").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+    var p = d && d.pup; if (!p || !p.photo) return;
+    var img = new Image();
+    img.onload = function () {
+      var el = document.getElementById("pupImg");
+      el.src = p.photo; el.alt = p.name + ", this week's Pup of the Week";
+      el.style.objectFit = "cover";
+      document.getElementById("pupK").textContent = "Pup of the week";
+      document.getElementById("pupB").textContent = [p.name, p.age, p.town].filter(Boolean).join(", ");
+      document.getElementById("pupS").textContent = p.story + (p.owner ? " (with " + p.owner + ")" : "");
+    };
+    img.src = p.photo;
+  }).catch(function () {});
+})();
+</script>
 </body>
 </html>

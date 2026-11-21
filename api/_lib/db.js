@@ -105,3 +105,70 @@ export async function signedPhotoUrl(path) {
   const u = j.signedURL || j.signedUrl;
   return u ? root + (u.startsWith("/") ? u : "/" + u) : null;
 }
+
+// ---------- admin ----------
+async function pageAll(path) {
+  const out = [];
+  for (let off = 0; ; off += 1000) {
+    const page = await db(`${path}&limit=1000&offset=${off}`);
+    out.push(...page);
+    if (page.length < 1000) return out;
+  }
+}
+
+export function allSubscribers() {
+  return pageAll("subscribers?select=email,zip,radius,status,source,created_at,confirmed_at,unsubscribed_at&order=created_at.desc");
+}
+
+export function recentSends() { return db("sends?select=*&order=week.desc&limit=12"); }
+
+export function listSubmissions({ status, type } = {}) {
+  let q = "submissions?select=*&order=created_at.desc&limit=200";
+  if (status && status !== "all") q += `&status=eq.${enc(status)}`;
+  if (type && type !== "all") q += `&type=eq.${enc(type)}`;
+  return db(q);
+}
+
+export function submissionCounts() { return pageAll("submissions?select=status,type&order=created_at.desc"); }
+
+export async function getSubmission(id) {
+  const rows = await db(`submissions?id=eq.${enc(id)}&select=*&limit=1`);
+  return rows[0] || null;
+}
+
+export async function updateSubmission(id, patch) {
+  const rows = await db(`submissions?id=eq.${enc(id)}`, { method: "PATCH", body: patch, prefer: "return=representation" });
+  return rows[0];
+}
+
+export async function deleteSubmission(id) {
+  await db(`submissions?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
+}
+
+export async function deletePhoto(path) {
+  const root = base().replace("/rest/v1/", "/storage/v1");
+  await fetch(root + "/object/submissions", {
+    method: "DELETE", headers: storageHeaders({ "Content-Type": "application/json" }), body: JSON.stringify({ prefixes: [path] }),
+  });
+}
+
+// Signed links for many private photos at once: { path: url }
+export async function signPhotos(paths, seconds = 3600) {
+  const out = {};
+  if (!paths.length) return out;
+  const root = base().replace("/rest/v1/", "/storage/v1");
+  const r = await fetch(root + "/object/sign/submissions", {
+    method: "POST", headers: storageHeaders({ "Content-Type": "application/json" }), body: JSON.stringify({ expiresIn: seconds, paths }),
+  });
+  if (!r.ok) return out;
+  for (const x of await r.json()) {
+    const u = x.signedURL || x.signedUrl;
+    if (u && x.path) out[x.path] = root + (u.startsWith("/") ? u : "/" + u);
+  }
+  return out;
+}
+
+export async function featuredPup() {
+  const rows = await db("submissions?type=eq.pup&featured_at=not.is.null&select=data,photo_path,featured_at&order=featured_at.desc&limit=1");
+  return rows[0] || null;
+}
