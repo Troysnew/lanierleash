@@ -1,13 +1,10 @@
 {
  "mary-alice-park": {
   "file": "mary-alice-park.jpg",
-  "page": "https://commons.wikimedia.org/wiki/File:Mary_Alice_Park.jpg",
-  "artist": "Clifflandis",
-  "license": "CC0",
-  "alt": "Mary Alice Park",
-  "w": 900,
-  "h": 678,
-  "changed": true
+  "illustration": true,
+  "alt": "Illustration of a Lake Lanier shoreline park with a picnic pavilion",
+  "w": 1200,
+  "h": 900
  },
  "shady-grove-campground": {
   "file": "shady-grove-campground.jpg",
@@ -225,16 +222,6 @@
   "artist": "Chanilim714",
   "license": "CC BY-SA 3.0",
   "alt": "Small Stream Webb Bridge Park Alpharetta GA - panoramio",
-  "w": 900,
-  "h": 675,
-  "changed": true
- },
- "the-outlet-shoppes-at-atlanta": {
-  "file": "the-outlet-shoppes-at-atlanta.jpg",
-  "page": "https://commons.wikimedia.org/wiki/File:The_Outlet_Shoppes_at_Atlanta,_Woodstock,_GA_Jan_2019.jpg",
-  "artist": "Thomson200",
-  "license": "CC0",
-  "alt": "The Outlet Shoppes at Atlanta, Woodstock, GA Jan 2019",
   "w": 900,
   "h": 675,
   "changed": true

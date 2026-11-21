@@ -152,9 +152,22 @@
   };
   var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
-  // Fallback decorative photos by category (not photos of the actual place).
-  var PHOTOS = { restaurant: ["bulldog.jpg", "frenchie.jpg", "dachshund-boat.jpg"], brewery: ["frenchie.jpg", "bulldog.jpg"], winery: ["golden-sunset.jpg", "frenchie.jpg"], coffee: ["dalmatian.jpg", "bulldog.jpg"], shop: ["bc-puppy.jpg", "dalmatian.jpg"], stay: ["beagle-sleep.jpg", "golden-close.jpg"], trail: ["hiker.jpg", "beagle.jpg", "beagle-sleep.jpg"], park: ["golden-close.jpg", "beagle.jpg"], dogpark: ["bc-puppy.jpg", "golden-close.jpg"], lake: ["bc-rocks.jpg", "golden-dock.jpg", "golden-sunset.jpg"] };
-  function stockFor(p, i) { var a = PHOTOS[p.category] || PHOTOS.park; return "/img/" + a[(i || 0) % a.length]; }
+  // Generic illustration tiles by category (not photos of the actual place). Each place always gets
+  // the same tile, picked from its id, so the list doesn't repeat in a fixed pattern.
+  function tiles(k, n) { var a = []; for (var j = 1; j <= n; j++) a.push("tiles/" + k + "-" + j + ".webp"); return a; }
+  var PARK = tiles("park", 3), FOOD = tiles("restaurant", 5), BREW = tiles("brewery", 3);
+  var PHOTOS = { restaurant: FOOD, coffee: FOOD, brewery: BREW, winery: BREW.concat(FOOD.slice(0, 2)), shop: tiles("shop", 3), stay: tiles("stay", 3),
+    park: PARK, dogpark: PARK, trail: PARK.concat(["hiker.jpg"]), lake: tiles("lake", 2).concat(["golden-dock.jpg"]) };
+  var recent = []; // tiles used by the last few cards drawn, so nearby cards don't match
+  function stockFor(p, i) {
+    var a = PHOTOS[p.category] || PARK, k = String(p.id || p.name || i || ""), h = 0;
+    for (var j = 0; j < k.length; j++) h = (h * 31 + k.charCodeAt(j)) >>> 0;
+    if (i === 0) recent = [];
+    var pick = a[h % a.length];
+    for (var t = 1; t < a.length && recent.indexOf(pick) >= 0; t++) pick = a[(h + t) % a.length];
+    recent.push(pick); if (recent.length > 3) recent.shift();
+    return "/img/" + pick;
+  }
   // Licensed real photos (Wikimedia Commons, public domain) by place id; filled from /assets/place-photos.js.
   var REAL = (typeof window !== "undefined" && window.LL_PHOTOS) || {};
   function photoFor(p, i) { var x = REAL[p.id]; return x ? "/img/places/" + x.file : stockFor(p, i); }
