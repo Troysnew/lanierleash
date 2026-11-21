@@ -5,7 +5,7 @@ import { etParts, lookupZip, cleanRadius } from "./util.js";
 
 export async function buildPreview({ type, zip, radius, date } = {}) {
   const place = (await lookupZip(String(zip || "30041"))) || (await lookupZip("30041"));
-  const sub = { email: "preview@example.com", zip: place.zip, lat: place.lat, lng: place.lng, radius: cleanRadius(radius || 15), token: "preview-token-not-real-000" };
+  const sub = { email: "preview@example.com", zip: place.zip, lat: place.lat, lng: place.lng, radius: cleanRadius(radius || 25), token: "preview-token-not-real-000" };
   if (type === "confirm") return confirmEmail(sub);
   if (type === "welcome") return welcomeEmail(sub);
   const now = etParts();

@@ -1,5 +1,5 @@
 // GET /issue/ (rewritten here): this week's Thursday email as a web page, for anyone.
-//   ?zip=30041&radius=15 picks the area · ?format=json gives a short summary for the homepage card.
+//   ?zip=30041&radius=25 picks the area · ?format=json gives a short summary for the homepage card.
 import { loadData, fetchWeather, walkCheck, buildIssue, fmtShort } from "./_lib/content.js";
 import { weeklyEmail, esc } from "./_lib/templates.js";
 import { etParts, lookupZip, cleanRadius, siteUrl, json, log } from "./_lib/util.js";
@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   const q = req.query || {};
   try {
     const place = (await lookupZip(String(q.zip || "30041"))) || (await lookupZip("30041"));
-    const sub = { zip: place.zip, lat: place.lat, lng: place.lng, radius: cleanRadius(q.radius || 15), token: "" };
+    const sub = { zip: place.zip, lat: place.lat, lng: place.lng, radius: cleanRadius(q.radius || 25), token: "" };
     const now = etParts();
     const issue = buildIssue(sub, await loadData(now.date), walkCheck(await fetchWeather(), now.hour), now.date);
     const wk = issue.weekend, range = `${fmtShort(wk.fri)}–${+wk.to.slice(8, 10)}`;

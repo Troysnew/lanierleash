@@ -11,7 +11,7 @@ export function cleanEmail(v) {
   const e = String(v || "").trim().toLowerCase();
   return e.length <= 254 && /^[^\s@"<>,;]+@[^\s@"<>,;]+\.[a-z]{2,}$/.test(e) ? e : null;
 }
-export function cleanRadius(v) { const r = +v; return RADII.includes(r) ? r : 15; }
+export function cleanRadius(v) { const r = +v; return RADII.includes(r) ? r : 25; }
 
 // Constant-time compare for shared secrets.
 export function sameSecret(a, b) {

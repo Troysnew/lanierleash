@@ -54,8 +54,8 @@
   function fmtMi(m) { return m == null ? "" : m < 1 ? "<1 mi" : Math.round(m) + " mi"; }
 
   // radius shared across pages
-  var radius = +(store("ll3-r") || 15) || 15;
-  function setRadius(r) { radius = r; store("ll3-r", r); }
+  var radius = +(store("ll3-rad") || 25) || 25;
+  function setRadius(r) { radius = r; store("ll3-rad", r); }
 
   // ---------- dates (all in Lake Lanier local time) ----------
   function todayISO() {

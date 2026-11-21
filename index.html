@@ -42,7 +42,7 @@
         <form class="pillform" id="heroForm" novalidate>
           <div class="fld"><label for="hEmail">Email</label><input id="hEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
           <div class="fld"><label for="hZip">ZIP</label><input id="hZip" inputmode="numeric" maxlength="5" value="30041" autocomplete="postal-code"></div>
-          <div class="fld"><label for="hRad">Within</label><select id="hRad"><option value="5">5 mi</option><option value="10">10 mi</option><option value="15" selected>15 mi</option><option value="25">25 mi</option><option value="35">35 mi</option></select></div>
+          <div class="fld"><label for="hRad">Within</label><select id="hRad"><option value="5">5 mi</option><option value="10">10 mi</option><option value="15">15 mi</option><option value="25" selected>25 mi</option><option value="35">35 mi</option></select></div>
           <div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div><button class="btn btn-coral" type="submit">Join free<svg class="ic"><use href="#u-arrow"/></svg></button>
         </form>
         <p class="formnote"><svg class="ic"><use href="#u-lock"/></svg>Thursday mornings · Never sold · One-click unsubscribe · <a href="/privacy/">Privacy</a></p>
@@ -58,8 +58,8 @@
         
         <div class="main"><img src="/img/hero.jpg" alt="A golden retriever in a teal pine-tree bandana smiling in Lake Lanier"></div>
         <div class="inset"><img src="/img/bc-splash.jpg" alt="A border collie splashing in the lake"></div>
-        <div class="chipcard cc1"><span class="tile-ic"><svg class="ic"><use id="wxChipIc" href="#i-sun"/></svg></span><span><b id="wxChipT">Weekend walk check</b><span id="wxChipS">Loading the forecast…</span></span></div>
-        <div class="chipcard cc2"><span class="faces"><img src="/img/beagle.jpg" alt=""><img src="/img/dalmatian.jpg" alt=""><img src="/img/frenchie.jpg" alt=""></span><span><b id="evChipN">Events</b><span id="evChipS">near you</span></span></div>
+        <a class="chipcard cc1" href="#conditions" aria-label="See the walk check"><span class="tile-ic"><svg class="ic"><use id="wxChipIc" href="#i-sun"/></svg></span><span><b id="wxChipT">Weekend walk check</b><span id="wxChipS">Loading the forecast…</span></span></a>
+        <a class="chipcard cc2" href="#weekend" aria-label="See dog events near you"><span class="faces"><img src="/img/beagle.jpg" alt=""><img src="/img/dalmatian.jpg" alt=""><img src="/img/frenchie.jpg" alt=""></span><span><b id="evChipN">Events</b><span id="evChipS">near you</span></span></a>
       </div>
     </div>
   </section>
@@ -574,7 +574,7 @@
 </script>
 <script>
 (function () {
-  var r = window.LL ? window.LL.radius : 15, z = window.LL ? window.LL.home.zip : "30041";
+  var r = window.LL ? window.LL.radius : 25, z = window.LL ? window.LL.home.zip : "30041";
   fetch("/api/issue?format=json&zip=" + encodeURIComponent(z) + "&radius=" + r).then(function (x) { return x.json(); }).then(function (d) {
     if (!d.ok) return;
     var $ = function (id) { return document.getElementById(id); }, esc = window.LL.esc;

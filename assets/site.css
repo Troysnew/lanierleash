@@ -122,6 +122,10 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .visual .main { border-radius: 40px; overflow: hidden; box-shadow: var(--sh-lg); aspect-ratio: 1.06 / 1; max-width: 100%; position: relative; }
 .visual .main img { width: 100%; height: 100%; object-fit: cover; object-position: 72% 40%; }
 .chipcard { position: absolute; display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.94); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: 20px; padding: 12px 16px 12px 12px; box-shadow: var(--sh-lg); font-size: 13px; color: var(--muted); line-height: 1.25; }
+a.chipcard { text-decoration: none; color: inherit; cursor: pointer; transition: transform .15s, box-shadow .15s; }
+a.chipcard:hover { transform: translateY(-2px); box-shadow: 0 14px 30px rgba(11,58,91,.18); }
+a.chipcard:focus-visible { outline: 3px solid var(--teal); outline-offset: 3px; }
+#conditions, #weekend { scroll-margin-top: 84px; }
 .chipcard b { display: block; color: var(--navy); font-size: 15px; }
 .chipcard .tile-ic { width: 44px; height: 44px; border-radius: 14px; display: grid; place-items: center; background: var(--mint); }
 .chipcard .tile-ic .ic { font-size: 28px; }

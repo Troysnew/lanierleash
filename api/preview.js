@@ -1,5 +1,5 @@
 // Admin only (by key in the link). The /admin/ page has the same tools behind a login.
-//   /api/preview?key=ADMIN_KEY                          weekly email for 30041, 15 mi
+//   /api/preview?key=ADMIN_KEY                          weekly email for 30041, 25 mi
 //   /api/preview?key=ADMIN_KEY&zip=30518&radius=10      a different reader
 //   /api/preview?key=ADMIN_KEY&type=confirm|welcome     the other emails
 //   /api/preview?key=ADMIN_KEY&to=you@example.com       also sends that email to this address

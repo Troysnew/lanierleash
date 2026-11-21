@@ -158,7 +158,7 @@ export function walkCheck(d, nowH) {
 const byDate = (a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start_time || "99") < (b.start_time || "99") ? -1 : 1);
 
 export function buildIssue(sub, data, wx, today = etParts().date) {
-  const home = { lat: +sub.lat, lng: +sub.lng }, r = +sub.radius || 15;
+  const home = { lat: +sub.lat, lng: +sub.lng }, r = +sub.radius || 25;
   const near = (x) => { x.mi = miles(home, x.lat, x.lng); return x.mi != null && x.mi <= r; };
   const events = data.events.map((e) => ({ ...e })).filter(near);
   const places = data.places.map((p) => ({ ...p })).filter(near).sort((a, b) => a.mi - b.mi);
