@@ -31,6 +31,7 @@ export default async function handler(req, res) {
     if (v && f.kind === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return json(res, 400, { ok: false, error: "Pick a date.", field: f.name });
     if (v !== "" && v !== false) data[f.name] = v;
   }
+  if (type === "pup") data.species = ["dog", "cat", "bird", "reptile", "small", "other"].includes(data.species) ? data.species : "dog";
   let email = null;
   if (b.email || spec.emailRequired) {
     email = cleanEmail(b.email);

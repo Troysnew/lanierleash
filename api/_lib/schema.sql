@@ -211,7 +211,7 @@ alter table public.partner_events enable row level security;
 -- One vote per email per contest; it counts once the voter taps the link we email them (status confirmed).
 create table if not exists public.dotm_votes (
   id uuid primary key default gen_random_uuid(),
-  contest text not null check (contest ~ '^\d{4}-\d{2}$'),
+  contest text not null check (contest ~ '^\d{4}-\d{2}(-c)?$'),  -- "-c" = Critter of the Month
   pup_id uuid not null,
   email text not null check (email = lower(email)),
   token text not null unique,
@@ -226,3 +226,7 @@ create table if not exists public.dotm_votes (
 create index if not exists dotm_votes_contest_idx on public.dotm_votes (contest, status);
 create index if not exists dotm_votes_ip_idx on public.dotm_votes (ip_hash, created_at);
 alter table public.dotm_votes enable row level security;
+
+-- Critter of the Month (run once on an existing database):
+alter table public.dotm_votes drop constraint if exists dotm_votes_contest_check;
+alter table public.dotm_votes add constraint dotm_votes_contest_check check (contest ~ '^\d{4}-\d{2}(-c)?$');

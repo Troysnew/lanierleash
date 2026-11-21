@@ -1039,3 +1039,28 @@ img.mark { object-fit: contain; }
 .hubcard:hover { transform: translateY(-2px); border-color: var(--teal); }
 .hubcard img { width: 72px; height: 72px; flex: none; object-fit: contain; }
 .hubcard b { display: block; font-size: 18px; letter-spacing: -.01em; } .hubcard small { display: block; color: var(--muted); font-size: 14px; margin-top: 3px; line-height: 1.45; }
+
+/* Bigger illustrated badges (they read better at size) */
+.help .tb.badge { width: 78px; height: 78px; }
+.help .tb.badge img { width: 78px; height: 78px; }
+.chipcard .tile-ic.badge { width: 60px; height: 60px; }
+.chipcard .tile-ic.badge img { width: 60px; height: 60px; }
+.tile .tb.badge { width: 88px; height: 88px; }
+.mini .mb { width: 54px; height: 54px; }
+.links .ddm img { width: 42px; height: 42px; }
+.pc .ph .cat.cb .cbadge { width: 58px; height: 58px; }
+.pl .th .cat.cb .cbadge { width: 42px; height: 42px; }
+.nearby .cat.cb .cbadge { width: 52px; height: 52px; }
+.hubcard img { width: 92px; height: 92px; }
+.brand .mark { width: 52px; height: 52px; }
+@media (max-width: 760px) {
+  .chipcard .tile-ic.badge, .chipcard .tile-ic.badge img { width: 48px; height: 48px; }
+  .help .tb.badge, .help .tb.badge img { width: 68px; height: 68px; }
+  .hubcard img { width: 76px; height: 76px; }
+}
+@media (max-width: 520px) { .tile .tb.badge { width: 70px; height: 70px; } .brand .mark { width: 46px; height: 46px; } }
+.nearby .cat.cb { width: auto; height: auto; }
+.help .tb.badge, .chipcard .tile-ic.badge, .tile .tb.badge { padding: 0; }
+
+/* Animal tags on events (cats, critters) */
+.t-pet { background: #EEE8FB; color: #5B3FA0; }

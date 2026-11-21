@@ -150,6 +150,18 @@
     shop: { label: "Pet stores & shops", short: "Shop", icon: "i-shop", badge: "pet-friendly-shopping", group: "shops" },
     stay: { label: "Hotels & stays", short: "Stay", icon: "i-stay", badge: "dog-friendly-lodging", group: "stays" }
   };
+  // Which animals an event is for, read from its title and notes (so no extra field to fill in).
+  var RX_CAT = /\b(cats?|kittens?|kitties|kitty|feline)\b/i;
+  var RX_CRIT = /\b(reptiles?|snakes?|lizards?|geckos?|turtles?|tortoises?|birds?|parrots?|rabbits?|bunn(y|ies)|guinea pigs?|hamsters?|ferrets?|chickens?|horses?|goats?|exotics?|small animals?|critters?|herp\w*)\b/i;
+  var RX_DOG = /\b(dogs?|pupp(y|ies)|pups?|canines?|k-?9s?|doggy|doggie)\b/i;
+  function animalsOf(e) {
+    var t = [e.title, e.notes].join(" "), a = [], cat = RX_CAT.test(t), crit = RX_CRIT.test(t);
+    if (RX_DOG.test(t) || (!cat && !crit)) a.push("dogs");
+    if (cat) a.push("cats");
+    if (crit) a.push("critters");
+    return a;
+  }
+  var ANIMAL = { dogs: "Dogs", cats: "Cats", critters: "Other critters" };
   var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
   // Generic illustration tiles by category (not photos of the actual place). Each place always gets
@@ -183,7 +195,7 @@
     return '<button class="' + (cls || "lnk") + '" type="button" data-share data-share-heading="Share this event" data-share-url="/events/' + e.id + '/" data-share-title="' + esc(e.title) + '" data-share-text="' + esc(sharePost(e)) + '">' + ic("u-share") + "Share</button>";
   }
   // Illustrated category badge (hexagon icon) as an <img>.
-  function catBadge(cat, px) { var c = CAT[cat] || CAT.park; return '<img class="cbadge" src="/img/icons/' + c.badge + (px > 48 ? "-192" : "-96") + '.webp" alt="" width="' + px + '" height="' + px + '">'; }
+  function catBadge(cat, px) { var c = CAT[cat] || CAT.park; return '<img class="cbadge" src="/img/icons/' + c.badge + (px > 36 ? "-192" : "-96") + '.webp" alt="" width="' + px + '" height="' + px + '">'; }
   function photoFor(p, i) { var x = REAL[p.id]; return x ? "/img/places/" + x.file : stockFor(p, i); }
   function photoCredit(p) { return REAL[p.id] || null; }
   // True when the picture is a generic tile or an AI illustration, not a real photo of the place.
@@ -214,6 +226,7 @@
         e.type = TYPE[e.type] ? e.type : "dog";
         e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
         e.multi = e.last !== e.date;
+        e.animals = animalsOf(e);
         e.id = slug(e.date + "-" + e.title);
         return e;
       }).filter(function (e) { return e.last >= t; });
@@ -292,7 +305,7 @@
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
-    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, catBadge: catBadge, sharePost: sharePost, shareBtn: shareBtn, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
+    BADGE: BADGE, CAT: CAT, ANIMAL: ANIMAL, animalsOf: animalsOf, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, catBadge: catBadge, sharePost: sharePost, shareBtn: shareBtn, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
     load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

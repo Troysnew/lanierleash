@@ -199,14 +199,15 @@ export function weeklyEmail(sub, issue) {
 // One list of fields per form; /api/submit validates against it and the review email prints it.
 export const SUBMIT_TYPES = {
   pup: { label: "Pup of the Week", emailRequired: true, fields: [
-    { name: "dog_name", label: "Dog's name", required: true, max: 60 },
+    { name: "species", label: "Kind of pet", max: 20 },
+    { name: "dog_name", label: "Pet's name", required: true, max: 60 },
     { name: "age", label: "Age", max: 30 },
     { name: "town", label: "Town", required: true, max: 60 },
     { name: "story", label: "One line about your pup", required: true, max: 200 },
     { name: "owner", label: "Your first name", max: 60 },
     { name: "birthday", label: "Birthday", kind: "date" },
     { name: "consent", label: "Photo permission", kind: "check", required: true },
-    { name: "dotm_opt", label: "Enter Dog of the Month", kind: "check" },
+    { name: "dotm_opt", label: "Enter Dog or Critter of the Month", kind: "check" },
   ] },
   event: { label: "Event suggestion", fields: [
     { name: "title", label: "Event name", required: true, max: 150 },
@@ -272,7 +273,7 @@ export function reviewEmail(row, photoUrl) {
 export function thanksEmail(row) {
   const d = row.data || {}, s = siteUrl();
   const what = {
-    pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.` + (d.dotm_opt ? ` You also entered Dog of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/dog-of-the-month/">lanierleash.com/dog-of-the-month</a> with a page you can share to get votes.` : "")],
+    pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.` + (d.dotm_opt ? (d.species && d.species !== "dog" ? ` You also entered Critter of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/critter-of-the-month/">lanierleash.com/critter-of-the-month</a> with a page you can share to get votes.` : ` You also entered Dog of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/dog-of-the-month/">lanierleash.com/dog-of-the-month</a> with a page you can share to get votes.`) : "")],
     event: ["Thanks for the event tip!", "We'll check the details and add it to the events page if it's a fit. Dog rules change, so we confirm with the host or the event page first."],
     place: ["Thanks for the place tip!", "We'll check the dog rule and add it to the places page if it's a fit."],
     fix: ["Thanks for the fix!", "We'll check it and update the listing. Corrections like this keep the guide honest."],

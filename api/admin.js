@@ -28,7 +28,7 @@ import { miles } from "./_lib/content.js";
 import { etParts, DEFAULT_HOME } from "./_lib/util.js";
 import { send, message } from "./_lib/mail.js";
 import { SUBMIT_TYPES } from "./_lib/templates.js";
-import { openContest, monthName } from "./_lib/dotm.js";
+import { openContest, monthName, kindOfData } from "./_lib/dotm.js";
 import { buildPreview } from "./_lib/previewmail.js";
 import { isAdmin, adminPassword, loginCookie, logoutCookie } from "./_lib/admin.js";
 import { body, json, sameSecret, cleanEmail, log } from "./_lib/util.js";
@@ -45,7 +45,7 @@ function shape(row, photos) {
     title: d.dog_name || d.title || d.name || d.listing || d.business || "Submission",
     fields: spec.fields.filter((f) => d[f.name] !== undefined).map((f) => ({ label: f.label, value: f.kind === "check" ? "Yes" : String(d[f.name]), kind: f.kind || "text" })),
     data: d, photo: row.photo_path ? photos[row.photo_path] || null : null,
-    dotm: row.type === "pup" ? { entered: d.dotm || "", open: openContest(), openName: monthName(openContest()), enteredName: d.dotm ? monthName(d.dotm) : "", wants: !!d.dotm_opt } : null,
+    dotm: row.type === "pup" ? { entered: d.dotm || "", open: openContest(undefined, kindOfData(d).key), openName: monthName(openContest()), enteredName: d.dotm ? monthName(d.dotm) : "", wants: !!d.dotm_opt, title: kindOfData(d).title, species: d.species || "dog" } : null,
   };
 }
 
@@ -97,7 +97,7 @@ export default async function handler(req, res) {
         if (!row) return json(res, 404, { ok: false, error: "Not found" });
         // Approving a pup whose owner ticked "Enter Dog of the Month" puts it in this month's vote.
         if (row.type === "pup" && (patch.status === "approved" || patch.status === "done") && row.data && row.data.dotm_opt && !row.data.dotm && row.data.consent)
-          row = await updateSubmission(row.id, { data: { ...row.data, dotm: openContest() } });
+          row = await updateSubmission(row.id, { data: { ...row.data, dotm: openContest(undefined, kindOfData(row.data).key) } });
         const photos = await signPhotos(row.photo_path ? [row.photo_path] : []);
         return json(res, 200, { ok: true, item: shape(row, photos) });
       }
@@ -115,7 +115,7 @@ export default async function handler(req, res) {
         if (!row || row.type !== "pup" || !row.photo_path) return json(res, 400, { ok: false, error: "Only pup submissions with a photo can be entered." });
         if (b.on !== false && !(row.data && row.data.consent)) return json(res, 400, { ok: false, error: "The owner didn't give photo permission." });
         const data = { ...(row.data || {}) };
-        if (b.on === false) delete data.dotm; else data.dotm = openContest();
+        if (b.on === false) delete data.dotm; else data.dotm = openContest(undefined, kindOfData(data).key);
         const upd = await updateSubmission(row.id, b.on === false ? { data } : { data, status: "approved", reviewed_at: new Date().toISOString() });
         const photos = await signPhotos([row.photo_path]);
         return json(res, 200, { ok: true, item: shape(upd, photos) });

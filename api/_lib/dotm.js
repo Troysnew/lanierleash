@@ -14,10 +14,19 @@ export function shiftMonth(ym, n) {
 }
 export const monthName = (ym) => MON[+ym.slice(5, 7) - 1];
 export const monthLabel = (ym) => `${monthName(ym)} ${ym.slice(0, 4)}`;
-// Voting this month picks next month's dog.
-export const openContest = (today = etParts().date) => shiftMonth(today.slice(0, 7), 1);
-// The dog holding the title right now.
-export const currentTitle = (today = etParts().date) => today.slice(0, 7);
+// Two contests run side by side: Dog of the Month ("YYYY-MM") and Critter of the Month for cats, birds,
+// reptiles and other pets ("YYYY-MM-c"). Same rules, separate ballots.
+export const KINDS = {
+  dog: { key: "dog", suffix: "", title: "Dog of the Month", base: "/dog-of-the-month/", noun: "pup", nouns: "pups" },
+  critter: { key: "critter", suffix: "-c", title: "Critter of the Month", base: "/critter-of-the-month/", noun: "pet", nouns: "pets" },
+};
+export const kindOf = (contest) => (/-c$/.test(contest || "") ? KINDS.critter : KINDS.dog);
+// A pup submission is a critter when the sender picked a kind of pet other than dog.
+export const kindOfData = (d) => (d && d.species && d.species !== "dog" ? KINDS.critter : KINDS.dog);
+// Voting this month picks next month's winner.
+export const openContest = (today = etParts().date, kind = "dog") => shiftMonth(today.slice(0, 7), 1) + KINDS[kind].suffix;
+// The contest whose winner holds the title right now.
+export const currentTitle = (today = etParts().date, kind = "dog") => today.slice(0, 7) + KINDS[kind].suffix;
 // Last day of voting for a contest (the last day of the month before it).
 export function closesOn(contest) {
   const d = new Date(Date.UTC(+contest.slice(0, 4), +contest.slice(5, 7) - 1, 0));
@@ -29,7 +38,7 @@ export const entryId = (row) => `${slug((row.data && row.data.dog_name) || "pup"
 function shape(row, photos, votes) {
   const d = row.data || {};
   return { id: entryId(row), sid: row.id, name: d.dog_name, age: d.age || "", town: d.town || "", story: d.story || "", owner: d.owner || "",
-    photo: photos ? photos[row.photo_path] || null : null, photo_path: row.photo_path, contest: d.dotm || "", votes: votes ? votes[row.id] || 0 : 0 };
+    photo: photos ? photos[row.photo_path] || null : null, photo_path: row.photo_path, contest: d.dotm || "", species: d.species || "dog", votes: votes ? votes[row.id] || 0 : 0 };
 }
 
 // Approved, consenting pups entered for a contest.

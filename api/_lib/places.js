@@ -83,4 +83,4 @@ export async function publishedPlaces() {
 
 // Illustrated category badges (img/icons/<name>-96.webp).
 export const CAT_BADGE = {"restaurant": "patio-dining", "brewery": "breweries", "winery": "wineries", "coffee": "coffee-and-cafes", "trail": "parks-and-trails", "park": "parks", "dogpark": "dog-parks", "lake": "lake-activities", "shop": "pet-friendly-shopping", "stay": "dog-friendly-lodging"};
-export const catBadge = (cat, px = 40) => `<img class="cbadge" src="/img/icons/${CAT_BADGE[cat] || "parks"}-96.webp" alt="" width="${px}" height="${px}">`;
+export const catBadge = (cat, px = 40) => `<img class="cbadge" src="/img/icons/${CAT_BADGE[cat] || "parks"}-${px >= 40 ? 192 : 96}.webp" alt="" width="${px}" height="${px}">`;

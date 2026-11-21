@@ -67,6 +67,30 @@
       "destination": "/api/og?event=:id"
     },
     {
+      "source": "/critter-of-the-month",
+      "destination": "/api/dotm?view=1&kind=critter"
+    },
+    {
+      "source": "/critter-of-the-month/",
+      "destination": "/api/dotm?view=1&kind=critter"
+    },
+    {
+      "source": "/critter-of-the-month/:id([a-z0-9-]+)/card.png",
+      "destination": "/api/og?pup=:id"
+    },
+    {
+      "source": "/critter-of-the-month/:id([a-z0-9-]+)/photo",
+      "destination": "/api/dotm?photo=:id"
+    },
+    {
+      "source": "/critter-of-the-month/:id([a-z0-9-]+)",
+      "destination": "/api/dotm?page=:id"
+    },
+    {
+      "source": "/critter-of-the-month/:id([a-z0-9-]+)/",
+      "destination": "/api/dotm?page=:id"
+    },
+    {
       "source": "/dog-of-the-month",
       "destination": "/api/dotm?view=1"
     },

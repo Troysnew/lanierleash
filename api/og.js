@@ -5,7 +5,7 @@ import fs from "node:fs";
 import { ImageResponse } from "@vercel/og";
 import { publishedEvents } from "./_lib/events.js";
 import { timeRange, addDays, slug } from "./_lib/content.js";
-import { findEntry, monthName, openContest, currentTitle } from "./_lib/dotm.js";
+import { findEntry, monthName, openContest, kindOf } from "./_lib/dotm.js";
 import { signPhotos } from "./_lib/db.js";
 import { etParts, log } from "./_lib/util.js";
 
@@ -62,14 +62,14 @@ function eventCard(e) {
 }
 
 function pupCard(p, photo) {
-  const now = etParts().date, voting = p.contest >= openContest(now), won = p.contest <= currentTitle(now);
-  const head = voting ? `Vote for ${p.name}!` : p.name, sub = voting ? `for ${monthName(p.contest)}'s Dog of the Month` : won ? `Dog of the Month · ${monthName(p.contest)}` : "Lake Lanier pack";
+  const K = kindOf(p.contest), now = etParts().date, voting = p.contest === openContest(now, K.key), won = p.contest.slice(0, 7) <= now.slice(0, 7);
+  const head = voting ? `Vote for ${p.name}!` : p.name, sub = voting ? `for ${monthName(p.contest)}'s ${K.title}` : won ? `${K.title} · ${monthName(p.contest)}` : "Lake Lanier pack";
   return frame(h("div", { width: "100%", height: "100%" },
     photo ? img(photo, { width: 520, height: 612, objectFit: "cover" }) : h("div", { width: 520, height: 612, background: "#E0F7F5", alignItems: "center", justifyContent: "center", fontSize: 160 }, "🐶"),
     h("div", { flexDirection: "column", justifyContent: "space-between", padding: "52px 56px 60px", width: 680 },
       brand(),
       h("div", { flexDirection: "column", gap: 16 },
-        h("div", { color: CORAL, fontWeight: 800, fontSize: 24, letterSpacing: 2 }, "🏆  DOG OF THE MONTH"),
+        h("div", { color: CORAL, fontWeight: 800, fontSize: 24, letterSpacing: 2 }, "🏆  " + K.title.toUpperCase()),
         h("div", { fontWeight: 800, fontSize: clip(head, 40).length > 22 ? 58 : 72, lineHeight: 1.05, color: NAVY, letterSpacing: -2 }, clip(head, 40)),
         h("div", { fontWeight: 600, fontSize: 30, color: "#334155" }, sub),
         p.story ? h("div", { fontWeight: 600, fontSize: 26, color: MUTED, lineHeight: 1.35 }, "“" + clip(p.story, 110) + "”") : null),

@@ -1,4 +1,5 @@
-// Dog of the Month.
+// Dog of the Month and Critter of the Month (cats, birds, reptiles and other pets). Same page code, two ballots.
+//   GET  /critter-of-the-month/        (?view=1&kind=critter) and /critter-of-the-month/<id>/ the same way
 //   GET  /dog-of-the-month/            (?view=1)   the voting page, plus the current winner
 //   GET  /dog-of-the-month/<id>/       (?page=id)  one pup's page, made for sharing
 //   GET  /dog-of-the-month/<id>/photo  (?photo=id) the pup's photo (redirect to a signed link)
@@ -6,7 +7,7 @@
 //   GET  /api/dotm?confirm=<token>                 the vote counts once that link is clicked
 import crypto from "node:crypto";
 import { signPhotos, subByEmail, insertSub, updateSub } from "./_lib/db.js";
-import { entries, winner, findEntry, openContest, currentTitle, closesOn, monthName, monthLabel,
+import { entries, winner, findEntry, openContest, currentTitle, closesOn, monthName, monthLabel, KINDS, kindOf,
   voteByEmail, voteByToken, insertVote, updateVote, recentVotesBy } from "./_lib/dotm.js";
 import { esc, layout, h2, p, button, textFooter, welcomeEmail } from "./_lib/templates.js";
 import { send, message } from "./_lib/mail.js";
@@ -20,10 +21,10 @@ const plural = (n, w) => `${n} ${w}${n === 1 ? "" : "s"}`;
 const COOLDOWN_MS = 2 * 60 * 1000;
 
 function sharePost(x, open) {
-  return open ? `🐾 Vote for ${x.name}${x.town ? " of " + x.town : ""} for ${monthName(x.contest)}'s Lanier Leash Dog of the Month! It takes one click:`
-    : `🐾 Meet ${x.name}${x.town ? " of " + x.town : ""} on Lanier Leash, the free dog guide for Lake Lanier:`;
+  return open ? `🐾 Vote for ${x.name}${x.town ? " of " + x.town : ""} for ${monthName(x.contest)}'s Lanier Leash ${kindOf(x.contest).title}! It takes one click:`
+    : `🐾 Meet ${x.name}${x.town ? " of " + x.town : ""} on Lanier Leash, the free pet guide for Lake Lanier:`;
 }
-const shareBtn = (x, open, cls = "btn btn-out") => `<button class="${cls}" type="button" data-share data-share-heading="${open ? "Get more votes for " + esc(x.name) : "Share " + esc(x.name)}" data-share-sub="${open ? "Friends vote with their email. One vote each per month." : ""}" data-share-url="/dog-of-the-month/${x.id}/" data-share-title="${esc((open ? "Vote for " : "") + x.name)}" data-share-text="${esc(sharePost(x, open))}">${ic("u-share")}Share</button>`;
+const shareBtn = (x, open, cls = "btn btn-out") => `<button class="${cls}" type="button" data-share data-share-heading="${open ? "Get more votes for " + esc(x.name) : "Share " + esc(x.name)}" data-share-sub="${open ? "Friends vote with their email. One vote each per month." : ""}" data-share-url="${kindOf(x.contest).base}${x.id}/" data-share-title="${esc((open ? "Vote for " : "") + x.name)}" data-share-text="${esc(sharePost(x, open))}">${ic("u-share")}Share</button>`;
 const voteBtn = (x, cls = "btn btn-coral") => `<button class="${cls}" type="button" data-vote="${x.id}" data-name="${esc(x.name)}">${ic("u-heart")}Vote</button>`;
 
 // The vote form, shared by both pages.
@@ -47,8 +48,8 @@ var q=new URLSearchParams(location.search).get("vote");if(q){var b=document.quer
 
 function entryCard(x, open, rank) {
   return `<article class="dcard">
-  <a class="dph" href="/dog-of-the-month/${x.id}/"><img src="${esc(x.photo)}" alt="${esc(x.name)}${x.town ? " from " + esc(x.town) : ""}" loading="lazy">${open && rank === 0 && x.votes > 0 ? '<span class="lead">Leading</span>' : ""}</a>
-  <div class="dbd"><h3><a href="/dog-of-the-month/${x.id}/">${esc(x.name)}${x.age ? `, <span>${esc(x.age)}</span>` : ""}</a></h3>
+  <a class="dph" href="${kindOf(x.contest).base}${x.id}/"><img src="${esc(x.photo)}" alt="${esc(x.name)}${x.town ? " from " + esc(x.town) : ""}" loading="lazy">${open && rank === 0 && x.votes > 0 ? '<span class="lead">Leading</span>' : ""}</a>
+  <div class="dbd"><h3><a href="${kindOf(x.contest).base}${x.id}/">${esc(x.name)}${x.age ? `, <span>${esc(x.age)}</span>` : ""}</a></h3>
   <p class="who">${esc([x.town, x.owner ? "with " + x.owner : ""].filter(Boolean).join(" · "))}</p>
   ${x.story ? `<p class="story">“${esc(x.story)}”</p>` : ""}
   <p class="votes"><b>${x.votes}</b> ${x.votes === 1 ? "vote" : "votes"}</p>
@@ -57,39 +58,42 @@ function entryCard(x, open, rank) {
 }
 
 function winnerBanner(w, month) {
-  return `<div class="dwin"><img src="${esc(w.photo)}" alt="${esc(w.name)}"><div><span class="eyebrow">🏆 ${esc(monthName(month))}'s Dog of the Month</span>
+  return `<div class="dwin"><img src="${esc(w.photo)}" alt="${esc(w.name)}"><div><span class="eyebrow">🏆 ${esc(monthName(month))}'s ${kindOf(month).title}</span>
   <h2>${esc(w.name)}${w.town ? " of " + esc(w.town) : ""}</h2>${w.story ? `<p>“${esc(w.story)}”</p>` : ""}<p class="fine">${plural(w.votes, "vote")}${w.owner ? " · with " + esc(w.owner) : ""}</p>
-  <a class="btn btn-out btn-sm" href="/dog-of-the-month/${w.id}/">See ${esc(w.name)}'s page</a></div></div>`;
+  <a class="btn btn-out btn-sm" href="${kindOf(month).base}${w.id}/">See ${esc(w.name)}'s page</a></div></div>`;
 }
 
 async function viewPage(req, res) {
-  const today = etParts().date, open = openContest(today), now = currentTitle(today);
+  const q0 = req.query || {}, K = q0.kind === "critter" ? KINDS.critter : KINDS.dog;
+  const today = etParts().date, open = openContest(today, K.key), now = currentTitle(today, K.key);
+  const enter = K.key === "dog" ? "/submit/?type=pup" : "/submit/?type=pup&amp;pet=critter", enterTxt = K.key === "dog" ? "Enter your pup" : "Enter your pet";
   const [list, champ] = await Promise.all([entries(open), winner(now).catch(() => null)]);
   const q = req.query || {}, voted = q.voted && list.find((x) => x.id === q.voted);
   const closes = longDay(closesOn(open));
-  const body = `<section class="page-hero"><div class="wrap"><span class="eyebrow">Dog of the Month</span>
-  <h1>Vote for ${esc(monthName(open))}'s Dog of the Month</h1>
-  <p class="lede">Local pups, sent in by their people. Vote for your favorite (one vote per email). The pup with the most votes when voting closes <b>${esc(closes)}</b> is ${esc(monthName(open))}'s Dog of the Month on the homepage, in the Thursday email and in the pack.</p>
-  <p class="acts"><a class="btn btn-coral" href="/submit/?type=pup">${ic("u-camera")}Enter your pup</a><a class="btn btn-out" href="#how">How it works</a></p>
+  const body = `<section class="page-hero"><div class="wrap"><span class="eyebrow">${K.title}</span>
+  <h1>Vote for ${esc(monthName(open))}'s ${K.title}</h1>
+  <p class="lede">${K.key === "dog" ? "Local pups" : "Cats, birds, reptiles, bunnies and every other kind of local pet"}, sent in by their people. Vote for your favorite (one vote per email). The ${K.noun} with the most votes when voting closes <b>${esc(closes)}</b> is ${esc(monthName(open))}'s ${K.title} on the homepage, in the Thursday email and in the pack.</p>
+  <p class="acts"><a class="btn btn-coral" href="${enter}">${ic("u-camera")}${enterTxt}</a><a class="btn btn-out" href="#how">How it works</a></p>
+  <p class="fine" style="margin-top:12px">${K.key === "dog" ? `Got a cat, a parrot or a bearded dragon? They're up for <a href="/critter-of-the-month/">Critter of the Month</a>.` : `Dogs have their own contest: <a href="/dog-of-the-month/">Dog of the Month</a>.`}</p>
 </div></section>
 <section class="blk" style="padding-top:8px"><div class="wrap">
   ${q.confirmed === "1" && voted ? `<p class="note good"><b>Your vote for ${esc(voted.name)} is in. Thanks!</b> Want to help more? ${shareBtn(voted, true, "linkbtn")}</p>` : ""}
   ${q.confirmed === "already" ? `<p class="note"><b>You've already voted this month.</b> Thanks! You can vote again when the next month opens.</p>` : ""}
   ${q.confirmed === "closed" ? `<p class="note"><b>That vote link is from a contest that has ended.</b> Voting is open now for ${esc(monthName(open))}.</p>` : ""}
   ${champ ? winnerBanner(champ, now) : ""}
-  <h2 class="h2s">Up for ${esc(monthLabel(open))} <small>${plural(list.length, "pup")} · voting closes ${esc(closes)}</small></h2>
+  <h2 class="h2s">Up for ${esc(monthLabel(open))} <small>${plural(list.length, K.noun)} · voting closes ${esc(closes)}</small></h2>
   ${list.length ? `<div class="dgrid">${list.map((x, i) => entryCard(x, true, i)).join("")}</div>`
-    : `<div class="joincard" style="max-width:620px"><b>No pups entered for ${esc(monthName(open))} yet</b><p>Be the first! Send a photo, a name and one line about your dog. Once we approve it, your pup shows up here and you can share it to get votes.</p><a class="btn btn-coral" href="/submit/?type=pup">${ic("u-camera")}Enter your pup</a></div>`}
+    : `<div class="joincard" style="max-width:620px"><b>No ${K.nouns} entered for ${esc(monthName(open))} yet</b><p>Be the first! Send a photo, a name and one line about your ${K.key === "dog" ? "dog" : "cat, bird, reptile or other pet"}. Once we approve it, your ${K.noun} shows up here and you can share it to get votes.</p><a class="btn btn-coral" href="${enter}">${ic("u-camera")}${enterTxt}</a></div>`}
   <div class="howto" id="how"><h2 class="h2s">How it works</h2><ol>
-    <li><b>Enter your pup.</b> Send a photo and one line about them. It's free. We approve each one by hand, usually within a day or two.</li>
-    <li><b>Share your pup's page.</b> Every entry gets its own page and share button. Post it in a Facebook group, text it to family, rally the dog park.</li>
+    <li><b>${enterTxt}.</b> Send a photo and one line about them. It's free. We approve each one by hand, usually within a day or two.</li>
+    <li><b>Share your ${K.noun}'s page.</b> Every entry gets its own page and share button. Post it in a Facebook group, text it to family, rally the dog park.</li>
     <li><b>Friends vote with their email.</b> One vote per email each month, confirmed with a click so nobody can stuff the ballot.</li>
-    <li><b>The winner holds the title for a month.</b> On the 1st, the top pup is featured on the homepage, in the Thursday email and in the pack. Entries sent in after voting closes go into the next month.</li>
+    <li><b>The winner holds the title for a month.</b> On the 1st, the top ${K.noun} is featured on the homepage, in the Thursday email and in the pack. Entries sent in after voting closes go into the next month.</li>
   </ol></div>
 </div></section>${VOTE_DLG}`;
   const ogx = list[0];
-  return sendHtml(res, 200, shell({ title: `Vote for ${monthName(open)}'s Dog of the Month · Lanier Leash`, description: `Vote for the Lake Lanier pup of the month. ${plural(list.length, "local pup")} up for ${monthLabel(open)}. Voting closes ${closes}.`,
-    path: "/dog-of-the-month/", body, scripts: VOTE_JS, current: "community", image: ogx ? `/dog-of-the-month/${ogx.id}/card.png` : "/img/hero.jpg",
+  return sendHtml(res, 200, shell({ title: `Vote for ${monthName(open)}'s ${K.title} · Lanier Leash`, description: `Vote for the Lake Lanier ${K.key === "dog" ? "pup" : "cat, bird, reptile or other pet"} of the month. ${plural(list.length, "local " + K.noun)} up for ${monthLabel(open)}. Voting closes ${closes}.`,
+    path: K.base, body, scripts: VOTE_JS, current: "community", image: ogx ? `${K.base}${ogx.id}/card.png` : "/img/hero.jpg",
     head: '<meta name="twitter:card" content="summary_large_image">' }), q.voted || q.confirmed ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300");
 }
 
@@ -97,33 +101,33 @@ async function entryPage(req, res, id) {
   const x = await findEntry(id);
   if (!x) return sendHtml(res, 404, shell({ title: "Pup not found · Lanier Leash", description: "That pup isn't in the running right now.", path: "/dog-of-the-month/", noindex: true,
     body: `<section class="page-hero"><div class="wrap"><span class="eyebrow">Dog of the Month</span><h1>We couldn't find that pup</h1><p class="lede">The entry may have been removed. <a href="/dog-of-the-month/">See who's up this month</a>.</p></div></section>` }), "public, s-maxage=60");
-  const today = etParts().date, open = x.contest === openContest(today), won = !open && x.contest <= currentTitle(today) && (await winner(x.contest).catch(() => null))?.sid === x.sid;
-  const photo = `/dog-of-the-month/${x.id}/photo`;
-  const body = `<section class="page-hero"><div class="wrap"><p class="crumbs"><a href="/dog-of-the-month/">Dog of the Month</a> › ${esc(monthLabel(x.contest))}</p></div></section>
+  const K = kindOf(x.contest), today = etParts().date, open = x.contest === openContest(today, K.key), won = !open && x.contest.slice(0, 7) <= today.slice(0, 7) && (await winner(x.contest).catch(() => null))?.sid === x.sid;
+  const photo = `${K.base}${x.id}/photo`;
+  const body = `<section class="page-hero"><div class="wrap"><p class="crumbs"><a href="${K.base}">${K.title}</a> › ${esc(monthLabel(x.contest))}</p></div></section>
 <section class="blk" style="padding-top:0"><div class="wrap dentry">
   <img class="dbig" src="${photo}" alt="${esc(x.name)}${x.town ? " from " + esc(x.town) : ""}">
   <div>
-    <span class="eyebrow">${won ? `🏆 ${esc(monthName(x.contest))}'s Dog of the Month` : open ? `Up for ${esc(monthName(x.contest))}'s Dog of the Month` : `In the running for ${esc(monthLabel(x.contest))}`}</span>
+    <span class="eyebrow">${won ? `🏆 ${esc(monthName(x.contest))}'s ${K.title}` : open ? `Up for ${esc(monthName(x.contest))}'s ${K.title}` : `In the running for ${esc(monthLabel(x.contest))}`}</span>
     <h1>${open ? "Vote for " : ""}${esc(x.name)}${x.age && !open ? ", " + esc(x.age) : ""}</h1>
     <p class="lede">${esc([x.town, x.owner ? "with " + x.owner : ""].filter(Boolean).join(" · "))}</p>
     ${x.story ? `<p class="story big">“${esc(x.story)}”</p>` : ""}
     <p class="votes big"><b>${x.votes}</b> ${x.votes === 1 ? "vote" : "votes"}${open ? ` · voting closes ${esc(longDay(closesOn(x.contest)))}` : ""}</p>
     <div class="acts big">${open ? voteBtn(x) : ""}${shareBtn(x, open)}</div>
-    <p class="note">${open ? "One vote per email each month. We email you a link and your vote counts when you tap it." : `Voting for ${esc(monthName(x.contest))} has closed.`} <a href="/dog-of-the-month/">See all the pups</a> · <a href="/submit/?type=pup">Enter your own</a></p>
+    <p class="note">${open ? "One vote per email each month. We email you a link and your vote counts when you tap it." : `Voting for ${esc(monthName(x.contest))} has closed.`} <a href="${K.base}">See all the ${K.nouns}</a> · <a href="/submit/?type=pup${K.key === "dog" ? "" : "&amp;pet=critter"}">Enter your own</a></p>
   </div>
 </div></section>${open ? VOTE_DLG : ""}`;
-  return sendHtml(res, 200, shell({ title: `${open ? "Vote for " : ""}${x.name}${x.town ? " of " + x.town : ""} · Dog of the Month · Lanier Leash`,
-    description: open ? `${x.name} is up for ${monthName(x.contest)}'s Dog of the Month on Lanier Leash. ${x.story ? "“" + x.story + "” " : ""}Vote with one click.` : `${x.name}${x.town ? " of " + x.town : ""} on Lanier Leash. ${x.story || ""}`,
-    path: `/dog-of-the-month/${x.id}/`, body, scripts: VOTE_JS, current: "community", image: `/dog-of-the-month/${x.id}/card.png`,
+  return sendHtml(res, 200, shell({ title: `${open ? "Vote for " : ""}${x.name}${x.town ? " of " + x.town : ""} · ${K.title} · Lanier Leash`,
+    description: open ? `${x.name} is up for ${monthName(x.contest)}'s ${K.title} on Lanier Leash. ${x.story ? "“" + x.story + "” " : ""}Vote with one click.` : `${x.name}${x.town ? " of " + x.town : ""} on Lanier Leash. ${x.story || ""}`,
+    path: `${K.base}${x.id}/`, body, scripts: VOTE_JS, current: "community", image: `${K.base}${x.id}/card.png`,
     head: '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">' }), "public, s-maxage=60, stale-while-revalidate=300");
 }
 
 function voteEmail(v, x) {
   const url = `${siteUrl()}/api/dotm?confirm=${encodeURIComponent(v.token)}`;
-  const body = h2(`Tap to vote for ${esc(x.name)}`) + p(`Thanks for voting in Lanier Leash's Dog of the Month. Confirm your vote for <b>${esc(x.name)}</b>${x.town ? " of " + esc(x.town) : ""} for ${esc(monthName(v.contest))}:`) +
+  const body = h2(`Tap to vote for ${esc(x.name)}`) + p(`Thanks for voting in Lanier Leash's ${kindOf(v.contest).title}. Confirm your vote for <b>${esc(x.name)}</b>${x.town ? " of " + esc(x.town) : ""} for ${esc(monthName(v.contest))}:`) +
     button(url, `Count my vote for ${x.name}`) + p("If you didn't ask to vote, ignore this. Nothing else will happen.", "color:#5B6B7B;font-size:13px");
-  return { subject: `Confirm your vote for ${x.name}`, html: layout({ preheader: `One tap and your vote for ${x.name} counts.`, body, why: "You asked to vote in Lanier Leash's Dog of the Month." }),
-    text: `Confirm your vote for ${x.name} in Lanier Leash's Dog of the Month (${monthName(v.contest)}):\n\n${url}\n\nIf you didn't ask to vote, ignore this.${textFooter(null)}` };
+  return { subject: `Confirm your vote for ${x.name}`, html: layout({ preheader: `One tap and your vote for ${x.name} counts.`, body, why: `You asked to vote in Lanier Leash's ${kindOf(v.contest).title}.` }),
+    text: `Confirm your vote for ${x.name} in Lanier Leash's ${kindOf(v.contest).title} (${monthName(v.contest)}):\n\n${url}\n\nIf you didn't ask to vote, ignore this.${textFooter(null)}` };
 }
 
 async function askVote(req, res) {
@@ -132,10 +136,12 @@ async function askVote(req, res) {
   if (b.website) return json(res, 200, OK);
   const email = cleanEmail(b.email);
   if (!email) return json(res, 400, { ok: false, error: "That email doesn't look right." });
-  const contest = openContest();
-  const list = await entries(contest, { photos: false });
-  const x = list.find((e) => e.id === String(b.pup || ""));
-  if (!x) return json(res, 400, { ok: false, error: "That pup isn't up for a vote right now." });
+  let contest = null, x = null;
+  for (const k of ["dog", "critter"]) {
+    const c = openContest(undefined, k), hit = (await entries(c, { photos: false })).find((e) => e.id === String(b.pup || ""));
+    if (hit) { contest = c; x = hit; break; }
+  }
+  if (!x) return json(res, 400, { ok: false, error: "That entry isn't up for a vote right now." });
   const ip = String(req.headers["x-forwarded-for"] || "").split(",")[0].trim() || "unknown";
   const ipHash = crypto.createHash("sha256").update(ip + "|vote|" + (process.env.CRON_SECRET || "ll")).digest("hex").slice(0, 32);
   if ((await recentVotesBy(ipHash, new Date(Date.now() - 3600e3).toISOString())).length >= 20) return json(res, 429, { ok: false, error: "Too many votes from here in the last hour. Try again later." });
@@ -153,10 +159,11 @@ async function askVote(req, res) {
 async function confirmVote(res, t) {
   const v = await voteByToken(t);
   if (!v) return redirect(res, "/dog-of-the-month/");
+  const K = kindOf(v.contest);
   const list = await entries(v.contest, { photos: false });
   const x = list.find((e) => e.sid === v.pup_id);
-  if (v.contest !== openContest()) return redirect(res, "/dog-of-the-month/?confirmed=closed");
-  if (v.status === "confirmed") return redirect(res, `/dog-of-the-month/?confirmed=1&voted=${x ? x.id : ""}`);
+  if (v.contest !== openContest(undefined, K.key)) return redirect(res, `${K.base}?confirmed=closed`);
+  if (v.status === "confirmed") return redirect(res, `${K.base}?confirmed=1&voted=${x ? x.id : ""}`);
   await updateVote(v.id, { status: "confirmed", confirmed_at: new Date().toISOString() });
   if (v.join_email) {
     try {
@@ -168,7 +175,7 @@ async function confirmVote(res, t) {
       if (sub) await send(message({ to: v.email, ...welcomeEmail(sub), token: sub.token })).catch((e) => log("dotm welcome failed", e.message));
     } catch (e) { log("dotm join failed", e.message); }
   }
-  return redirect(res, `/dog-of-the-month/?confirmed=1&voted=${x ? x.id : ""}`);
+  return redirect(res, `${K.base}?confirmed=1&voted=${x ? x.id : ""}`);
 }
 
 export default async function handler(req, res) {

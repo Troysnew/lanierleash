@@ -11,6 +11,10 @@ import { siteUrl, etParts, log } from "./_lib/util.js";
 const DOWL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const longDate = (iso) => `${DOWL[new Date(iso + "T12:00:00Z").getUTCDay()]}, ${MON[+iso.slice(5, 7) - 1]} ${+iso.slice(8, 10)}`;
+const RX_CAT = /\b(cats?|kittens?|kitties|kitty|feline)\b/i;
+const RX_CRIT = /\b(reptiles?|snakes?|lizards?|geckos?|turtles?|tortoises?|birds?|parrots?|rabbits?|bunn(y|ies)|guinea pigs?|hamsters?|ferrets?|chickens?|horses?|goats?|exotics?|small animals?|critters?|herp\w*)\b/i;
+// Cats / other critters tags, read from the title and notes (same rule as the events list).
+const petTags = (e) => { const t = [e.title, e.notes].join(" "); return [RX_CAT.test(t) && ["cats", "Cats"], RX_CRIT.test(t) && ["critters", "Critters"]].filter(Boolean).map(([k, l]) => `<a class="tag t-pet" href="/events/?animal=${k}">${l}</a>`).join(""); };
 const TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
 const ICON = { restaurant: "i-dine", brewery: "i-brew", winery: "i-wine", coffee: "i-coffee", trail: "i-trail", park: "i-park", dogpark: "i-dogpark", lake: "i-lake", shop: "i-shop", stay: "i-stay" };
 const ic = (id) => `<svg class="ic" aria-hidden="true"><use href="#${id}"/></svg>`;
@@ -136,7 +140,7 @@ export default async function handler(req, res) {
     <div class="rulecard">
       <span class="eyebrow">The dog rule</span>
       <p class="big">${ic("u-leash")}<span>${esc(e.dog_rule || "Check with the organizer before bringing your dog.")}</span></p>
-      <div class="st"><a class="tag ${T.cls}" href="/events/?type=${e.type === "dog" ? "dog" : "adopt"}">${T.label}</a>${e.cost ? `<span class="chk">${esc(e.cost)}</span>` : ""}<span class="chk">${/^\d{4}-\d{2}-\d{2}$/.test(e.checked || "") ? "Checked " + MON[+e.checked.slice(5, 7) - 1].slice(0, 3) + " " + +e.checked.slice(8, 10) + ", " + e.checked.slice(0, 4) : ""}${e.source_name ? " · " + esc(e.source_name) : ""}</span></div>
+      <div class="st"><a class="tag ${T.cls}" href="/events/?type=${e.type === "dog" ? "dog" : "adopt"}">${T.label}</a>${petTags(e)}${e.cost ? `<span class="chk">${esc(e.cost)}</span>` : ""}<span class="chk">${/^\d{4}-\d{2}-\d{2}$/.test(e.checked || "") ? "Checked " + MON[+e.checked.slice(5, 7) - 1].slice(0, 3) + " " + +e.checked.slice(8, 10) + ", " + e.checked.slice(0, 4) : ""}${e.source_name ? " · " + esc(e.source_name) : ""}</span></div>
       ${e.url ? `<p class="why">Details from ${esc(e.source_name || host(e.url) || "the organizer")}. <a href="${esc(e.url)}" target="_blank" rel="noopener">See the event page${host(e.url) ? " (" + esc(host(e.url)) + ")" : ""}</a>.</p>` : ""}
     </div>
     ${e.notes ? `<p class="prose">${esc(e.notes)}</p>` : ""}

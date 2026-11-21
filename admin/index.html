@@ -199,7 +199,7 @@
       <div><label for="e-end_date">Ends (multi-day only)</label><input id="e-end_date" name="end_date" type="date"></div>
       <div><label for="e-start_time">Starts</label><input id="e-start_time" name="start_time" type="time"></div>
       <div><label for="e-end_time">Ends</label><input id="e-end_time" name="end_time" type="time"></div>
-      <div><label for="e-type">Type</label><select id="e-type" name="type"><option value="dog">Dog event</option><option value="adopt">Adoption</option><option value="foster">Foster</option></select></div>
+      <div><label for="e-type">Type</label><select id="e-type" name="type"><option value="dog">Dog event</option><option value="adopt">Adoption</option><option value="foster">Foster</option></select><small style="display:block;color:#5B6B7B;margin-top:4px">Cats, birds or reptiles? Say so in the title or notes and it gets tagged for the animal filter.</small></div>
       <div><label for="e-cost">Cost</label><input id="e-cost" name="cost" maxlength="80" placeholder="Free"></div>
       <div class="full"><label for="e-venue">Venue</label><input id="e-venue" name="venue" maxlength="150" placeholder="Cherry Street Brewing"></div>
       <div><label for="e-town">Town</label><input id="e-town" name="town" maxlength="80" placeholder="Cumming"></div>
@@ -524,7 +524,7 @@
     return '<article class="sub-card st-' + x.status + '" data-id="' + x.id + '">' +
       '<div class="sc-head"><span class="ty ty-' + x.type + '">' + esc(x.typeLabel) + "</span>" +
       (x.featured_at ? '<span class="feat">★ Pup of the Week</span>' : "") +
-      (x.dotm && x.dotm.entered ? '<span class="feat">🏆 ' + (x.dotm.entered === x.dotm.open ? "Up for " : "Was up for ") + esc(x.dotm.enteredName) + '</span>' : x.dotm && x.dotm.wants ? '<span class="feat">Wants Dog of the Month</span>' : "") +
+      (x.dotm && x.dotm.entered ? '<span class="feat">🏆 ' + (x.dotm.entered === x.dotm.open ? "Up for " : "Was up for ") + esc(x.dotm.enteredName) + " " + esc(x.dotm.title) + '</span>' : x.dotm && x.dotm.wants ? '<span class="feat">Wants ' + esc(x.dotm.title) + '</span>' : "") + (x.dotm && x.dotm.species !== "dog" ? '<span class="feat">' + esc(x.dotm.species) + '</span>' : "") +
       '<span class="stt">' + STATUS_LABEL[x.status] + '</span><span class="when" title="' + esc(new Date(x.created_at).toLocaleString()) + '">' + when(x.created_at) + "</span></div>" +
       '<div class="sc-body">' + (x.photo ? '<a class="ph" href="' + esc(x.photo) + '" target="_blank" rel="noopener"><img src="' + esc(x.photo) + '" alt="Submitted photo of ' + esc(x.title) + '" loading="lazy"></a>' : "") +
       '<div class="sc-main"><h3>' + esc(x.title) + "</h3><dl>" +
@@ -537,7 +537,7 @@
       '<label class="nl">Private note<textarea data-note rows="2" placeholder="Only you see this">' + esc(x.note) + "</textarea></label>" +
       '<div class="acts">' +
       (x.type === "pup" && x.photo ? '<button class="btn btn-sm ' + (x.featured_at ? "btn-out" : "btn-coral") + '" data-act="feature">' + (x.featured_at ? "Remove from homepage" : "★ Feature as Pup of the Week") + "</button>" : "") +
-      (x.dotm && x.photo ? (x.dotm.entered === x.dotm.open ? '<button class="btn btn-sm btn-out" data-act="dotm-off">Remove from Dog of the Month</button>' : '<button class="btn btn-sm btn-out" data-act="dotm-on">🏆 Enter for ' + esc(x.dotm.openName) + ' Dog of the Month</button>') : "") +
+      (x.dotm && x.photo ? (x.dotm.entered === x.dotm.open ? '<button class="btn btn-sm btn-out" data-act="dotm-off">Remove from ' + esc(x.dotm.title) + '</button>' : '<button class="btn btn-sm btn-out" data-act="dotm-on">🏆 Enter for ' + esc(x.dotm.openName) + " " + esc(x.dotm.title) + '</button>') : "") +
       (x.type === "event" ? '<button class="btn btn-sm btn-coral" data-act="toevent">Add to events</button>' : "") +
       (x.type === "place" ? '<button class="btn btn-sm btn-coral" data-act="toplace">Add to places</button>' : "") +
       (x.status !== "approved" ? '<button class="btn btn-sm btn-out" data-act="approved">Approve</button>' : "") +
