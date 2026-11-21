@@ -352,7 +352,7 @@ def advertise():
     <h2 class="h2s">The rules</h2>
     <p>Sponsors and partners are always labeled "Sponsored." Paying never changes a dog rule, a badge, reader reports or whether a place is listed, and the emergency vet list is never sponsored or reordered. Vets must be licensed. Businesses that aren't dog-friendly can't sponsor. A free listing is open to every dog-friendly business: <a href="/submit/?type=claim">claim yours</a>.</p>
   </div>
-  <aside class="joincard"><b>Interested?</b><p>Tell us a little about your business and what you'd like to promote. We'll reply within a few days.</p><a class="btn btn-coral" href="/submit/?type=sponsor">""" + ic("u-heart") + """Ask about sponsoring</a></aside>
+  <aside class="joincard"><b>Interested?</b><p>Tell us a little about your business and what you'd like to promote. We'll reply within a few days.</p><a class="btn btn-coral" href="/submit/?type=sponsor">""" + ic("u-heart") + """Ask about sponsoring</a><p style="margin:12px 0 0;font-size:14px"><a href="/media-kit.pdf" target="_blank" rel="noopener">""" + ic("u-print") + """Download the media kit (PDF, 4 pages)</a></p></aside>
 </div></section>"""
     return shell("/advertise/", "Advertise with Lanier Leash", "Sponsor the Lanier Leash Thursday email and reach dog owners around Cumming and Lake Lanier. Founding sponsors get their first three issues free.", body)
 
