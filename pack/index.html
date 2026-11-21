@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The pack: local dogs of Lake Lanier · Lanier Leash</title>
+<meta name="description" content="Photos of local pups from around Cumming and Lake Lanier, sent in by their people. Add yours.">
+<link rel="canonical" href="https://lanierleash.com/pack/">
+<meta property="og:title" content="The pack: local dogs of Lake Lanier · Lanier Leash">
+<meta property="og:description" content="Photos of local pups from around Cumming and Lake Lanier, sent in by their people. Add yours.">
+<meta property="og:image" content="https://lanierleash.com/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+<div class="mesh" aria-hidden="true" style="height:420px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+<main id="top">
+<section class="page-hero"><div class="wrap"><span class="eyebrow">The pack</span><h1>Meet the Lake Lanier pack</h1><p class="lede">Local pups sent in by their people. Every week one becomes Pup of the Week on the homepage and in the email. <a href="/submit/?type=pup">Add your pup</a>.</p></div></section><section class="blk" style="padding-top:20px"><div class="wrap">
+  <div class="bday" id="bday" hidden></div>
+  <div class="packgrid" id="pack"><p class="loading">Loading the pack…</p></div>
+  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Add your pup to the pack</b><p>Send a photo, a name and one line about them. Add a birthday and we'll give them a shout-out that week.</p><a class="btn btn-coral" href="/submit/?type=pup"><svg class="ic" aria-hidden="true"><use href="#u-camera"/></svg>Send your pup</a></div>
+</div></section>
+</main>
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
+</footer>
+<script src="/assets/data.js"></script>
+<script>window.LL && window.LL.initMenu();</script>
+<script>
+(function () {
+  var esc = window.LL.esc;
+  fetch("/api/pack").then(function (r) { return r.json(); }).then(function (d) {
+    var g = document.getElementById("pack");
+    if (d.birthdays && d.birthdays.length) {
+      var b = document.getElementById("bday"); b.hidden = false;
+      b.innerHTML = "<b>🎂 Pack birthdays this week</b> " + d.birthdays.map(function (x) { return esc(x.name) + (x.town ? " of " + esc(x.town) : "") + " <small>(" + esc(x.day) + ")</small>"; }).join(" · ");
+    }
+    if (!d.pups || !d.pups.length) { g.innerHTML = '<p class="empty">The pack is just getting started. <a href="/submit/?type=pup">Be the first to send your pup</a>.</p>'; return; }
+    g.innerHTML = d.pups.map(function (p) {
+      return '<figure class="pup">' + '<img src="' + esc(p.photo) + '" alt="' + esc(p.name) + (p.town ? ' from ' + esc(p.town) : '') + '" loading="lazy">' +
+        (p.featured ? '<span class="pow">★ Pup of the Week</span>' : '') +
+        '<figcaption><b>' + esc(p.name) + (p.age ? ', ' + esc(p.age) : '') + '</b><span>' + esc([p.town, p.owner ? 'with ' + p.owner : ''].filter(Boolean).join(' · ')) + '</span>' + (p.story ? '<em>' + esc(p.story) + '</em>' : '') + '</figcaption></figure>';
+    }).join("");
+  }).catch(function () { document.getElementById("pack").innerHTML = '<p class="empty">We couldn’t load the pack right now. Try again in a minute.</p>'; });
+})();
+</script>
+</body>
+</html>

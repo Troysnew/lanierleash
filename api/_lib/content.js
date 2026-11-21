@@ -4,6 +4,9 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { siteUrl, etParts } from "./util.js";
 import { publishedEvents } from "./events.js";
+import { publishedPlaces } from "./places.js";
+import { activeSponsor } from "./sponsor.js";
+import { approvedPups } from "./db.js";
 
 // ---------- CSV + dates (same rules as assets/data.js) ----------
 export function parseCSV(text) {
@@ -70,16 +73,25 @@ async function readData(name) {
 }
 
 export async function loadData(today) {
-  // Events: the live calendar (falls back to the CSV). Places: the CSV.
-  const [ev, pl] = await Promise.all([publishedEvents(today), readData("places.csv")]);
+  // Events and places come from the database (each falls back to its CSV).
+  const [ev, pl, sponsor, pups] = await Promise.all([publishedEvents(today), publishedPlaces(), activeSponsor(today).catch(() => null), approvedPups(500).catch(() => [])]);
   const events = ev.events.map((e) => {
     e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
     e.multi = e.last !== e.date;
     e.id = slug(e.date + "-" + e.title);
     return e;
   }).filter((e) => e.last >= today);
-  const places = parseCSV(pl).map((p) => { p.id = p.id || slug(p.name); return p; }).filter((p) => p.status !== "nodogs");
-  return { events, places };
+  const places = pl.places.filter((p) => p.status !== "nodogs");
+  return { events, places, sponsor, birthdays: birthdaysThisWeek(pups, today) };
+}
+
+// Pack pups whose birthday (month and day) falls in the 7 days starting `today`.
+export function birthdaysThisWeek(pups, today) {
+  const days = Array.from({ length: 7 }, (_, i) => addDays(today, i).slice(5));
+  return (pups || []).map((r) => ({ name: (r.data || {}).dog_name, town: (r.data || {}).town, md: String((r.data || {}).birthday || "").slice(5) }))
+    .filter((x) => x.name && /^\d{2}-\d{2}$/.test(x.md) && days.includes(x.md))
+    .sort((a, b) => days.indexOf(a.md) - days.indexOf(b.md))
+    .map((x) => ({ name: x.name, town: x.town || "", day: fmtDay(today.slice(0, 4) + "-" + x.md < today ? +today.slice(0, 4) + 1 + "-" + x.md : today.slice(0, 4) + "-" + x.md) }));
 }
 
 // ---------- walk check (same scoring as the homepage) ----------
@@ -170,5 +182,5 @@ export function buildIssue(sub, data, wx, today = etParts().date) {
     ? `${n} dog-friendly ${n === 1 ? "event" : "events"} this weekend near ${sub.zip}` + (wx ? ` · ${wx.head.toLowerCase()}` : "")
     : wx ? `Your dog weekend near ${sub.zip}: ${wx.head.toLowerCase()}` : `Your dog weekend near ${sub.zip}`;
 
-  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, events: weekendList, ongoing, later, places: picks };
+  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, events: weekendList, ongoing, later, places: picks, sponsor: data.sponsor || null, birthdays: (data.birthdays || []).slice(0, 8) };
 }

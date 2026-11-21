@@ -101,16 +101,23 @@
     unconfirmed: { cls: "b-unv", icon: "u-q", label: "Unconfirmed", desc: "Only listed as dog-friendly on a third-party site. Call ahead, or help us confirm it." },
     nodogs: { cls: "b-no", icon: "u-x", label: "Dogs not allowed", desc: "The official rules ban dogs here. Listed so you don't make the drive." }
   };
+  // Keep in step with CATS in api/_lib/places.js. "group" powers the broader filters.
   var CAT = {
-    dine: { label: "Patios & breweries", short: "Patio", icon: "i-dine" },
-    trail: { label: "Trails & greenways", short: "Trail", icon: "i-trail" },
-    park: { label: "Parks", short: "Park", icon: "i-park" },
-    dogpark: { label: "Dog parks", short: "Dog park", icon: "i-dogpark" },
-    lake: { label: "Lake access", short: "Lake", icon: "i-lake" }
+    restaurant: { label: "Restaurants & patios", short: "Restaurant", icon: "i-dine", group: "food" },
+    brewery: { label: "Breweries & taprooms", short: "Brewery", icon: "i-brew", group: "food" },
+    winery: { label: "Wineries", short: "Winery", icon: "i-wine", group: "food" },
+    coffee: { label: "Coffee & cafes", short: "Coffee", icon: "i-coffee", group: "food" },
+    trail: { label: "Trails & greenways", short: "Trail", icon: "i-trail", group: "outdoors" },
+    park: { label: "Parks", short: "Park", icon: "i-park", group: "outdoors" },
+    dogpark: { label: "Dog parks", short: "Dog park", icon: "i-dogpark", group: "outdoors" },
+    lake: { label: "Lake access", short: "Lake", icon: "i-lake", group: "outdoors" },
+    shop: { label: "Pet stores & shops", short: "Shop", icon: "i-shop", group: "shops" },
+    stay: { label: "Hotels & stays", short: "Stay", icon: "i-stay", group: "stays" }
   };
+  var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
   // Decorative photos by category (not photos of the actual place).
-  var PHOTOS = { dine: ["bulldog.jpg", "frenchie.jpg", "dachshund-boat.jpg"], trail: ["hiker.jpg", "beagle.jpg", "beagle-sleep.jpg"], park: ["golden-close.jpg", "beagle.jpg"], dogpark: ["bc-puppy.jpg", "golden-close.jpg"], lake: ["bc-rocks.jpg", "golden-dock.jpg", "golden-sunset.jpg"] };
+  var PHOTOS = { restaurant: ["bulldog.jpg", "frenchie.jpg", "dachshund-boat.jpg"], brewery: ["frenchie.jpg", "bulldog.jpg"], winery: ["golden-sunset.jpg", "frenchie.jpg"], coffee: ["dalmatian.jpg", "bulldog.jpg"], shop: ["bc-puppy.jpg", "dalmatian.jpg"], stay: ["beagle-sleep.jpg", "golden-close.jpg"], trail: ["hiker.jpg", "beagle.jpg", "beagle-sleep.jpg"], park: ["golden-close.jpg", "beagle.jpg"], dogpark: ["bc-puppy.jpg", "golden-close.jpg"], lake: ["bc-rocks.jpg", "golden-dock.jpg", "golden-sunset.jpg"] };
   function photoFor(p, i) { var a = PHOTOS[p.category] || PHOTOS.park; return "/img/" + a[i % a.length]; }
 
   // ---------- loading ----------
@@ -124,7 +131,13 @@
         .then(function (d) { if (!d.ok || !d.events || !d.events.length) throw new Error("no api events"); return d.events; })
         .catch(function () { return get("/data/events.csv"); });
     }
-    cache = Promise.all([events(), get("/data/places.csv")]).then(function (res) {
+    // Places come from the directory (/api/places); the CSV is the fallback.
+    function places() {
+      return fetch("/api/places").then(function (r) { if (!r.ok) throw new Error("api " + r.status); return r.json(); })
+        .then(function (d) { if (!d.ok || !d.places || !d.places.length) throw new Error("no api places"); return d.places; })
+        .catch(function () { return get("/data/places.csv"); });
+    }
+    cache = Promise.all([events(), places()]).then(function (res) {
       var t = todayISO();
       var events = res[0].filter(function (e) { return /^\d{4}-\d{2}-\d{2}$/.test(e.date) && e.title; }).map(function (e) {
         ["end_date", "start_time", "end_time", "venue", "town", "address", "cost", "dog_rule", "url", "source_name", "notes", "checked"].forEach(function (k) { if (e[k] == null) e[k] = ""; });
@@ -135,7 +148,7 @@
         return e;
       }).filter(function (e) { return e.last >= t; });
       var places = res[1].filter(function (p) { return p.name; }).map(function (p) {
-        p.category = CAT[p.category] ? p.category : "park";
+        p.category = p.category === "dine" ? "restaurant" : CAT[p.category] ? p.category : "park";
         p.status = BADGE[p.status] ? p.status : "unconfirmed";
         p.id = p.id || slug(p.name);
         return p;
@@ -192,7 +205,7 @@
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
-    BADGE: BADGE, CAT: CAT, TYPE: TYPE, photoFor: photoFor,
+    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor,
     load: load, withMiles: withMiles, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

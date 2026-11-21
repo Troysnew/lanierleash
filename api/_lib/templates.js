@@ -99,7 +99,7 @@ function eventRow(e, s) {
 function placeRow(pl, s) {
   const conf = pl.status === "official" || pl.status === "venue";
   return `<tr><td style="padding:12px 0;border-top:1px solid ${C.line};font:14px/1.5 ${FONT};color:${C.slate}">` +
-    `<a href="${s}/places/#${esc(pl.id)}" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(pl.name)}</a>` +
+    `<a href="${s}/places/${esc(pl.id)}/" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(pl.name)}</a>` +
     `<div style="color:${C.muted}">${esc(pl.town)} · ${fmtMi(pl.mi)} · <span style="color:${conf ? C.ok : C.warn};font-weight:700">${conf ? "Official rule" : "Unconfirmed, call ahead"}</span></div>` +
     (pl.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(pl.dog_rule)}</div>` : "") + `</td></tr>`;
 }
@@ -119,6 +119,16 @@ function wxBlock(w) {
     `</td></tr></table>`;
 }
 
+// One clearly labeled sponsor slot (set in /admin/ → Emails).
+function sponsorBlock(sp) {
+  const name = sp.url ? `<a href="${esc(sp.url)}" style="color:${C.navy};text-decoration:none">${esc(sp.name)}</a>` : esc(sp.name);
+  return `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:26px;background:${C.cream};border-radius:16px"><tr><td style="padding:16px 18px;font:14px/1.55 ${FONT};color:${C.slate}">` +
+    `<div style="font:700 11px ${FONT};color:${C.muted};text-transform:uppercase;letter-spacing:.06em">Sponsor</div>` +
+    `<div style="font:800 16px/1.3 ${FONT};color:${C.navy};margin:3px 0 4px">${name}</div>${esc(sp.text)}` +
+    (sp.url ? `<div style="margin-top:6px"><a href="${esc(sp.url)}" style="color:${C.teal};font-weight:700">Learn more →</a></div>` : "") +
+    `</td></tr></table>`;
+}
+
 export function weeklyEmail(sub, issue) {
   const s = siteUrl(), wk = issue.weekend;
   const range = `${fmtShort(wk.fri)}–${+wk.to.slice(8, 10)}`;
@@ -131,7 +141,10 @@ export function weeklyEmail(sub, issue) {
     : p(`We didn't find dog events within ${issue.radius} miles this weekend. A good weekend for a trail, or <a href="${s}/manage/?t=${encodeURIComponent(sub.token)}" style="color:${C.teal}">widen your radius</a>.`);
   if (issue.ongoing.length) body += h2("Ongoing") + table(issue.ongoing.map((e) => eventRow(e, s)).join(""));
   if (issue.later.length) body += h2("Coming up") + table(issue.later.map((e) => eventRow(e, s)).join(""));
+  if (issue.sponsor) body += sponsorBlock(issue.sponsor);
   if (issue.places.length) body += h2("Places to try") + table(issue.places.map((pl) => placeRow(pl, s)).join(""));
+  if (issue.birthdays && issue.birthdays.length) body += h2("Pack birthdays this week 🎂") +
+    p(issue.birthdays.map((x) => `<b>${esc(x.name)}</b>${x.town ? " of " + esc(x.town) : ""} (${esc(x.day)})`).join(" · ") + `. <a href="${s}/pack/" style="color:${C.teal}">Meet the pack</a> or <a href="${s}/submit/?type=pup" style="color:${C.teal}">add your pup</a>.`);
   body += button(s + "/events/", "See every event");
   body += p(`Spot something wrong, or know a place we're missing? Reply and tell us. Dog rules change, so a quick call ahead never hurts.`, `color:${C.muted};font-size:13px`);
 
@@ -139,7 +152,9 @@ export function weeklyEmail(sub, issue) {
   if (issue.wx) t.push(`WALK CHECK: ${issue.wx.head}. Best day ${issue.wx.bestDay}, high ${issue.wx.high}°, best walk ${issue.wx.window}. Pavement ~${issue.wx.pavement}°F at 2 PM (${issue.wx.paws}). Rain ${issue.wx.rain}%.`, "");
   const tl = (title, list) => { if (list.length) { t.push(title.toUpperCase()); list.forEach((e) => t.push(`- ${e.multi ? "Through " + fmtShort(e.last) : fmtDay(e.date) + " " + timeRange(e)}: ${e.title}, ${[e.venue, e.town].filter(Boolean).join(", ")} (${fmtMi(e.mi)})\n  ${s}/events/#${e.id}`)); t.push(""); } };
   tl("This weekend", issue.events); tl("Ongoing", issue.ongoing); tl("Coming up", issue.later);
-  if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)}): ${pl.dog_rule}\n  ${s}/places/#${pl.id}`)); }
+  if (issue.sponsor) t.push(`SPONSORED BY ${issue.sponsor.name.toUpperCase()}: ${issue.sponsor.text}${issue.sponsor.url ? " " + issue.sponsor.url : ""}`, "");
+  if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");
+  if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)}): ${pl.dog_rule}\n  ${s}/places/${pl.id}/`)); }
 
   return {
     subject: issue.subject,
@@ -157,6 +172,7 @@ export const SUBMIT_TYPES = {
     { name: "town", label: "Town", required: true, max: 60 },
     { name: "story", label: "One line about your pup", required: true, max: 200 },
     { name: "owner", label: "Your first name", max: 60 },
+    { name: "birthday", label: "Birthday", kind: "date" },
     { name: "consent", label: "Photo permission", kind: "check", required: true },
   ] },
   event: { label: "Event suggestion", fields: [
@@ -193,6 +209,14 @@ export const SUBMIT_TYPES = {
     { name: "dog_rule", label: "Your dog rule", required: true, max: 400 },
     { name: "details", label: "Anything else", max: 800 },
   ] },
+  sponsor: { label: "Sponsor inquiry", emailRequired: true, fields: [
+    { name: "business", label: "Business name", required: true, max: 150 },
+    { name: "contact_name", label: "Your name", required: true, max: 80 },
+    { name: "website", label: "Website", kind: "url", max: 500 },
+    { name: "phone", label: "Phone", max: 40 },
+    { name: "interest", label: "Interested in", max: 80 },
+    { name: "details", label: "Tell us about it", max: 800 },
+  ] },
 };
 
 export function reviewEmail(row, photoUrl) {
@@ -220,6 +244,7 @@ export function thanksEmail(row) {
     place: ["Thanks for the place tip!", "We'll check the dog rule and add it to the places page if it's a fit."],
     fix: ["Thanks for the fix!", "We'll check it and update the listing. Corrections like this keep the guide honest."],
     claim: ["Thanks, we got your listing request", "We'll reply within a few days to confirm your details. Once confirmed, your listing gets the green Venue confirmed badge."],
+    sponsor: ["Thanks for your interest in sponsoring", "We'll reply within a few days with open dates and details."],
   }[row.type];
   const body = h2(what[0]) + p(what[1]) + p(`Reply to this email if you want to add anything.`) + button(s + "/events/", "See what's on this weekend");
   return { subject: what[0].replace(/<[^>]+>/g, "").replace(/&#39;/g, "'").replace(/&amp;/g, "&"), html: layout({ preheader: what[1].replace(/<[^>]+>/g, ""), body }), text: `${what[0]}\n\n${what[1]}\n\nReply to this email if you want to add anything.\n\n${s}` };

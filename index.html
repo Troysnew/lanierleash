@@ -42,7 +42,7 @@
         <form class="pillform" id="heroForm" novalidate>
           <div class="fld"><label for="hEmail">Email</label><input id="hEmail" type="email" placeholder="you@example.com" autocomplete="email"></div>
           <div class="fld"><label for="hZip">ZIP</label><input id="hZip" inputmode="numeric" maxlength="5" value="30041" autocomplete="postal-code"></div>
-          <div class="fld"><label for="hRad">Within</label><select id="hRad"><option value="5">5 mi</option><option value="10">10 mi</option><option value="15" selected>15 mi</option><option value="25">25 mi</option></select></div>
+          <div class="fld"><label for="hRad">Within</label><select id="hRad"><option value="5">5 mi</option><option value="10">10 mi</option><option value="15" selected>15 mi</option><option value="25">25 mi</option><option value="35">35 mi</option></select></div>
           <div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div><button class="btn btn-coral" type="submit">Join free<svg class="ic"><use href="#u-arrow"/></svg></button>
         </form>
         <p class="formnote"><svg class="ic"><use href="#u-lock"/></svg>Thursday mornings · Never sold · One-click unsubscribe · <a href="/privacy/">Privacy</a></p>
@@ -79,7 +79,7 @@
       <div class="near">
         <span class="lbl"><svg class="ic"><use href="#u-radius"/></svg><span>Near <span id="zipLbl">30041</span>, within</span></span>
         <div class="seg" role="group" aria-label="Distance">
-          <button type="button" data-r="5">5 mi</button><button type="button" data-r="10">10 mi</button><button type="button" data-r="15">15 mi</button><button type="button" data-r="25">25 mi</button>
+          <button type="button" data-r="5">5 mi</button><button type="button" data-r="10">10 mi</button><button type="button" data-r="15">15 mi</button><button type="button" data-r="25">25 mi</button><button type="button" data-r="35">35 mi</button>
         </div>
         <span class="sum" id="sum"></span>
       </div>
@@ -118,18 +118,18 @@
         <article class="card c-pup photo-card" id="community">
           <img id="pupImg" src="/img/dalmatian.jpg" alt="A dalmatian smiling by the lake at sunset">
           <a class="btn btn-sm cta glass" style="color:var(--navy)" href="/submit/?type=pup"><svg class="ic" style="color:var(--coral-btn)"><use href="#u-camera"/></svg>Send your pup</a>
-          <div class="cap"><span class="k" id="pupK">Pup of the week · sample</span><b id="pupB">Pepper, 3, Buford</b><span id="pupS">Has never missed a sunset swim at the lake.</span></div>
+          <div class="cap"><span class="k" id="pupK">Pup of the week · sample</span><b id="pupB">Pepper, 3, Buford</b><span id="pupS">Has never missed a sunset swim at the lake.</span><a class="packlnk" href="/pack/">Meet the pack →</a></div>
         </article>
 
         <article class="card c-issue">
-          <div class="hdr"><span>Sample issue</span><span>4 min read</span></div>
-          <h3>Santa photos, a new dog park loop and a cold Sunday</h3>
+          <div class="hdr"><span id="isK">This week's email</span><span>2 min read</span></div>
+          <h3 id="isH">Your dog weekend: events, a walk check and places to try</h3>
           <ul>
-            <li><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b>Top 3 events near you</b>3, 10 and 15 mi away</span></li>
-            <li><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place spotlight</b>Fowler Park's split dog areas</span></li>
-            <li><span class="ib"><svg class="ic"><use href="#i-bulb"/></svg></span><span><b>Owner tip</b>Thanksgiving foods to keep away</span></li>
+            <li><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b id="isE">Events near you</b><span id="isE2">This weekend within your radius</span></span></li>
+            <li><span class="ib"><svg class="ic"><use href="#i-sun"/></svg></span><span><b>Walk check</b><span id="isW">Best day, best hours, pavement estimate</span></span></li>
+            <li><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place to try</b><span id="isP">A dog-friendly spot near you</span></span></li>
           </ul>
-          <a class="btn btn-out btn-sm" href="#weekend" style="width:100%">Read the sample issue</a>
+          <a class="btn btn-out btn-sm" id="isA" href="/issue/" style="width:100%">Read this week's email</a>
         </article>
 
         <article class="card c-map">
@@ -202,9 +202,9 @@
         <div class="round"><img src="/img/bulldog.jpg" alt="A bulldog relaxing by the lake"></div>
       </div>
       <div class="help">
-        <a href="#top"><span class="tb"><svg class="ic"><use href="#i-home"/></svg></span><span><b>Adopt or foster</b><span>Shelters and rescues near you</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
-        <a href="#top"><span class="tb"><svg class="ic"><use href="#i-vet"/></svg></span><span><b>Low-cost vet care</b><span>Spay, neuter and vaccine clinics</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
-        <a href="#top"><span class="tb"><svg class="ic"><use href="#i-bulb"/></svg></span><span><b>Smart owner tips</b><span>Short, sourced, local advice</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
+        <a href="/adopt/"><span class="tb"><svg class="ic"><use href="#i-home"/></svg></span><span><b>Adopt or foster</b><span>Shelters and rescues near you</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
+        <a href="/vet-care/"><span class="tb"><svg class="ic"><use href="#i-vet"/></svg></span><span><b>Low-cost vet care</b><span>Spay, neuter and vaccine clinics</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
+        <a href="/tips/"><span class="tb"><svg class="ic"><use href="#i-bulb"/></svg></span><span><b>Smart owner tips</b><span>Short, sourced, local advice</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
       </div>
     </div>
   </section>
@@ -214,15 +214,14 @@
   <div class="lakeband" aria-hidden="true"></div>
   <div class="wrap">
     <div>
-      <a class="brand" href="#top" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
-      <div class="soc"><span><svg class="ic"><use href="#u-ig"/></svg></span><span><svg class="ic"><use href="#u-fb"/></svg></span><span><svg class="ic"><use href="#u-tt"/></svg></span><span><svg class="ic"><use href="#u-yt"/></svg></span></div>
     </div>
-    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="#conditions">Conditions</a></li><li><a href="#community">Pup of the Week</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li><li><a href="/events/">Adoption events</a></li><li><a href="/submit/?type=pup">Send your pup</a></li><li><a href="/submit/?type=place">Suggest a spot</a></li><li><a href="/submit/?type=fix">Fix a listing</a></li></ul></div>
-    <div><h4>Lanier Leash</h4><ul><li><a href="#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
-  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Owner tips are general advice. Ask your vet about your own dog.</div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
 </footer>
 
 <script src="/assets/data.js"></script>
@@ -232,7 +231,7 @@
   var EVENTS = [], PLACES = [];
   var CATS = [
     { id: "all", label: "Everything", icon: "i-park" },
-    { id: "dine", label: "Patios & breweries", icon: "i-dine" },
+    { id: "food", label: "Food & drink", icon: "i-brew" },
     { id: "trail", label: "Parks & trails", icon: "i-trail" },
     { id: "lake", label: "Lake access", icon: "i-lake" },
     { id: "dogpark", label: "Dog parks", icon: "i-dogpark" },
@@ -243,7 +242,7 @@
   var $ = function (q) { return document.querySelector(q); };
   var esc = L.esc;
   var ic = function (id) { return '<svg class="ic"><use href="#' + id + '"/></svg>'; };
-  function catOk(p, c) { return c === "all" || c === "events" || p.category === c || (c === "trail" && p.category === "park"); }
+  function catOk(p, c) { return c === "all" || c === "events" || p.category === c || (c === "food" && L.CAT[p.category].group === "food") || (c === "trail" && p.category === "park"); }
   function inR(x) { return x.mi != null && x.mi <= st.r; }
   function byDate(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start_time || "99") < (b.start_time || "99") ? -1 : 1; }
   function weekendEvents() { var wk = L.weekend(); return EVENTS.filter(function (e) { return inR(e) && e.date <= wk.to && e.last >= wk.from; }); }
@@ -557,6 +556,22 @@
       document.getElementById("pupS").textContent = p.story + (p.owner ? " (with " + p.owner + ")" : "");
     };
     img.src = p.photo;
+  }).catch(function () {});
+})();
+</script>
+<script>
+(function () {
+  var r = window.LL ? window.LL.radius : 15, z = window.LL ? window.LL.home.zip : "30041";
+  fetch("/api/issue?format=json&zip=" + encodeURIComponent(z) + "&radius=" + r).then(function (x) { return x.json(); }).then(function (d) {
+    if (!d.ok) return;
+    var $ = function (id) { return document.getElementById(id); }, esc = window.LL.esc;
+    $("isK").textContent = "This week's email · " + d.range;
+    $("isH").textContent = d.subject;
+    $("isE").textContent = d.count ? d.count + (d.count === 1 ? " event" : " events") + " near " + d.zip : "Events near " + d.zip;
+    $("isE2").textContent = d.events.length ? d.events.map(function (e) { return e.title; }).join(" · ") : "A quiet weekend, so the email suggests a trail";
+    if (d.wx) $("isW").textContent = d.wx;
+    if (d.place) $("isP").textContent = d.place.name + ", " + d.place.town;
+    $("isA").href = "/issue/?zip=" + encodeURIComponent(d.zip) + "&radius=" + d.radius;
   }).catch(function () {});
 })();
 </script>

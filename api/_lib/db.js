@@ -212,3 +212,54 @@ export async function updateEvent(id, patch) {
 export async function deleteEvent(id) {
   await db(`events?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
 }
+
+// ---------- places ----------
+export function listPlaces({ status } = {}) {
+  let q = "places?select=*&order=name.asc";
+  if (status && status !== "all") q += `&status=eq.${enc(status)}`;
+  return pageAll(q);
+}
+
+export async function placeIds() { return (await pageAll("places?select=id&order=id.asc")).map((r) => r.id); }
+
+export async function getPlace(id) {
+  const rows = await db(`places?id=eq.${enc(id)}&select=*&limit=1`);
+  return rows[0] || null;
+}
+
+// ignoreDupes: rows whose id already exists are skipped (the CSV import can be run again safely).
+export async function insertPlaces(rows, { ignoreDupes = false } = {}) {
+  if (!rows.length) return [];
+  const out = [];
+  for (let i = 0; i < rows.length; i += 200) {
+    const part = rows.slice(i, i + 200);
+    out.push(...await db(ignoreDupes ? "places?on_conflict=id" : "places", { method: "POST", body: part, prefer: "return=representation" + (ignoreDupes ? ",resolution=ignore-duplicates" : "") }));
+  }
+  return out;
+}
+
+export async function updatePlace(id, patch) {
+  const rows = await db(`places?id=eq.${enc(id)}`, { method: "PATCH", body: { ...patch, updated_at: new Date().toISOString() }, prefer: "return=representation" });
+  return rows[0];
+}
+
+export async function deletePlace(id) {
+  await db(`places?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
+}
+
+// ---------- settings (small JSON values, e.g. the email sponsor) ----------
+export async function getSetting(key) {
+  try {
+    const rows = await db(`settings?key=eq.${enc(key)}&select=value&limit=1`);
+    return rows[0] ? rows[0].value : null;
+  } catch { return null; }
+}
+
+export async function setSetting(key, value) {
+  await db("settings?on_conflict=key", { method: "POST", body: { key, value, updated_at: new Date().toISOString() }, prefer: "return=minimal,resolution=merge-duplicates" });
+}
+
+// ---------- the pack (approved pup photos) ----------
+export function approvedPups(limit = 120) {
+  return db(`submissions?type=eq.pup&status=in.(approved,done)&photo_path=not.is.null&select=id,data,photo_path,featured_at,created_at&order=created_at.desc&limit=${limit}`);
+}

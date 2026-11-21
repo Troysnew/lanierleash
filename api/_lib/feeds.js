@@ -9,7 +9,7 @@ import { SOURCES } from "./sources.js";
 const UA = { "User-Agent": "Mozilla/5.0 (compatible; LanierLeash-events/1.0; +https://lanierleash.com)" };
 const DOG = /\b(dogs?|doggy|doggie|pups?|puppy|puppies|pets?|canines?|k-?9s?|yappy|barks?|barking|paws?|pawty|howl(oween)?|woof|adopt(ion|ions|able)?|rescues?|fur-?bab(y|ies)|four-legged)\b/i;
 const NOT_DOG = /\b(hot|corn|chili|chili-cheese)[ -]?dogs?\b|\bdog days\b|\bpet rock\b|\bpaw paw\b|\bpup tents?\b|\b(horse|burro|livestock|cattle|goat)s?\b[^.]*\badopt\w*|\badopt\w*[^.]*\b(horse|burro|highway|a[- ]road|a[- ]stream|a[- ]family)s?\b/gi;
-const MAX_MI = 30; // the site's widest radius is 25 miles
+const MAX_MI = 38; // the site's widest radius is 35 miles
 // "Friendly dogs on-leash are welcome!" -> use as the dog rule
 const RULE = /[^.!?\n]*\b(dogs?|pets?)\b[^.!?\n]*\b(welcome|allowed|permitted|friendly)\b[^.!?\n]*[.!]?/i;
 

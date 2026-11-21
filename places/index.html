@@ -34,12 +34,12 @@
     <div class="wrap">
       <span class="eyebrow">Dog-friendly places</span>
       <h1>Places your dog can go</h1>
-      <p class="lede">Patios, breweries, trails, dog parks and Lake Lanier access. Each place shows its dog rule, where that rule came from, and when we checked.</p>
+      <p class="lede">Restaurants, breweries, coffee shops, wineries, trails, dog parks, Lake Lanier access, pet stores and hotels. Each place shows its dog rule, where that rule came from, and when we checked.</p>
 
       <div class="controls">
         <div class="zipbox"><svg class="ic"><use href="#u-radius"/></svg><label for="zip">ZIP</label><input id="zip" inputmode="numeric" maxlength="5" autocomplete="postal-code"></div>
         <div class="seg" role="group" aria-label="Distance">
-          <button type="button" data-r="5">5 mi</button><button type="button" data-r="10">10 mi</button><button type="button" data-r="15">15 mi</button><button type="button" data-r="25">25 mi</button>
+          <button type="button" data-r="5">5 mi</button><button type="button" data-r="10">10 mi</button><button type="button" data-r="15">15 mi</button><button type="button" data-r="25">25 mi</button><button type="button" data-r="35">35 mi</button>
         </div>
         <label class="search"><svg class="ic" style="color:var(--muted)"><use href="#u-q"/></svg><span class="sr">Search places</span><input id="q" type="search" placeholder="Search places, towns, rules"></label>
         <span class="ziperr" id="zipErr" hidden></span>
@@ -78,11 +78,11 @@
       <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
-    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/#conditions">Conditions</a></li><li><a href="/#community">Pup of the Week</a></li></ul></div>
-    <div><h4>Help</h4><ul><li><a href="/places/#how-we-check">How we check</a></li><li><a href="/submit/?type=pup">Send your pup</a></li><li><a href="/submit/?type=place">Suggest a spot</a></li><li><a href="/submit/?type=fix">Fix a listing</a></li></ul></div>
-    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
-  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Map data © OpenStreetMap contributors. Rules change, so check before you go.</div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
 </footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
@@ -90,7 +90,10 @@
 <script>
 (function () {
   var L = window.LL, $ = function (s) { return document.querySelector(s); };
-  var CATS = ["all", "dine", "trail", "park", "dogpark", "lake"];
+  var CATS = ["all", "food", "restaurant", "brewery", "winery", "coffee", "outdoors", "trail", "park", "dogpark", "lake", "shop", "stay"];
+  function inCat(p, k) { return k === "all" || p.category === k || L.CAT[p.category].group === k; }
+  function catLabel(k) { return k === "all" ? "Everything" : L.GROUP[k] ? L.GROUP[k] : L.CAT[k].label; }
+  function catIcon(k) { return k === "all" ? "" : k === "food" ? L.ic("i-dine") : k === "outdoors" ? L.ic("i-trail") : L.ic(L.CAT[k].icon); }
   var STATS = ["all", "venue", "official", "readers", "unconfirmed", "nodogs"];
   var st = { cat: "all", status: "all", q: "", sel: null };
   var DATA = null, map = null, layer = null, ring = null, homePin = null, markers = {};
@@ -101,7 +104,7 @@
   $("#badges").innerHTML = ["venue", "official", "readers", "unconfirmed", "nodogs"].map(function (k) {
     var b = L.BADGE[k]; return '<div class="tr"><span class="badge ' + b.cls + '">' + L.ic(b.icon) + b.label + "</span><p>" + b.desc + "</p></div>";
   }).join("");
-  $("#legend").innerHTML = ["dine", "trail", "park", "dogpark", "lake"].map(function (k) {
+  $("#legend").innerHTML = ["restaurant", "brewery", "coffee", "winery", "trail", "park", "dogpark", "lake", "shop", "stay"].map(function (k) {
     return '<span><i class="dot-' + k + '"></i>' + L.CAT[k].label + "</span>";
   }).join("");
 
@@ -115,7 +118,7 @@
   function pinIcon(cls) { return window.L.divIcon({ className: "", html: '<div class="pin ' + cls + '"></div>', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28] }); }
 
   function matches(p) {
-    if (st.cat !== "all" && p.category !== st.cat) return false;
+    if (!inCat(p, st.cat)) return false;
     if (st.status === "all" ? p.status === "nodogs" : p.status !== st.status) return false;
     if (!st.q) return true;
     return [p.name, p.town, p.dog_rule, p.notes, L.CAT[p.category].label].join(" ").toLowerCase().indexOf(st.q) >= 0;
@@ -126,10 +129,11 @@
     if (p.source_url) links.push('<a class="lnk" href="' + esc(p.source_url) + '" target="_blank" rel="noopener">' + ic("u-check") + "Source" + "</a>");
     if (p.website && p.website !== p.source_url) links.push('<a class="lnk" href="' + esc(p.website) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Website</a>");
     links.push('<a class="lnk" href="' + esc(L.mapsLink(p)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>");
+    links.push('<a class="lnk" href="/places/' + encodeURIComponent(p.id) + '/">' + ic("u-arrow") + "Details</a>");
     links.push('<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(p.name + (p.town ? ", " + p.town : "")) + '&amp;ref=place:' + encodeURIComponent(p.id) + '">Something wrong?</a>');
     return '<article class="pl' + (st.sel === p.id ? " on" : "") + '" id="' + p.id + '">' +
       '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="cat">' + ic(c.icon) + "</span></div>" +
-      '<div style="min-width:0"><div class="top"><h3><button type="button" data-sel="' + p.id + '">' + esc(p.name) + '</button></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +
+      '<div style="min-width:0"><div class="top"><h3><a href="/places/' + encodeURIComponent(p.id) + '/" data-sel="' + p.id + '">' + esc(p.name) + '</a></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +
       '<p class="town">' + esc(c.short + " · " + p.town) + "</p>" +
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(p.dog_rule) + "</span></p>" +
       (p.notes ? '<p class="meta">' + esc(p.notes) + "</p>" : "") +
@@ -143,11 +147,12 @@
     var inR = DATA.places.filter(function (p) { return p.mi == null || p.mi <= r; });
     document.querySelectorAll(".seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(+b.dataset.r === r)); });
     $("#cats").innerHTML = CATS.map(function (k) {
-      var n = inR.filter(function (p) { return p.status !== "nodogs" && (k === "all" || p.category === k); }).length;
-      return '<button class="chip" type="button" data-cat="' + k + '" aria-pressed="' + (st.cat === k) + '">' + (k === "all" ? "" : L.ic(L.CAT[k].icon)) + (k === "all" ? "Everything" : L.CAT[k].label) + " <small>" + n + "</small></button>";
+      var n = inR.filter(function (p) { return p.status !== "nodogs" && inCat(p, k); }).length;
+      if (!n && k !== "all" && st.cat !== k) return "";
+      return '<button class="chip' + (L.GROUP[k] || k === "all" ? " grp" : "") + '" type="button" data-cat="' + k + '" aria-pressed="' + (st.cat === k) + '">' + catIcon(k) + catLabel(k) + " <small>" + n + "</small></button>";
     }).join("");
     $("#stats").innerHTML = STATS.map(function (k) {
-      var n = inR.filter(function (p) { return (st.cat === "all" || p.category === st.cat) && (k === "all" ? p.status !== "nodogs" : p.status === k); }).length;
+      var n = inR.filter(function (p) { return inCat(p, st.cat) && (k === "all" ? p.status !== "nodogs" : p.status === k); }).length;
       if (k !== "all" && !n) return "";
       return '<button class="chip" type="button" data-status="' + k + '" aria-pressed="' + (st.status === k) + '">' + (k === "all" ? "Any status" : L.BADGE[k].label) + " <small>" + n + "</small></button>";
     }).join("");
@@ -182,13 +187,20 @@
   $("#cats").addEventListener("click", function (e) { var b = e.target.closest("[data-cat]"); if (!b) return; st.cat = b.dataset.cat; st.status = "all"; render(false); });
   $("#stats").addEventListener("click", function (e) { var b = e.target.closest("[data-status]"); if (!b) return; st.status = b.dataset.status; render(false); });
   $("#q").addEventListener("input", function (e) { st.q = e.target.value.trim().toLowerCase(); render(false); });
-  $("#list").addEventListener("click", function (e) { var b = e.target.closest("[data-sel]"); if (b) select(b.dataset.sel, true); });
+  $("#list").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-sel]"); if (!b) return;
+    // Plain click on the name selects it on the map; ctrl/cmd-click still opens the place page.
+    if (e.metaKey || e.ctrlKey || e.shiftKey || !map || window.innerWidth < 900) return;
+    e.preventDefault(); select(b.dataset.sel, true);
+  });
   $("#zip").addEventListener("input", function (e) {
     var z = e.target.value.trim(), err = $("#zipErr");
     if (!/^\d{5}$/.test(z)) return;
     L.setZip(z).then(function () { err.hidden = true; render(true); }).catch(function () { err.hidden = false; err.textContent = "We couldn't find ZIP " + z + "."; });
   });
 
+  var qs = new URLSearchParams(location.search);
+  if (qs.get("cat") && (L.CAT[qs.get("cat")] || L.GROUP[qs.get("cat")])) st.cat = qs.get("cat");
   L.load().then(function (d) {
     DATA = d; render(true);
     var h = location.hash.slice(1); if (h && document.getElementById(h) && h !== "how-we-check") select(h, true);

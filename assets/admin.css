@@ -137,3 +137,8 @@ body.adm { background: #F3F6F8; }
   .acts2 { text-align: left; }
   .acts2 .btn { margin: 4px 4px 0 0; }
 }
+.ty-sponsor { background: var(--rd-soft); color: var(--rd); }
+.ty-place { background: var(--mint); color: var(--teal); }
+.tbl .rulec { max-width: 380px; font-size: 13.5px; }
+.adm label.chk { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+.adm label.chk input { width: auto; }

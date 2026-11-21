@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
 
 export const TZ = "America/New_York";
-export const RADII = [5, 10, 15, 25];
+export const RADII = [5, 10, 15, 25, 35];
 export const DEFAULT_HOME = { zip: "30041", lat: 34.2037, lng: -84.1031 };
 
 export function siteUrl() { return (process.env.SITE_URL || "https://lanierleash.com").replace(/\/$/, ""); }

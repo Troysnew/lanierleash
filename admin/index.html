@@ -37,6 +37,7 @@
     <nav class="adm-tabs" role="tablist">
       <button role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="pill" id="newN" hidden></span></button>
       <button role="tab" data-tab="events" aria-selected="false">Events <span class="pill" id="sugN" hidden></span></button>
+      <button role="tab" data-tab="places" aria-selected="false">Places</button>
       <button role="tab" data-tab="subs" aria-selected="false">Subscribers</button>
       <button role="tab" data-tab="email" aria-selected="false">Emails</button>
     </nav>
@@ -64,7 +65,7 @@
         </div>
         <select id="tyF" aria-label="Type">
           <option value="all">All types</option><option value="pup">Pups</option><option value="event">Events</option>
-          <option value="place">Places</option><option value="fix">Fixes</option><option value="claim">Business claims</option>
+          <option value="place">Places</option><option value="fix">Fixes</option><option value="claim">Business claims</option><option value="sponsor">Sponsors</option>
         </select>
       </div>
       <div id="list" class="list"><p class="empty">Loading…</p></div>
@@ -88,6 +89,26 @@
       </div>
       <p class="fine" id="evHelp"></p>
       <div id="evList" class="list"><p class="empty">Loading…</p></div>
+    </section>
+
+    <!-- Places -->
+    <section data-pane="places" hidden>
+      <div class="msg" id="plSetup" hidden>
+        <b id="plSetupH">Set up the places directory.</b> <span id="plSetupT">Move the site's current places into the admin so you can edit them here.</span>
+        <div class="btns"><button class="btn btn-sm btn-coral" id="plImport" type="button">Import places</button></div>
+      </div>
+      <div class="bar">
+        <div class="chips" id="plF">
+          <button data-v="published" aria-pressed="true">On the site <span id="plN1"></span></button>
+          <button data-v="draft" aria-pressed="false">Drafts <span id="plN2"></span></button>
+          <button data-v="hidden" aria-pressed="false">Hidden <span id="plN3"></span></button>
+        </div>
+        <select id="plCat" aria-label="Category"><option value="all">All categories</option></select>
+        <input id="plQ" type="search" placeholder="Search name, town, rule" aria-label="Search places" style="max-width:240px">
+        <button class="btn btn-sm btn-coral" id="plAdd" type="button" style="margin-left:auto">+ Add place</button>
+      </div>
+      <p class="fine" id="plHelp"></p>
+      <div id="plList" class="list"><p class="empty">Loading…</p></div>
     </section>
 
     <!-- Subscribers -->
@@ -114,7 +135,7 @@
           <div class="row3">
             <div><label for="pType">Email</label><select id="pType"><option value="weekly">Thursday weekly</option><option value="confirm">Confirm</option><option value="welcome">Welcome</option></select></div>
             <div><label for="pZip">ZIP</label><input id="pZip" value="30041" inputmode="numeric" maxlength="5"></div>
-            <div><label for="pRad">Radius</label><select id="pRad"><option>5</option><option>10</option><option selected>15</option><option>25</option></select></div>
+            <div><label for="pRad">Radius</label><select id="pRad"><option>5</option><option>10</option><option selected>15</option><option>25</option><option>35</option></select></div>
           </div>
           <div class="btns"><button class="btn btn-sm btn-coral" id="pGo" type="button">Show preview</button></div>
           <h2 style="margin-top:26px">Send yourself a test</h2>
@@ -122,6 +143,17 @@
           <input id="tTo" type="email" placeholder="you@example.com" autocomplete="email">
           <div class="btns"><button class="btn btn-sm btn-out" id="tGo" type="button">Send test</button></div>
           <p class="msg" id="tmsg" hidden role="status"></p>
+          <h2 style="margin-top:26px">Email sponsor</h2>
+          <p class="fine">One labeled sponsor block in the Thursday email, under the events. Leave it off when there's no sponsor.</p>
+          <form id="spForm" novalidate>
+            <label class="chk"><input type="checkbox" id="sp-on"> Show a sponsor in the Thursday email</label>
+            <label for="sp-name">Sponsor name</label><input id="sp-name" maxlength="80" placeholder="Cherry Street Brewing">
+            <label for="sp-text">What to say (one or two lines)</label><textarea id="sp-text" rows="2" maxlength="240" placeholder="Yappy hour every Thursday on the patio, water bowls and treats for the pups."></textarea>
+            <label for="sp-url">Link</label><input id="sp-url" type="url" maxlength="500" placeholder="https://">
+            <label for="sp-until">Run through (optional)</label><input id="sp-until" type="date">
+            <div class="btns"><button class="btn btn-sm btn-coral" type="submit" id="spSave">Save sponsor</button></div>
+            <p class="msg" id="spMsg" hidden role="status"></p>
+          </form>
           <h2 style="margin-top:26px">Thursday sends</h2>
           <div id="sends"><p class="fine">Loading…</p></div>
           <p class="fine">The weekly email goes out Thursdays at 7 AM Eastern to everyone subscribed.</p>
@@ -159,6 +191,39 @@
       <span style="flex:1"></span>
       <button class="btn btn-sm btn-out" type="button" id="evDraft">Save, don't publish</button>
       <button class="btn btn-sm btn-coral" type="submit" id="evSave">Save and publish</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="plDlg" class="evdlg" aria-labelledby="plDlgH">
+  <form id="plForm" method="dialog" novalidate>
+    <div class="dh"><h2 id="plDlgH">Add place</h2><button type="button" class="x" id="plX" aria-label="Close">×</button></div>
+    <div class="fg">
+      <div class="full"><label for="p-name">Name *</label><input id="p-name" maxlength="150" required></div>
+      <div><label for="p-category">Category *</label><select id="p-category"></select></div>
+      <div><label for="p-badge">How we know the rule</label><select id="p-badge">
+        <option value="official">Official rule (their website or rules page)</option><option value="venue">Venue confirmed (they told us)</option>
+        <option value="readers">Readers say yes</option><option value="unconfirmed">Unconfirmed (third-party site)</option><option value="nodogs">Dogs not allowed</option></select></div>
+      <div><label for="p-town">Town</label><input id="p-town" maxlength="80" placeholder="Cumming"></div>
+      <div><label for="p-address">Street address</label><input id="p-address" maxlength="200" placeholder="For the map and distances"></div>
+      <div class="full"><label for="p-dog_rule">Dog rule *</label><input id="p-dog_rule" maxlength="400" placeholder="Leashed dogs welcome on the patio"></div>
+      <div class="full"><label for="p-source_url">Where the rule came from (link)</label><input id="p-source_url" type="url" maxlength="600" placeholder="https://"></div>
+      <div><label for="p-source_name">Source name</label><input id="p-source_name" maxlength="120" placeholder="Venue website"></div>
+      <div><label for="p-checked">Checked on</label><input id="p-checked" type="date"></div>
+      <div><label for="p-website">Website</label><input id="p-website" type="url" maxlength="600" placeholder="https://"></div>
+      <div><label for="p-phone">Phone</label><input id="p-phone" maxlength="40"></div>
+      <div class="full"><label for="p-notes">Short note (one line, shown on cards)</label><input id="p-notes" maxlength="300"></div>
+      <div class="full"><label for="p-description">Longer description (shown on the place's own page)</label><textarea id="p-description" rows="3" maxlength="2000"></textarea></div>
+      <div><label for="p-lat">Latitude</label><input id="p-lat" inputmode="decimal" placeholder="Found automatically"></div>
+      <div><label for="p-lng">Longitude</label><input id="p-lng" inputmode="decimal" placeholder="Found automatically"></div>
+    </div>
+    <p class="msg" id="plMsg" hidden role="status"></p>
+    <div class="df">
+      <button class="btn btn-sm del" type="button" id="plDel">Delete</button>
+      <a class="btn btn-sm btn-out" id="plView" target="_blank" rel="noopener" hidden>View page</a>
+      <span style="flex:1"></span>
+      <button class="btn btn-sm btn-out" type="button" id="plDraft">Save as draft</button>
+      <button class="btn btn-sm btn-coral" type="submit" id="plSave">Save and publish</button>
     </div>
   </form>
 </dialog>
@@ -209,7 +274,8 @@
       $$("[data-pane]").forEach(function (p) { p.hidden = p.dataset.pane !== t.dataset.tab; });
       if (t.dataset.tab === "subs" && !st.subs) loadSubs();
       if (t.dataset.tab === "events") loadEvents();
-      if (t.dataset.tab === "email") { loadSends(); if (!$("#pf").src) preview(); }
+      if (t.dataset.tab === "places") loadPlaces();
+      if (t.dataset.tab === "email") { loadSends(); loadSponsor(); if (!$("#pf").src) preview(); }
     });
   });
   function chips(sel, cb) {
@@ -241,9 +307,10 @@
   var HINT = {
     pup: "Feature this pup to put it on the homepage right away.",
     event: "Click Add to events to check the details and put it on the site.",
-    place: "Approve it, then send it to Claude to add to the places page.",
+    place: "Click Add to places to check the details and put it on the site.",
     fix: "Check the listing, then mark Done once it's fixed.",
-    claim: "Reply to confirm their details, then send it to Claude to add the green badge."
+    claim: "Reply to confirm their details. Then open the place in the Places tab, update the rule and set it to Venue confirmed.",
+    sponsor: "Reply to talk dates and price. When it's agreed, fill in the sponsor under Emails."
   };
   function loadInbox() {
     $("#list").innerHTML = '<p class="empty">Loading…</p>';
@@ -270,6 +337,7 @@
       '<div class="acts">' +
       (x.type === "pup" && x.photo ? '<button class="btn btn-sm ' + (x.featured_at ? "btn-out" : "btn-coral") + '" data-act="feature">' + (x.featured_at ? "Remove from homepage" : "★ Feature as Pup of the Week") + "</button>" : "") +
       (x.type === "event" ? '<button class="btn btn-sm btn-coral" data-act="toevent">Add to events</button>' : "") +
+      (x.type === "place" ? '<button class="btn btn-sm btn-coral" data-act="toplace">Add to places</button>' : "") +
       (x.status !== "approved" ? '<button class="btn btn-sm btn-out" data-act="approved">Approve</button>' : "") +
       (x.status !== "done" ? '<button class="btn btn-sm btn-out" data-act="done">Done</button>' : "") +
       (x.status !== "rejected" ? '<button class="btn btn-sm btn-out" data-act="rejected">Reject</button>' : "") +
@@ -293,6 +361,7 @@
     var btn = e.target.closest("[data-act]"); if (!btn) return;
     var el = btn.closest(".sub-card"), id = el.dataset.id, act = btn.dataset.act, x = st.items.find(function (i) { return i.id === id; });
     if (act === "toevent") return window.__addFromSubmission(x);
+    if (act === "toplace") return window.__addPlaceFromSubmission(x);
     if (act === "copy") {
       var txt = x.typeLabel + ": " + x.title + "\n" + x.fields.map(function (f) { return f.label + ": " + f.value; }).join("\n") + (x.email ? "\nFrom: " + x.email : "");
       navigator.clipboard.writeText(txt).then(function () { btn.textContent = "Copied"; setTimeout(function () { btn.textContent = "Copy details"; }, 1500); });
@@ -386,7 +455,7 @@
     $("#evList").innerHTML = ev.items.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr><th>When</th><th>Event</th><th>Where</th><th></th></tr></thead><tbody>' + ev.items.map(function (x) {
       var when = fmtD(x.date) + (x.end_date ? " – " + fmtD(x.end_date) : "") + (x.start_time ? "<br><small>" + fmtT(x.start_time) + (x.end_time ? "–" + fmtT(x.end_time) : "") + "</small>" : "");
       var flags = (x.lat == null ? '<span class="sb sb-pending" title="No map location, so it won\'t show in distance searches or the email">No location</span> ' : "") +
-        (x.origin === "feed" ? '<span class="sb sb-feed">From ' + esc(x.source_name || "a calendar") + "</span> " : "");
+        (x.origin === "research" ? '<span class="sb sb-feed">Weekly research</span> ' : "") + (x.origin === "feed" ? '<span class="sb sb-feed">From ' + esc(x.source_name || "a calendar") + "</span> " : "");
       return '<tr data-id="' + x.id + '"><td class="nw">' + when + '</td><td><b>' + esc(x.title) + '</b> <span class="ty ty-' + (x.type === "dog" ? "event" : "pup") + '">' + TY[x.type] + "</span><br>" + flags +
         (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" class="small">Event page</a>' : "") + "</td><td>" + esc([x.venue, x.town].filter(Boolean).join(", ")) + (x.mi != null ? '<br><small class="muted">' + x.mi + " mi from Cumming</small>" : "") + '</td><td class="nw acts2">' +
         '<button class="btn btn-sm btn-out" data-ev="edit">Edit</button>' +
@@ -478,6 +547,134 @@
       url: d.url, dog_rule: d.dog_rule, cost: d.cost, notes: d.details || "", source_name: d.url ? "Submitted by a reader" : "Reader submission", type: /adopt/i.test(d.title || "") ? "adopt" : "dog"
     });
   };
+
+  // ---------- places ----------
+  var pl = { view: "published", items: [], cats: null, editing: null, fromSub: null };
+  var PLHELP = {
+    published: "Everything here shows on the places page, on its own page, and can be picked for Thursday's email.",
+    draft: "Saved but not on the site yet. Check the rule and source, then publish.",
+    hidden: "Kept but not shown anywhere. Publish to bring one back."
+  };
+  var BADGE_L = { official: "Official rule", venue: "Venue confirmed", readers: "Readers say yes", unconfirmed: "Unconfirmed", nodogs: "Dogs not allowed" };
+  chips("#plF", function (v) { pl.view = v; loadPlaces(); });
+  $("#plCat").addEventListener("change", renderPlaces);
+  $("#plQ").addEventListener("input", renderPlaces);
+  function fillCats(cats) {
+    if (pl.cats) return; pl.cats = cats;
+    var o = Object.keys(cats).map(function (k) { return '<option value="' + k + '">' + esc(cats[k].label) + "</option>"; }).join("");
+    $("#plCat").insertAdjacentHTML("beforeend", o); $("#p-category").innerHTML = o;
+  }
+  function loadPlaces() {
+    $("#plHelp").textContent = PLHELP[pl.view];
+    $("#plList").innerHTML = '<p class="empty">Loading…</p>';
+    api("places", { qs: "&view=" + pl.view }).then(function (d) {
+      if (!d.ok) { $("#plList").innerHTML = '<p class="empty">' + esc(d.error) + "</p>"; return; }
+      fillCats(d.cats);
+      var c = d.counts || {};
+      $("#plN1").textContent = c.published ? "(" + c.published + ")" : ""; $("#plN2").textContent = c.draft ? "(" + c.draft + ")" : ""; $("#plN3").textContent = c.hidden ? "(" + c.hidden + ")" : "";
+      $("#plSetup").hidden = !(d.empty || d.csvNew);
+      $("#plSetupH").textContent = d.empty ? "Set up the places directory." : d.csvNew + " new places in places.csv.";
+      $("#plSetupT").textContent = d.empty ? "Move the site's current places into the admin so you can edit them here. The site keeps using places.csv until you do." : "Add them to the directory. Places you've already edited here stay as they are.";
+      pl.items = d.items; renderPlaces();
+    }).catch(function () {});
+  }
+  function renderPlaces() {
+    var cat = $("#plCat").value, q = $("#plQ").value.trim().toLowerCase();
+    var rows = pl.items.filter(function (x) { return (cat === "all" || x.category === cat) && (!q || [x.name, x.town, x.dog_rule, x.address].join(" ").toLowerCase().indexOf(q) >= 0); });
+    $("#plList").innerHTML = rows.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr><th>Place</th><th>Dog rule</th><th>Checked</th><th></th></tr></thead><tbody>' + rows.map(function (x) {
+      var c = pl.cats && pl.cats[x.category];
+      return '<tr data-id="' + esc(x.id) + '"><td><b>' + esc(x.name) + '</b><br><small class="muted">' + esc((c ? c.short : x.category) + " · " + (x.town || "")) + (x.mi != null ? " · " + x.mi + " mi" : "") + "</small>" +
+        (x.lat == null ? '<br><span class="sb sb-pending" title="No map pin, so it won\'t show in distance searches">No location</span>' : "") +
+        '</td><td class="rulec">' + esc(x.dog_rule || "") + '<br><span class="sb sb-' + (x.badge === "official" || x.badge === "venue" ? "active" : x.badge === "nodogs" ? "unsubscribed" : "pending") + '">' + BADGE_L[x.badge] + "</span>" +
+        (x.source_url ? ' <a class="small" href="' + esc(x.source_url) + '" target="_blank" rel="noopener">Source</a>' : "") +
+        '</td><td class="nw">' + (x.checked ? fmtD(x.checked) : "") + '</td><td class="nw acts2">' +
+        '<button class="btn btn-sm btn-out" data-pl="edit">Edit</button>' +
+        (x.status !== "published" ? '<button class="btn btn-sm btn-coral" data-pl="published">Publish</button>' : "") +
+        (x.status !== "hidden" ? '<button class="btn btn-sm btn-out" data-pl="hidden">Hide</button>' : "") +
+        "</td></tr>";
+    }).join("") + '</tbody></table></div><p class="fine">' + rows.length + (rows.length === 1 ? " place" : " places") + "</p>" :
+      '<p class="empty">' + (pl.items.length ? "No places match." : pl.view === "published" ? "No places yet. Import them or add one." : "Nothing here.") + "</p>";
+  }
+  $("#plList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-pl]"); if (!b) return;
+    var id = b.closest("tr").dataset.id, x = pl.items.find(function (i) { return i.id === id; });
+    if (b.dataset.pl === "edit") return openPlace(x);
+    b.disabled = true;
+    api("place_status", { body: { id: id, status: b.dataset.pl } }).then(function (d) { if (!d.ok) { b.disabled = false; return alert(d.error); } loadPlaces(); }).catch(function () {});
+  });
+  $("#plImport").addEventListener("click", function () {
+    var b = this; b.disabled = true; b.textContent = "Importing…";
+    api("places_import", { body: {} }).then(function (d) { if (!d.ok) return alert(d.error); alert("Added " + d.count + " places."); loadPlaces(); }).catch(function () {}).then(function () { b.disabled = false; b.textContent = "Import places"; });
+  });
+  var PF = ["name", "category", "badge", "town", "address", "dog_rule", "source_url", "source_name", "checked", "website", "phone", "notes", "description", "lat", "lng"];
+  function openPlace(x, prefill) {
+    if (!pl.cats) { loadPlaces(); return alert("One moment, still loading categories. Try again."); }
+    pl.editing = x || null; pl.fromSub = prefill && prefill.from_submission || null;
+    var v = x || prefill || {};
+    PF.forEach(function (k) { $("#p-" + k).value = v[k] == null ? "" : v[k]; });
+    if (!$("#p-category").value) $("#p-category").value = "restaurant";
+    if (!$("#p-badge").value) $("#p-badge").value = "unconfirmed";
+    if (!$("#p-checked").value) $("#p-checked").value = today();
+    $("#plDlgH").textContent = x ? "Edit place" : "Add place";
+    $("#plDel").hidden = !x; $("#plView").hidden = !(x && x.status === "published"); if (x) $("#plView").href = "/places/" + encodeURIComponent(x.id) + "/";
+    $("#plSave").textContent = x && x.status !== "draft" ? "Save" : "Save and publish";
+    $("#plDraft").hidden = !!(x && x.status !== "draft");
+    $("#plMsg").hidden = true;
+    $$("#plForm [aria-invalid]").forEach(function (el) { el.removeAttribute("aria-invalid"); });
+    $("#plDlg").showModal(); $("#p-name").focus();
+  }
+  $("#plAdd").addEventListener("click", function () { openPlace(null); });
+  $("#plX").addEventListener("click", function () { $("#plDlg").close(); });
+  function savePlace(publish) {
+    var data = { id: pl.editing ? pl.editing.id : undefined, publish: publish, from_submission: pl.fromSub || undefined };
+    PF.forEach(function (k) { data[k] = $("#p-" + k).value.trim(); });
+    var m = $("#plMsg"); m.hidden = false; m.classList.remove("err"); m.textContent = "Saving… (finding it on the map)";
+    $("#plSave").disabled = $("#plDraft").disabled = true;
+    api("place_save", { body: data }).then(function (d) {
+      if (!d.ok) {
+        m.textContent = d.error; m.classList.add("err");
+        if (d.field) { var el = $("#p-" + (d.field === "badge" ? "badge" : d.field)); if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); } }
+        return;
+      }
+      if (d.warn) { pl.editing = d.item; $("#p-lat").value = d.item.lat == null ? "" : d.item.lat; $("#p-lng").value = d.item.lng == null ? "" : d.item.lng; m.textContent = "Saved. " + d.warn; m.classList.add("err"); }
+      else $("#plDlg").close();
+      if (pl.fromSub) { pl.fromSub = null; loadInbox(); overview(); }
+      loadPlaces();
+    }).catch(function () {}).then(function () { $("#plSave").disabled = $("#plDraft").disabled = false; });
+  }
+  $("#plForm").addEventListener("submit", function (e) { e.preventDefault(); savePlace(true); });
+  $("#plDraft").addEventListener("click", function () { savePlace(false); });
+  $("#plDel").addEventListener("click", function () {
+    if (!pl.editing || !confirm("Delete " + pl.editing.name + " for good? Hiding it keeps it in case you need it later.")) return;
+    api("place_delete", { body: { id: pl.editing.id } }).then(function () { $("#plDlg").close(); loadPlaces(); }).catch(function () {});
+  });
+  var CATGUESS = [[/brew|tap|beer|cider|pub/i, "brewery"], [/win(e|ery)|vineyard/i, "winery"], [/coffee|cafe|café|bakery/i, "coffee"], [/dog park/i, "dogpark"], [/trail|greenway/i, "trail"], [/lake|beach|marina/i, "lake"], [/park/i, "park"], [/store|shop|pet supply/i, "shop"], [/hotel|inn|stay|cabin|lodg/i, "stay"], [/restaurant|patio|grill|bar|pizza|taco/i, "restaurant"]];
+  window.__addPlaceFromSubmission = function (x) {
+    var d = x.data || {}, hay = (d.category || "") + " " + (d.name || ""), cat = "restaurant";
+    for (var i = 0; i < CATGUESS.length; i++) if (CATGUESS[i][0].test(hay)) { cat = CATGUESS[i][1]; break; }
+    // Open the Places tab so the list refreshes behind the editor.
+    $('.adm-tabs [data-tab="places"]').click();
+    setTimeout(function () {
+      openPlace(null, { from_submission: x.id, name: d.name, town: d.town, category: cat, dog_rule: d.dog_rule, source_url: d.url || "", source_name: d.url ? "Reader tip" : "Reader tip", website: d.url || "", notes: "", description: d.details || "", badge: "readers" });
+    }, 400);
+  };
+
+  // ---------- sponsor ----------
+  function loadSponsor() {
+    api("sponsor").then(function (d) {
+      if (!d.ok) return;
+      var sp = d.sponsor || {};
+      $("#sp-on").checked = !!sp.on; $("#sp-name").value = sp.name || ""; $("#sp-text").value = sp.text || ""; $("#sp-url").value = sp.url || ""; $("#sp-until").value = sp.until || "";
+    }).catch(function () {});
+  }
+  $("#spForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var m = $("#spMsg"); m.hidden = false; m.classList.remove("err"); m.textContent = "Saving…";
+    api("sponsor_save", { body: { on: $("#sp-on").checked, name: $("#sp-name").value.trim(), text: $("#sp-text").value.trim(), url: $("#sp-url").value.trim(), until: $("#sp-until").value } }).then(function (d) {
+      m.textContent = d.ok ? (d.sponsor.on ? "Saved. It's in the preview now and in Thursday's email." : "Saved. No sponsor in the email.") : d.error; m.classList.toggle("err", !d.ok);
+      if (d.ok) preview();
+    }).catch(function () {});
+  });
 
   api("me").then(function (d) { d.authed ? showApp() : showLogin(); }).catch(showLogin);
 })();

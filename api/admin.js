@@ -3,12 +3,18 @@
 //   GET  ?action=overview | submissions&status=&type= | subscribers[&format=csv] | sends | preview&type=&zip=&radius=
 //   GET  ?action=events&view=upcoming|suggested|past|hidden
 //   POST {action:"event_save", id?, ...fields, from_submission?} | {action:"event_status", id, status} | {action:"event_delete", id} | {action:"events_import"}
+//   GET  ?action=places&view=published|draft|hidden · GET ?action=sponsor
+//   POST {action:"place_save", id?, ...fields, publish?, from_submission?} | {action:"place_status", id, status} | {action:"place_delete", id} | {action:"places_import"}
+//   POST {action:"sponsor_save", name, text, url, until, on}
 //   POST {action:"update", id, status?, note?} | {action:"feature", id, on} | {action:"delete", id} | {action:"test_email", to, type, zip, radius}
 import {
   allSubscribers, recentSends, listSubmissions, submissionCounts, getSubmission, updateSubmission,
   deleteSubmission, deletePhoto, signPhotos,
   listEvents, countEvents, insertEvents, getEvent, updateEvent, deleteEvent,
+  listPlaces, placeIds, getPlace, insertPlaces, updatePlace, deletePlace, getSetting, setSetting,
 } from "./_lib/db.js";
+import { cleanPlace, placeId, csvPlaces, CATS } from "./_lib/places.js";
+import { cleanSponsor } from "./_lib/sponsor.js";
 import { cleanEvent, geocode, csvEvents } from "./_lib/events.js";
 import { miles } from "./_lib/content.js";
 import { etParts, DEFAULT_HOME } from "./_lib/util.js";
@@ -177,11 +183,77 @@ export default async function handler(req, res) {
         const out = rows.length ? await insertEvents(rows) : [];
         return json(res, 200, { ok: true, count: out.length });
       }
+      // ---------- places ----------
+      case "places": {
+        const view = ["published", "draft", "hidden"].includes(q.view) ? q.view : "published";
+        const all = await listPlaces();
+        const counts = all.reduce((o, r) => ((o[r.status] = (o[r.status] || 0) + 1), o), {});
+        let csvNew = 0;
+        try { const have = new Set(all.map((r) => r.id)); csvNew = (await csvPlaces()).filter((p) => !have.has(p.id)).length; } catch {}
+        const items = all.filter((r) => r.status === view).map((r) => ({ ...r, mi: r.lat != null ? Math.round(miles(DEFAULT_HOME, r.lat, r.lng) * 10) / 10 : null }));
+        return json(res, 200, { ok: true, empty: all.length === 0, counts, csvNew, items, cats: CATS });
+      }
+      case "place_save": {
+        const c = cleanPlace(b);
+        if (!c.ok) return json(res, 400, c);
+        const pl = c.place;
+        const old = b.id ? await getPlace(String(b.id)) : null;
+        if (b.id && !old) return json(res, 404, { ok: false, error: "That place no longer exists." });
+        // Find the pin when it's missing or the address changed. Typed-in coordinates win.
+        const typed = pl.lat != null && pl.lng != null && (!old || pl.lat !== old.lat || pl.lng !== old.lng);
+        const moved = !old || old.address !== pl.address || old.town !== pl.town;
+        let located = null;
+        if (!typed && (pl.lat == null || pl.lng == null || moved)) {
+          const hit = await geocode({ address: pl.address, venue: pl.name, town: pl.town });
+          if (hit) { pl.lat = hit.lat; pl.lng = hit.lng; located = hit.how; }
+          else if (old && moved) { pl.lat = null; pl.lng = null; }
+        }
+        let row;
+        if (old) row = await updatePlace(old.id, { ...pl, status: old.status === "draft" && b.publish ? "published" : old.status });
+        else {
+          const id = placeId(pl.name, pl.town, new Set(await placeIds()));
+          row = (await insertPlaces([{ ...pl, id, status: b.publish === false ? "draft" : "published", origin: b.from_submission ? "submission" : "manual" }]))[0];
+        }
+        if (b.from_submission) await updateSubmission(String(b.from_submission), { status: "done", reviewed_at: new Date().toISOString() }).catch(() => {});
+        const mi = row.lat != null ? Math.round(miles(DEFAULT_HOME, row.lat, row.lng) * 10) / 10 : null;
+        const warn = row.lat == null ? "We couldn't find this place on the map, so it won't show in distance searches. Add a street address and save again." :
+          located === "town" ? "We could only find the town, not the exact spot. Add a street address for an accurate pin." : "";
+        return json(res, 200, { ok: true, item: { ...row, mi }, warn });
+      }
+      case "place_status": {
+        if (!["published", "draft", "hidden"].includes(b.status)) return json(res, 400, { ok: false, error: "Bad status" });
+        const row = await updatePlace(String(b.id || ""), { status: b.status });
+        return row ? json(res, 200, { ok: true, item: row }) : json(res, 404, { ok: false, error: "Not found" });
+      }
+      case "place_delete": {
+        await deletePlace(String(b.id || ""));
+        return json(res, 200, { ok: true });
+      }
+      case "places_import": {
+        // Adds CSV places that aren't in the table yet (matched by id). Safe to run again.
+        const today = etParts().date, have = new Set(await placeIds());
+        const rows = (await csvPlaces()).filter((p) => !have.has(p.id)).map((p) => {
+          const c = cleanPlace({ ...p, badge: p.status });
+          return c.ok ? { ...c.place, id: p.id, checked: p.checked || today, status: "published", origin: "starter" } : null;
+        }).filter(Boolean);
+        const out = await insertPlaces(rows, { ignoreDupes: true });
+        return json(res, 200, { ok: true, count: out.length });
+      }
+
+      // ---------- email sponsor ----------
+      case "sponsor": return json(res, 200, { ok: true, sponsor: (await getSetting("sponsor")) || null });
+      case "sponsor_save": {
+        const c = cleanSponsor(b);
+        if (!c.ok) return json(res, 400, c);
+        await setSetting("sponsor", c.sponsor);
+        return json(res, 200, { ok: true, sponsor: c.sponsor });
+      }
+
       default: return json(res, 400, { ok: false, error: "Unknown action" });
     }
   } catch (e) {
     log("admin failed", action, e.message);
-    const hint = /(submissions|events)/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
+    const hint = /(submissions|events|places|settings)/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
       ? " The database needs the latest setup: run the newest part of schema.sql in Supabase." : "";
     return json(res, 500, { ok: false, error: "Something went wrong." + hint, detail: e.message.slice(0, 300) });
   }

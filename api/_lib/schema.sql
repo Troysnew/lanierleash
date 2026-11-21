@@ -79,3 +79,38 @@ create table if not exists public.events (
 );
 create index if not exists events_date_idx on public.events (date);
 alter table public.events enable row level security;
+
+-- ---------- Places, settings, sponsor form, 35-mile radius (added later; safe to run again) ----------
+-- The places directory. "badge" is how we know the dog rule (official, venue, readers, unconfirmed,
+-- nodogs). "published" shows on the site; "draft" waits for review; "hidden" is kept but not shown.
+create table if not exists public.places (
+  id text primary key,                         -- used in the page address: /places/<id>/
+  status text not null default 'published' check (status in ('published', 'draft', 'hidden')),
+  name text not null,
+  category text not null check (category in ('restaurant', 'brewery', 'winery', 'coffee', 'trail', 'park', 'dogpark', 'lake', 'shop', 'stay')),
+  badge text not null default 'unconfirmed' check (badge in ('venue', 'official', 'readers', 'unconfirmed', 'nodogs')),
+  town text, address text,
+  lat double precision, lng double precision,
+  dog_rule text, source_url text, source_name text, website text, phone text, notes text, description text,
+  checked date,
+  origin text not null default 'manual',       -- manual | starter | submission | research
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists places_status_idx on public.places (status);
+alter table public.places enable row level security;
+
+create table if not exists public.settings (
+  key text primary key,
+  value jsonb,
+  updated_at timestamptz not null default now()
+);
+alter table public.settings enable row level security;
+
+-- Sponsor inquiries come through the same form system.
+alter table public.submissions drop constraint if exists submissions_type_check;
+alter table public.submissions add constraint submissions_type_check check (type in ('pup', 'event', 'place', 'fix', 'claim', 'sponsor'));
+
+-- Readers can pick 35 miles.
+alter table public.subscribers drop constraint if exists subscribers_radius_check;
+alter table public.subscribers add constraint subscribers_radius_check check (radius in (5, 10, 15, 25, 35));
