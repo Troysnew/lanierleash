@@ -229,12 +229,25 @@ section.blk { padding-block: 72px 0; }
 .mini span { font-size: 12px; }
 .c-cond { display: flex; flex-direction: column; }
 .c-cond .days { margin-top: auto; padding-top: 20px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-.c-cond .days div { border-radius: 18px; padding: 12px; display: grid; gap: 2px; background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.14); }
-.c-cond .days div.on { background: var(--aqua); border-color: var(--aqua); color: var(--deep); }
+.c-cond .days button { position: relative; font: inherit; color: inherit; text-align: left; cursor: pointer; border-radius: 18px; padding: 12px; display: grid; gap: 2px; background: rgba(255,255,255,.04); border: 1px dashed rgba(255,255,255,.18); transition: background .15s, border-color .15s, transform .15s; }
+.c-cond .days button:hover:not(:disabled) { background: rgba(255,255,255,.10); border-color: rgba(255,255,255,.4); transform: translateY(-1px); }
+.c-cond .days button:disabled { cursor: default; }
+.c-cond .days button.on { background: var(--aqua); border: 1px solid var(--aqua); color: var(--deep); }
 .c-cond .days span { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
-.c-cond .days b { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.03em; }
+.c-cond .days b { font-size: 26px; font-weight: 800; color: #fff; letter-spacing: -.03em; line-height: 1.2; }
 .c-cond .days .on b { color: var(--deep); }
 .c-cond .days i { font-style: normal; font-size: 12px; }
+.c-cond .days em { position: absolute; top: 8px; right: 10px; font-style: normal; font-size: 12px; color: var(--sun); }
+.c-cond .days .on em { color: var(--deep); }
+.c-cond .days.wk { grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+.c-cond .days.wk button { padding: 10px 4px; text-align: center; border-radius: 14px; }
+.c-cond .days.wk span { font-size: 11px; letter-spacing: .04em; }
+.c-cond .days.wk b { font-size: 19px; }
+.c-cond .days.wk i { font-size: 10.5px; white-space: nowrap; }
+.c-cond .days.wk em { top: 3px; right: 5px; font-size: 10px; }
+.c-cond .wxweek { align-self: flex-start; margin-top: 12px; padding: 4px 0; background: none; border: 0; font: 700 13px var(--f); color: var(--aqua); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
+.c-cond .wxweek:hover { color: #fff; }
+@media (max-width: 520px) { .c-cond .days.wk { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 
 .photo-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .photo-card::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12,45,72,0) 35%, rgba(12,45,72,.82) 100%); }

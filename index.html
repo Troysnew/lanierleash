@@ -101,11 +101,12 @@
             <div class="mini"><svg class="ic"><use href="#i-tick"/></svg><b id="wxTick">--</b><span>Tick risk, seasonal</span></div>
             <div class="mini"><svg class="ic"><use href="#i-thermo"/></svg><b id="wxPave">--</b><span>Pavement, 2 PM est.</span></div>
           </div>
-          <div class="days" id="wxDays">
-            <div><span>Fri</span><b>--</b><i>&nbsp;</i></div>
-            <div><span>Sat</span><b>--</b><i>&nbsp;</i></div>
-            <div><span>Sun</span><b>--</b><i>&nbsp;</i></div>
+          <div class="days" id="wxDays" role="group" aria-label="Pick a day">
+            <button type="button" disabled><span>Fri</span><b>--</b><i>&nbsp;</i></button>
+            <button type="button" disabled><span>Sat</span><b>--</b><i>&nbsp;</i></button>
+            <button type="button" disabled><span>Sun</span><b>--</b><i>&nbsp;</i></button>
           </div>
+          <button class="wxweek" id="wxWeek" type="button" aria-controls="wxDays" aria-expanded="false" hidden>See the full week</button>
           <p class="wxsrc">Live forecast for Cumming, GA from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>. Pavement is an estimate from air temperature and sunshine.</p>
         </article>
 
@@ -409,71 +410,116 @@
   function pave(t, rad) { return Math.round(t + 0.06 * Math.max(0, rad || 0)); }
   function paveLevel(p) { return p >= 125 ? "hot" : p >= 105 ? "warn" : "ok"; }
 
-  function render(d) {
-    var D = d.daily, H = d.hourly, n = D.time.length;
-    var today = dowOf(D.time[0]);
-    // Fri-Sun: show today and the next two days. Mon-Thu: show the coming Fri, Sat, Sun.
-    var start = (today === 5 || today === 6 || today === 0) ? 0 : (5 - today + 7) % 7;
-    var idx = [start, start + 1, start + 2].filter(function (i) { return i < n; });
-    if (!idx.length) throw new Error("no days");
+  var WX = null, SEL = null, WEEK = false;
+  try { WEEK = localStorage.getItem("ll-wx-week") === "1"; } catch (e) {}
 
-    function hi(i) { return Math.round(D.temperature_2m_max[i]); }
-    function pp(i) { return D.precipitation_probability_max[i] || 0; }
-    function score(i) { var s = -Math.abs(hi(i) - 68) - pp(i) * 0.5; if (hi(i) > 85) s -= (hi(i) - 85) * 3; return s; }
-    // Current hour in Cumming. After 2 PM, today is too far gone to be the "best day".
-    var nowH = 0;
-    try { nowH = +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); } catch (e) { nowH = new Date().getHours(); }
-    var cand = idx.filter(function (i) { return i !== 0 || nowH < 14; });
-    if (!cand.length) cand = idx;
-    var best = cand.reduce(function (a, b) { return score(b) > score(a) ? b : a; });
+  function nowHour() {
+    try { return +new Intl.DateTimeFormat("en-US", { timeZone: "America/New_York", hour: "numeric", hourCycle: "h23" }).format(new Date()); } catch (e) { return new Date().getHours(); }
+  }
 
-    var day = D.time[best], rows = [];
+  // Everything the card shows for one forecast day.
+  function dayInfo(d, i, nowH) {
+    var D = d.daily, H = d.hourly, day = D.time[i], byH = {}, any = false;
     H.time.forEach(function (t, k) {
-      if (t.indexOf(day) === 0) rows.push({ h: +t.slice(11, 13), t: H.temperature_2m[k], p: H.precipitation_probability[k] || 0, r: H.shortwave_radiation[k] });
+      if (t.indexOf(day) === 0) { any = true; byH[+t.slice(11, 13)] = { t: H.temperature_2m[k], p: H.precipitation_probability[k] || 0, r: H.shortwave_radiation[k] }; }
     });
-    if (!rows.length) throw new Error("no hours");
-    var byH = {}; rows.forEach(function (r) { byH[r.h] = r; });
+    if (!any) return null;
     function hs(r) { return -Math.abs(r.t - 62) - r.p * 0.6 - Math.max(0, pave(r.t, r.r) - 100) * 1.5; }
-    var win = null, wbest = -1e9;
     function lit(x) { return byH[x] && byH[x].r > 15; } // daylight only
-    for (var h = best === 0 ? Math.max(7, nowH + 1) : 7; h <= 17; h++) {
+    var win = null, wbest = -1e9;
+    for (var h = i === 0 ? Math.max(7, nowH + 1) : 7; h <= 17; h++) {
       // Open-Meteo radiation at hour x is the average over the hour before x
       if (!lit(h + 1) || !lit(h + 2) || !lit(h + 3)) continue;
       var sc = (hs(byH[h]) + hs(byH[h + 1]) + hs(byH[h + 2])) / 3;
       if (sc > wbest) { wbest = sc; win = h; }
     }
-    var winTxt = win === null ? "midday" : hr(win) + "–" + hr(win + 3);
-    var at2 = byH[14] || rows[0];
+    var at2 = byH[14] || byH[12] || byH[Object.keys(byH)[0]];
     var pv = pave(at2.t, at2.r), lvl = paveLevel(pv);
-    var bhi = hi(best), bpp = pp(best), name = DOWL[dowOf(day)];
+    var hi = Math.round(D.temperature_2m_max[i]), lo = Math.round(D.temperature_2m_min[i]), pp = D.precipitation_probability_max[i] || 0;
+    var late = i === 0 && win === null && nowH >= 14;
+    return {
+      i: i, iso: day, hi: hi, lo: lo, pp: pp, pv: pv, lvl: lvl, late: late,
+      win: win === null ? (late ? "" : "midday") : hr(win) + "–" + hr(win + 3),
+      name: i === 0 ? "Today" : i === 1 ? "Tomorrow" : DOWL[dowOf(day)],
+      short: i === 0 ? "Today" : DOW[dowOf(day)],
+      head: lvl === "hot" ? "Hot pavement, walk early" : pp >= 50 ? "Wet one, pack a towel" :
+        hi < 40 ? "Chilly, keep walks brisk" : lvl === "warn" ? "Warm paws, walk early" : "Good day for paws"
+    };
+  }
 
-    var head = lvl === "hot" ? "Hot pavement, walk early" :
-      bpp >= 50 ? "Wet one, pack a towel" :
-      bhi < 40 ? "Chilly, keep walks brisk" :
-      lvl === "warn" ? "Warm paws, walk early" : "Good day for paws";
+  function render(d) {
+    var D = d.daily, n = D.time.length, nowH = nowHour();
+    var today = dowOf(D.time[0]);
+    // Fri-Sun: show today and the next two days. Mon-Thu: show the coming Fri, Sat, Sun.
+    var start = (today === 5 || today === 6 || today === 0) ? 0 : (5 - today + 7) % 7;
+    var wknd = [start, start + 1, start + 2].filter(function (i) { return i < n; });
+    if (!wknd.length) throw new Error("no days");
+    var week = []; for (var k = 0; k < Math.min(7, n); k++) week.push(k);
+    var info = week.concat(wknd).reduce(function (o, i) { if (!o[i]) o[i] = dayInfo(d, i, nowH); return o; }, {});
+    if (!info[wknd[0]]) throw new Error("no hours");
 
-    set("wxK", (best === 0 ? "Today's" : name) + " walk check");
-    set("wxH", head);
-    set("wxBig", bhi + "°");
-    var bs = el("wxBigS"); if (bs) bs.innerHTML = "High in Cumming<br>Best walk " + winTxt;
-    var pill = el("wxPill"); if (pill) pill.className = "okpill" + (lvl === "ok" ? "" : " " + lvl);
-    var pic = el("wxPillIc"); if (pic) pic.style.display = lvl === "ok" ? "" : "none";
-    set("wxPillT", "Pavement ~" + pv + "°F at 2 PM · " + (lvl === "ok" ? "paws OK" : lvl === "warn" ? "use caution" : "too hot for paws"));
-    set("wxRain", bpp + "%");
-    set("wxPave", pv + "°F");
-    var m = +D.time[0].slice(5, 7);
+    function score(i) { var x = info[i]; var s = -Math.abs(x.hi - 68) - x.pp * 0.5; if (x.hi > 85) s -= (x.hi - 85) * 3; return s; }
+    // After 2 PM, today is too far gone to be the "best day".
+    var cand = wknd.filter(function (i) { return info[i] && (i !== 0 || nowH < 14); });
+    if (!cand.length) cand = wknd.filter(function (i) { return info[i]; });
+    var best = cand.reduce(function (a, b) { return score(b) > score(a) ? b : a; });
+    WX = { info: info, wknd: wknd, week: week.filter(function (i) { return info[i]; }), best: best, month: +D.time[0].slice(5, 7) };
+    if (SEL === null || !info[SEL]) SEL = best;
+
+    // The hero chip always shows the weekend's best day.
+    var b = info[best];
+    set("wxChipT", (b.lvl === "ok" && b.pp < 50 ? "Paws OK " : "Walk check ") + (best === 0 ? "today" : DOWL[dowOf(b.iso)]));
+    set("wxChipS", b.hi + "° · best " + (b.win || "tomorrow"));
+    var ci = el("wxChipIc"); if (ci) ci.setAttribute("href", b.pp >= 50 ? "#i-rain" : "#i-sun");
+    show();
+  }
+
+  function tag(x) {
+    if (x.i === WX.best) return x.pp >= 50 ? "Best bet" : "Best day";
+    return x.pp >= 50 ? "Rainy" : x.hi >= 88 ? "Hot" : x.hi < 45 ? "Cold" : x.hi < 58 ? "Cool" : x.hi <= 80 ? "Mild" : "Warm";
+  }
+
+  function show() {
+    var x = WX.info[SEL];
+    set("wxK", (x.i === 0 ? "Today's" : x.i === 1 ? "Tomorrow's" : DOWL[dowOf(x.iso)]) + " walk check");
+    set("wxH", x.late ? "Daylight's done, rest those paws" : x.head);
+    set("wxBig", x.hi + "°");
+    var bs = el("wxBigS"); if (bs) bs.innerHTML = "High in Cumming, low " + x.lo + "°<br>" + (x.late ? "Next walk window tomorrow" : "Best walk " + x.win);
+    var pill = el("wxPill"); if (pill) pill.className = "okpill" + (x.lvl === "ok" ? "" : " " + x.lvl);
+    var pic = el("wxPillIc"); if (pic) pic.style.display = x.lvl === "ok" ? "" : "none";
+    set("wxPillT", "Pavement ~" + x.pv + "°F at 2 PM · " + (x.lvl === "ok" ? "likely OK for paws" : x.lvl === "warn" ? "use caution" : "too hot for paws"));
+    set("wxRain", x.pp + "%");
+    set("wxPave", x.pv + "°F");
+    var m = WX.month;
     set("wxTick", m >= 3 && m <= 8 ? "High" : m >= 9 && m <= 11 ? "Moderate" : "Low");
 
-    var wrap = el("wxDays");
-    if (wrap) wrap.innerHTML = idx.map(function (i) {
-      var tag = i === best ? (pp(i) >= 50 ? "Best bet" : "Best day") : pp(i) >= 50 ? "Rainy" : hi(i) >= 88 ? "Hot" : hi(i) < 45 ? "Cold" : hi(i) < 58 ? "Cool" : hi(i) <= 80 ? "Mild" : "Warm";
-      return "<div" + (i === best ? ' class="on"' : "") + "><span>" + (i === 0 ? "Today" : DOW[dowOf(D.time[i])]) + "</span><b>" + hi(i) + "°</b><i>" + tag + "</i></div>";
-    }).join("");
-
-    set("wxChipT", (lvl === "ok" && bpp < 50 ? "Paws OK " : "Walk check ") + (best === 0 ? "today" : name));
-    set("wxChipS", bhi + "° · best " + winTxt);
-    var ci = el("wxChipIc"); if (ci) ci.setAttribute("href", bpp >= 50 ? "#i-rain" : "#i-sun");
+    var list = WEEK ? WX.week : WX.wknd, wrap = el("wxDays");
+    if (wrap) {
+      wrap.className = "days" + (WEEK ? " wk" : "");
+      wrap.innerHTML = list.map(function (i) {
+        var y = WX.info[i];
+        return '<button type="button" data-i="' + i + '" aria-pressed="' + (i === SEL) + '"' + (i === SEL ? ' class="on"' : "") +
+          ' aria-label="' + y.name + ', high ' + y.hi + ' degrees, ' + y.pp + ' percent chance of rain">' +
+          "<span>" + y.short + "</span><b>" + y.hi + "°</b><i>" + (WEEK ? y.pp + "% rain" : tag(y)) + "</i>" +
+          (WEEK && i === WX.best ? '<em title="Best weekend day">★</em>' : "") + "</button>";
+      }).join("");
+    }
+    var tg = el("wxWeek");
+    if (tg) { tg.hidden = false; tg.textContent = WEEK ? "Show the weekend" : "See the full week"; tg.setAttribute("aria-expanded", String(WEEK)); }
   }
+
+  document.addEventListener("click", function (e) {
+    if (!WX) return;
+    var btn = e.target.closest && e.target.closest("#wxDays button");
+    if (btn) { SEL = +btn.dataset.i; show(); return; }
+    if (e.target.closest && e.target.closest("#wxWeek")) {
+      WEEK = !WEEK;
+      try { localStorage.setItem("ll-wx-week", WEEK ? "1" : "0"); } catch (err) {}
+      // Leaving the full week: if the picked day isn't a weekend day, go back to the best day.
+      if (!WEEK && WX.wknd.indexOf(SEL) < 0) SEL = WX.best;
+      show();
+    }
+  });
 
   function fail() {
     set("wxH", "Forecast unavailable");
