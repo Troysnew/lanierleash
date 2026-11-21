@@ -149,6 +149,7 @@
           <div><b><a href="/adopt/" style="color:inherit;text-decoration:none" id="adoptN">Adopt or foster</a></b><span>Rescues list free, always. <a href="/events/?type=adopt" style="color:inherit;font-weight:700">See adoption events</a></span></div>
         </article>
       </div>
+      <a class="lfstrip" id="lfStrip" href="/lost-found/"><span class="lfimg" id="lfStripImg" aria-hidden="true"><svg class="ic"><use href="#u-paw"/></svg></span><span><b id="lfStripB">Lost or found a pet?</b><span id="lfStripS">Post it free on the lost &amp; found board. Neighbors can message you without seeing your email.</span></span><svg class="ic arr" aria-hidden="true"><use href="#u-arrow"/></svg></a>
     </div>
   </section>
 
@@ -220,7 +221,7 @@
       <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
-    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
     <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
     <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
   </div>
@@ -594,6 +595,22 @@
     if (d.place) { $("isP").textContent = d.place.name + ", " + d.place.town; if (d.place.id) $("isPL").href = "/places/" + d.place.id + "/"; }
     $("isEL").href = "/events/?when=weekend&r=" + r;
     $("isA").href = "/issue/?zip=" + encodeURIComponent(d.zip) + "&radius=" + d.radius;
+  }).catch(function () {});
+})();
+</script>
+<script>
+/* Lost & found strip: shows lost pets near the reader's ZIP when there are any. */
+(function () {
+  var L = window.LL; if (!L) return;
+  fetch("/api/lostfound?list=1").then(function (r) { return r.json(); }).then(function (d) {
+    var r = L.radius || 25, near = ((d && d.posts) || []).filter(function (p) { if (p.status !== "active" || p.kind !== "lost") return false; var m = p.lat != null ? L.miles(+p.lat, +p.lng) : null; return m == null || m <= r; });
+    if (!near.length) return;
+    var $ = function (id) { return document.getElementById(id); }, p = near[0];
+    $("lfStrip").classList.add("on");
+    $("lfStripB").textContent = near.length === 1 ? "Lost near you: " + (p.pet_name || p.headline) : near.length + " lost pets near " + (L.home.zip || "you");
+    $("lfStripS").textContent = near.length === 1 ? (p.looks ? p.looks + ". " : "") + "Last seen near " + p.last_seen + ", " + p.town + ". Seen them?" : "Help bring them home. " + near.slice(0, 3).map(function (x) { return (x.pet_name || "a " + x.species) + " in " + x.town; }).join(", ") + ".";
+    if (p.photo) $("lfStripImg").innerHTML = '<img src="' + L.esc(p.photo) + '" alt="">';
+    $("lfStrip").href = near.length === 1 ? "/lost-found/" + encodeURIComponent(p.id) + "/" : "/lost-found/?kind=lost";
   }).catch(function () {});
 })();
 </script>

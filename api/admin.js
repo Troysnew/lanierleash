@@ -6,8 +6,10 @@
 //   GET  ?action=places&view=published|draft|hidden · GET ?action=sponsor
 //   POST {action:"place_save", id?, ...fields, publish?, from_submission?} | {action:"place_status", id, status} | {action:"place_delete", id} | {action:"places_import"}
 //   POST {action:"sponsor_save", name, text, url, until, on}
+//   GET  ?action=lostfound&view=live|pending|hidden|all · POST {action:"lf_status", id, status:hidden|active} | {action:"lf_delete", id}
 //   POST {action:"update", id, status?, note?} | {action:"feature", id, on} | {action:"delete", id} | {action:"test_email", to, type, zip, radius}
-import { allFeedback } from "./_lib/db.js";
+import { allFeedback, listLost, updateLost, lostBy, deleteLost } from "./_lib/db.js";
+import { toPublic as lfPublic, isLive } from "./_lib/lostfound.js";
 import { FLAG_TAGS, TAG_LABEL } from "./_lib/feedback.js";
 import {
   allSubscribers, recentSends, listSubmissions, submissionCounts, getSubmission, updateSubmission,
@@ -276,6 +278,32 @@ export default async function handler(req, res) {
         return json(res, 200, { ok: true, sponsor: c.sponsor });
       }
 
+      case "lostfound": {
+        const view = q.view || "live", now = Date.now();
+        let rows = await listLost({});
+        if (view === "live") rows = rows.filter((r) => isLive(r, now) || r.status === "reunited");
+        else if (view === "pending") rows = rows.filter((r) => r.status === "pending");
+        else if (view === "hidden") rows = rows.filter((r) => r.status === "hidden" || r.status === "removed" || (r.status === "active" && !isLive(r, now)));
+        const photos = await signPhotos(rows.map((r) => r.photo_path).filter(Boolean));
+        return json(res, 200, { ok: true, items: rows.map((r) => ({ ...lfPublic(r), raw_status: r.status, email: r.email, phone_any: r.phone || "", show_phone: !!r.show_phone, created_at: r.created_at, thumb: r.photo_path ? photos[r.photo_path] || null : null })) });
+      }
+      case "lf_status": {
+        if (!["hidden", "active"].includes(b.status)) return json(res, 400, { ok: false, error: "Bad status" });
+        const r = await lostBy("id", String(b.id || ""));
+        if (!r) return json(res, 404, { ok: false, error: "Not found" });
+        const patch = { status: b.status };
+        if (b.status === "active" && (!r.expires_at || Date.parse(r.expires_at) < Date.now())) patch.expires_at = new Date(Date.now() + 30 * 864e5).toISOString();
+        if (b.status === "active" && !r.confirmed_at) patch.confirmed_at = new Date().toISOString();
+        await updateLost(r.id, patch);
+        return json(res, 200, { ok: true });
+      }
+      case "lf_delete": {
+        const r = await lostBy("id", String(b.id || ""));
+        if (!r) return json(res, 404, { ok: false, error: "Not found" });
+        if (r.photo_path) await deletePhoto(r.photo_path).catch((e) => log("photo delete failed", e.message));
+        await deleteLost(r.id);
+        return json(res, 200, { ok: true });
+      }
       default: return json(res, 400, { ok: false, error: "Unknown action" });
     }
   } catch (e) {

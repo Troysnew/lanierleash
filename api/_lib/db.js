@@ -280,3 +280,40 @@ export function deleteFeedback(placeId, voter) {
 export function allFeedback() {
   return db("place_feedback?select=place_id,vote,tags,updated_at&order=updated_at.desc&limit=20000");
 }
+
+// ---------- Lost & found ----------
+export async function insertLost(row) {
+  const rows = await db("lost_found", { method: "POST", body: row, prefer: "return=representation" });
+  return rows[0];
+}
+export async function lostBy(col, val) {
+  const rows = await db(`lost_found?${col}=eq.${enc(val)}&select=*&limit=1`);
+  return rows[0] || null;
+}
+export async function updateLost(id, patch) {
+  const rows = await db(`lost_found?id=eq.${enc(id)}`, { method: "PATCH", body: { ...patch, updated_at: new Date().toISOString() }, prefer: "return=representation" });
+  return rows[0];
+}
+export async function deleteLost(id) {
+  await db(`lost_found?id=eq.${enc(id)}`, { method: "DELETE", prefer: "return=minimal" });
+}
+// Live posts plus recent happy endings, for the board and the email.
+export function boardPosts() {
+  return db("lost_found?status=in.(active,reunited)&select=*&order=created_at.desc&limit=500");
+}
+export function listLost({ status } = {}) {
+  let q = "lost_found?select=*&order=created_at.desc&limit=300";
+  if (status && status !== "all") q += `&status=eq.${enc(status)}`;
+  return db(q);
+}
+export function recentLostBy(ipHash, sinceIso) {
+  return db(`lost_found?ip_hash=eq.${enc(ipHash)}&created_at=gte.${enc(sinceIso)}&select=id`);
+}
+export function lostEndingSoon(beforeIso) {
+  return db(`lost_found?status=eq.active&reminded_at=is.null&expires_at=lte.${enc(beforeIso)}&select=*&limit=200`);
+}
+// Messages sent through the site: we keep only who-sent-when (for spam limits), never the text.
+export function logLostMsg(row) { return db("lost_found_msgs", { method: "POST", body: row, prefer: "return=minimal" }); }
+export function recentLostMsgs(col, val, sinceIso) {
+  return db(`lost_found_msgs?${col}=eq.${enc(val)}&created_at=gte.${enc(sinceIso)}&select=id`);
+}

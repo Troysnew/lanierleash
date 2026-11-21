@@ -38,6 +38,7 @@
       <button role="tab" data-tab="inbox" aria-selected="true">Inbox <span class="pill" id="newN" hidden></span></button>
       <button role="tab" data-tab="events" aria-selected="false">Events <span class="pill" id="sugN" hidden></span></button>
       <button role="tab" data-tab="places" aria-selected="false">Places</button>
+      <button role="tab" data-tab="lost" aria-selected="false">Lost &amp; found</button>
       <button role="tab" data-tab="subs" aria-selected="false">Subscribers</button>
       <button role="tab" data-tab="email" aria-selected="false">Emails</button>
     </nav>
@@ -113,6 +114,20 @@
     </section>
 
     <!-- Subscribers -->
+    <!-- Lost & found -->
+    <section data-pane="lost" hidden>
+      <div class="bar">
+        <div class="chips" id="lfF">
+          <button data-v="live" aria-pressed="true">On the board</button>
+          <button data-v="pending">Waiting for email confirm</button>
+          <button data-v="hidden">Hidden, removed or ended</button>
+          <button data-v="all">All</button>
+        </div>
+      </div>
+      <p class="muted small">Posts go live when the poster taps the link in their email, and you get an email each time. Hide anything that looks wrong; the poster's own link stops working while it's hidden. Messages people send through a post go straight to the poster and aren't stored.</p>
+      <div id="lfList"><p class="empty">Loading…</p></div>
+    </section>
+
     <section data-pane="subs" hidden>
       <div class="bar">
         <input id="sq" type="search" placeholder="Search email or ZIP" aria-label="Search subscribers">
@@ -278,6 +293,7 @@
       if (t.dataset.tab === "subs" && !st.subs) loadSubs();
       if (t.dataset.tab === "events") loadEvents();
       if (t.dataset.tab === "places") loadPlaces();
+      if (t.dataset.tab === "lost") loadLost();
       if (t.dataset.tab === "email") { loadSends(); loadSponsor(); if (!$("#pf").src) preview(); }
     });
   });
@@ -286,6 +302,38 @@
       b.addEventListener("click", function () { $$(sel + " button").forEach(function (x) { x.setAttribute("aria-pressed", String(x === b)); }); cb(b.dataset.v); });
     });
   }
+
+  // ---------- lost & found ----------
+  var lfView = "live";
+  chips("#lfF", function (v) { lfView = v; loadLost(); });
+  var LFST = { active: "Live", reunited: "Home safe", expired: "Ended", pending: "Waiting", hidden: "Hidden", removed: "Removed by poster" };
+  function loadLost() {
+    $("#lfList").innerHTML = '<p class="empty">Loading…</p>';
+    api("lostfound", { qs: "&view=" + lfView }).then(function (d) {
+      if (!d.ok) { $("#lfList").innerHTML = '<p class="empty">' + esc(d.error) + (/relation|does not exist|schema/i.test(d.error || "") ? " Run the lost &amp; found SQL in Supabase first." : "") + "</p>"; return; }
+      if (!d.items.length) { $("#lfList").innerHTML = '<p class="empty">Nothing here.</p>'; return; }
+      $("#lfList").innerHTML = '<div class="tablewrap"><table class="tbl evt"><thead><tr><th></th><th>Post</th><th>Poster (private)</th><th>Status</th><th></th></tr></thead><tbody>' + d.items.map(function (x) {
+        var stt = x.raw_status === "active" && x.status === "expired" ? "expired" : x.raw_status;
+        return '<tr data-id="' + esc(x.id) + '"><td>' + (x.thumb ? '<img src="' + esc(x.thumb) + '" alt="" style="width:64px;height:64px;object-fit:cover;border-radius:10px">' : "") + '</td>' +
+          '<td><b>' + esc(x.headline) + '</b><br><small class="muted">' + esc(x.looks) + '</small><br><small>' + esc(x.last_seen + ", " + x.town) + " · " + esc(x.date_seen) + '</small>' + (x.description ? '<br><small class="muted">' + esc(x.description.slice(0, 160)) + '</small>' : "") + '</td>' +
+          '<td><small>' + esc(x.contact_name) + '<br><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a>' + (x.phone_any ? "<br>" + esc(x.phone_any) + (x.show_phone ? " (shown)" : " (hidden)") : "") + '</small></td>' +
+          '<td class="nw"><span class="sb sb-' + (stt === "active" || stt === "reunited" ? "active" : stt === "pending" ? "pending" : "unsubscribed") + '">' + (LFST[stt] || stt) + '</span><br><small class="muted">' + when(x.created_at) + '</small></td>' +
+          '<td class="nw acts2">' + (stt === "active" || stt === "reunited" ? '<a class="btn btn-sm btn-out" href="/lost-found/' + esc(x.id) + '/" target="_blank" rel="noopener">View</a> <button class="btn btn-sm btn-out" data-lf="hidden">Hide</button>' : "") +
+          (stt === "hidden" || stt === "pending" ? ' <button class="btn btn-sm btn-coral" data-lf="active">' + (stt === "pending" ? "Put live" : "Unhide") + '</button>' : "") +
+          ' <button class="btn btn-sm btn-out" data-lf="delete">Delete</button></td></tr>';
+      }).join("") + "</tbody></table></div>";
+    }).catch(function () {});
+  }
+  $("#lfList").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-lf]"); if (!b) return;
+    var id = b.closest("tr").dataset.id, op = b.dataset.lf;
+    if (op === "delete" && !confirm("Delete this post and its photo for good? This can't be undone.")) return;
+    b.disabled = true;
+    api(op === "delete" ? "lf_delete" : "lf_status", { body: op === "delete" ? { id: id } : { id: id, status: op } }).then(function (d) {
+      if (!d.ok) { alert(d.error || "Couldn't do that."); b.disabled = false; return; }
+      loadLost();
+    }).catch(function () { b.disabled = false; });
+  });
 
   // ---------- overview ----------
   function overview() {

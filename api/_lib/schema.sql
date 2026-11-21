@@ -135,3 +135,38 @@ alter table public.place_feedback enable row level security;
 -- "hours" is machine-readable (Mo-Th 11:00-21:00; Fr-Sa 11:00-22:00) for the Open now label; "hours_text" is for people.
 alter table public.places add column if not exists hours text;
 alter table public.places add column if not exists hours_text text;
+
+-- ---------- Lost & found (added later; safe to run again) ----------
+-- Posts go live when the poster confirms their email (status pending -> active) and come down after
+-- 30 days unless renewed. "token" is the poster's private manage link. Email is never shown publicly.
+create table if not exists public.lost_found (
+  id text primary key,                          -- used in the page address: /lost-found/<id>/
+  status text not null default 'pending' check (status in ('pending', 'active', 'reunited', 'hidden', 'removed')),
+  kind text not null check (kind in ('lost', 'found')),
+  species text not null default 'dog' check (species in ('dog', 'cat', 'other')),
+  pet_name text, breed text, color text, sex text, size text, description text,
+  last_seen text not null, town text not null,
+  lat double precision, lng double precision, approx boolean not null default false,
+  date_seen date not null,
+  photo_path text,
+  contact_name text not null, phone text, show_phone boolean not null default false,
+  email text not null,
+  token text not null unique,
+  ip_hash text,
+  admin_note text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  confirmed_at timestamptz, expires_at timestamptz, reunited_at timestamptz, reminded_at timestamptz
+);
+create index if not exists lost_found_status_idx on public.lost_found (status, created_at desc);
+alter table public.lost_found enable row level security;
+
+-- Who messaged a post and when (for spam limits). The message itself is emailed, never stored.
+create table if not exists public.lost_found_msgs (
+  id uuid primary key default gen_random_uuid(),
+  post_id text not null,
+  ip_hash text not null,
+  created_at timestamptz not null default now()
+);
+create index if not exists lost_found_msgs_ip_idx on public.lost_found_msgs (ip_hash, created_at);
+alter table public.lost_found_msgs enable row level security;

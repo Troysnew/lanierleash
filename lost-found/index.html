@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lost &amp; found pets around Lake Lanier · Lanier Leash</title>
+<meta name="description" content="Lost or found a dog around Cumming, Lake Lanier or Forsyth County? See local lost and found pets, or post one free. It goes up as soon as you confirm your email.">
+<link rel="canonical" href="https://lanierleash.com/lost-found/">
+<meta property="og:title" content="Lost &amp; found pets around Lake Lanier · Lanier Leash">
+<meta property="og:description" content="See local lost and found pets around Cumming and Lake Lanier, or post one free.">
+<meta property="og:image" content="https://lanierleash.com/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+<div class="mesh" aria-hidden="true" style="height:420px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a><a href="/lost-found/">Lost &amp; found</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+<main id="top">
+<section class="page-hero"><div class="wrap">
+  <span class="eyebrow">Lost &amp; found</span>
+  <h1>Lost &amp; found pets around Lake Lanier</h1>
+  <p class="lede">Lost a dog, or found one? Post it free. It goes up the moment you confirm your email, and neighbors can message you without seeing your address.</p>
+  <div class="acts" style="margin-top:20px"><a class="btn btn-coral" href="#post" data-kind="lost"><svg class="ic" aria-hidden="true"><use href="#u-paw"/></svg>I lost a pet</a><a class="btn btn-out" href="#post" data-kind="found"><svg class="ic" aria-hidden="true"><use href="#u-heart"/></svg>I found a pet</a></div>
+  <p class="msg err" id="lfErr" hidden></p>
+</div></section>
+
+<section class="blk" style="padding-top:20px"><div class="wrap">
+  <div class="lfbar">
+    <div class="seg" role="group" aria-label="Show"><button type="button" data-k="all" aria-pressed="true">All</button><button type="button" data-k="lost" aria-pressed="false">Lost</button><button type="button" data-k="found" aria-pressed="false">Found</button><button type="button" data-k="reunited" aria-pressed="false">Home safe</button></div>
+    <label class="fld lfnear"><span>Near ZIP</span><input id="lfZip" inputmode="numeric" maxlength="5" placeholder="30041" autocomplete="postal-code"></label>
+  </div>
+  <p class="lfcount" id="lfCount" role="status">Loading…</p>
+  <div class="lfcards" id="lfList"></div>
+
+  <div class="lfhelp">
+    <div><h2 class="h2s">Lost your dog? The first hour</h2><ol>
+      <li><b>Search close and call their name calmly.</b> Most dogs are found within a mile. Bring treats and a squeaky toy; leave a worn shirt and water by your door.</li>
+      <li><b>Post here and share it</b> in neighborhood Facebook groups and Nextdoor. Print the flyer from your post page for mailboxes and vet offices.</li>
+      <li><b>Call the county shelter and nearby vets</b>, and visit in person every couple of days. <a href="/adopt/">Shelters and rescues near you</a>.</li>
+      <li><b>Check the microchip</b> is registered to your current phone number.</li>
+    </ol></div>
+    <div><h2 class="h2s">Found a dog?</h2><ol>
+      <li><b>Check for tags</b>, then have any vet or shelter scan for a microchip. It's free.</li>
+      <li><b>Post here</b> with a photo and where you found them. Leave out one detail, like a marking, so you can check the real owner.</li>
+      <li><b>File a found report</b> with <a href="/adopt/">the county shelter</a>. Owners look there first.</li>
+      <li><b>Hurt or sick?</b> <a href="/vet-care/#emergency">Emergency vets open now</a>.</li>
+    </ol></div>
+  </div>
+
+  <div class="card lfpost sub" id="post">
+    <span class="eyebrow">Post free</span>
+    <h2>Post a lost or found pet</h2>
+    <p class="fine">We email you a link to put it live, so check your inbox right after. Your email is never shown. Posts stay up 30 days, and you can renew them.</p>
+    <form id="lfForm" class="lfform" novalidate>
+      <input type="text" name="hp" class="hp" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="tchips" role="radiogroup" aria-label="Lost or found"><label class="tchip"><input type="radio" name="kind" value="lost" checked><span>I lost a pet</span></label><label class="tchip"><input type="radio" name="kind" value="found"><span>I found a pet</span></label></div>
+      <div class="grid">
+        <div class="full"><label for="p-photo">Photo</label><label class="drop" id="drop"><input id="p-photo" type="file" accept="image/jpeg,image/png,image/webp,image/*"><span class="dropin" id="dropin"><svg class="ic"><use href="#u-camera"/></svg><b>Add a clear photo</b><span>Posts with a photo get shared far more. Face and body is best.</span></span><img id="prev" alt="" hidden></label></div>
+        <div><label for="p-species">Pet</label><select id="p-species" name="species"><option value="dog">Dog</option><option value="cat">Cat</option><option value="other">Other</option></select></div>
+        <div data-show="lost"><label for="p-pet_name">Their name <span class="req" aria-hidden="true">*</span></label><input id="p-pet_name" name="pet_name" maxlength="40" placeholder="Biscuit"></div>
+        <div><label for="p-color">Color <span class="req" aria-hidden="true">*</span></label><input id="p-color" name="color" maxlength="80" placeholder="Black with white chest"></div>
+        <div><label for="p-breed">Breed or mix</label><input id="p-breed" name="breed" maxlength="80" placeholder="Lab mix"></div>
+        <div><label for="p-size">Size</label><select id="p-size" name="size"><option value="">Not sure</option><option value="small">Small (under 25 lb)</option><option value="medium">Medium</option><option value="large">Large (over 60 lb)</option></select></div>
+        <div><label for="p-sex">Sex</label><select id="p-sex" name="sex"><option value="unknown">Not sure</option><option value="male">Male</option><option value="female">Female</option></select></div>
+        <div class="full"><label for="p-last_seen" id="seenLab">Where were they last seen? <span class="req" aria-hidden="true">*</span></label><input id="p-last_seen" name="last_seen" maxlength="150" placeholder="Near the boat ramp at Little Ridge Park"><small>A street, park or landmark. We put a pin near it on the map.</small></div>
+        <div><label for="p-town">Town <span class="req" aria-hidden="true">*</span></label><input id="p-town" name="town" maxlength="60" placeholder="Cumming"></div>
+        <div><label for="p-date_seen" id="dateLab">Date last seen <span class="req" aria-hidden="true">*</span></label><input id="p-date_seen" name="date_seen" type="date"></div>
+        <div class="full"><label for="p-description">Anything else</label><textarea id="p-description" name="description" rows="3" maxlength="800" placeholder="Red collar, very friendly but shy with men. Microchipped."></textarea></div>
+        <div><label for="p-contact_name">Your first name <span class="req" aria-hidden="true">*</span></label><input id="p-contact_name" name="contact_name" maxlength="40" autocomplete="given-name"></div>
+        <div><label for="p-phone">Your phone</label><input id="p-phone" name="phone" type="tel" maxlength="20" autocomplete="tel"><small>Optional. Only shown if you tick the box below.</small></div>
+        <div class="full"><label class="chk"><input type="checkbox" name="show_phone"> <span>Show my phone number on the post so people can call or text me.</span></label></div>
+        <div class="full"><label for="p-email">Your email <span class="req" aria-hidden="true">*</span></label><input id="p-email" name="email" type="email" required autocomplete="email" placeholder="you@example.com"><small>We send the link that puts your post live, and pass along messages. Never shown.</small></div>
+      </div>
+      <button class="btn btn-coral" type="submit" id="lfBtn" style="margin-top:20px"><svg class="ic" aria-hidden="true"><use href="#u-paw"/></svg>Post it</button>
+      <p class="msg" id="lfSay" role="status" hidden></p>
+    </form>
+    <div id="lfDone" hidden>
+      <h2>Check your email</h2>
+      <p>We just sent you a link. <b>Tap it and your post goes live.</b> It can take a minute; check Promotions or Spam if you don't see it.</p>
+      <p class="fine">Keep that email. It's also your private link to mark them home, renew the post, or take it down.</p>
+    </div>
+  </div>
+</div></section>
+</main>
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Posts come from the people who send them; we don't verify ownership. Meet in public and never pay a reward up front.</div>
+</footer>
+<script src="/assets/data.js"></script>
+<script>window.LL && window.LL.initMenu();</script>
+<script>
+(function () {
+  var L = window.LL, esc = L.esc, $ = function (id) { return document.getElementById(id); };
+  var q = new URLSearchParams(location.search), posts = [], kind = ["lost", "found", "reunited"].indexOf(q.get("kind")) >= 0 ? q.get("kind") : "all";
+  if (q.get("e") === "link") { $("lfErr").hidden = false; $("lfErr").textContent = "That link isn't valid anymore. The post may have been taken down. You can post again below."; }
+  var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  var fmt = function (iso) { return iso ? MON[+iso.slice(5, 7) - 1] + " " + +iso.slice(8, 10) : ""; };
+  var ago = function (iso) { var d = Math.floor((Date.now() - Date.parse(iso)) / 864e5); return d <= 0 ? "today" : d === 1 ? "yesterday" : d + " days ago"; };
+
+  // ---------- the board ----------
+  $("lfZip").value = L.home.zip || "";
+  L.initLocate && L.initLocate(["lfZip"]);
+  function draw() {
+    document.querySelectorAll(".lfbar .seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.k === kind)); });
+    var h = L.home, list = posts.filter(function (p) { return kind === "all" ? p.status !== "reunited" : kind === "reunited" ? p.status === "reunited" : p.kind === kind && p.status !== "reunited"; });
+    list.forEach(function (p) { p.mi = p.lat != null ? L.miles(+p.lat, +p.lng) : null; });
+    // Newest first, but anything over 25 miles away drops below the close ones.
+    list.sort(function (a, b) { var fa = a.mi != null && a.mi > 25, fb = b.mi != null && b.mi > 25; if (fa !== fb) return fa ? 1 : -1; return Date.parse(b.posted) - Date.parse(a.posted); });
+    var n = list.length, label = kind === "reunited" ? (n === 1 ? "happy ending" : "happy endings") : kind === "lost" ? "lost " + (n === 1 ? "pet" : "pets") : kind === "found" ? "found " + (n === 1 ? "pet" : "pets") : (n === 1 ? "pet" : "pets") + " waiting to get home";
+    $("lfCount").textContent = n ? n + " " + label + (kind === "reunited" ? " in the last 60 days" : "") + (h && h.zip ? " · distances from " + h.zip : "") : "";
+    $("lfList").innerHTML = n ? list.map(function (p) {
+      var home = p.status === "reunited", tag = home ? "Home safe" : (p.kind === "lost" ? "Lost " : "Found ") + ({ dog: "dog", cat: "cat" }[p.species] || "pet");
+      return '<a class="lfcard ' + (home ? "home" : p.kind) + '" href="/lost-found/' + encodeURIComponent(p.id) + '/">' +
+        (p.photo ? '<img src="' + esc(p.photo) + '" alt="' + esc(p.headline) + '" loading="lazy">' : '<span class="nophoto"><svg class="ic" aria-hidden="true"><use href="#u-paw"/></svg></span>') +
+        '<span class="lftag ' + (home ? "home" : p.kind) + '">' + tag + '</span>' +
+        '<span class="body"><b>' + esc(p.pet_name || (p.looks ? p.looks.split(" · ").slice(-2).join(" ") : p.headline)) + '</b>' +
+        (p.looks ? '<small>' + esc(p.looks) + '</small>' : '') +
+        '<span class="where"><svg class="ic" aria-hidden="true"><use href="#u-pin"/></svg>' + esc(p.last_seen) + ', ' + esc(p.town) + '</span>' +
+        '<span class="when">' + (home ? "Reunited " + fmt((p.reunited_at || "").slice(0, 10)) : (p.kind === "lost" ? "Last seen " : "Found ") + fmt(p.date_seen)) + (p.mi != null ? " · " + esc(L.fmtMi(p.mi)) : "") + ' · posted ' + ago(p.posted) + '</span></span></a>';
+    }).join("") : '<p class="empty">' + (kind === "reunited" ? "No happy endings posted yet. Here's hoping for one soon." : "No " + (kind === "all" ? "" : kind + " ") + "pets posted right now. That's good news. <a href=\"#post\">Post one</a> if you need to.") + '</p>';
+    try { history.replaceState(null, "", kind === "all" ? location.pathname + location.hash : "?kind=" + kind + location.hash); } catch (e) {}
+  }
+  document.querySelector(".lfbar .seg").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { kind = b.dataset.k; draw(); } });
+  $("lfZip").addEventListener("change", function () { var z = this.value.trim(); if (/^\d{5}$/.test(z)) L.setZip(z).then(draw); });
+  document.addEventListener("ll:home", function () { $("lfZip").value = L.home.zip || ""; draw(); });
+  fetch("/api/lostfound?list=1").then(function (r) { return r.json(); }).then(function (d) { posts = (d && d.posts) || []; draw(); })
+    .catch(function () { $("lfCount").textContent = ""; $("lfList").innerHTML = '<p class="empty">We couldn’t load the board right now. Try again in a minute.</p>'; });
+
+  // ---------- the post form ----------
+  var form = $("lfForm"), t0 = Date.now(), photo = null;
+  function today() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  $("p-date_seen").value = today(); $("p-date_seen").max = today();
+  function setKind(k) {
+    var r = form.querySelector('[name=kind][value="' + k + '"]'); if (r) r.checked = true;
+    var lost = k === "lost";
+    form.querySelectorAll("[data-show=lost]").forEach(function (x) { x.hidden = !lost; });
+    $("seenLab").firstChild.textContent = lost ? "Where were they last seen? " : "Where did you find them? ";
+    $("dateLab").firstChild.textContent = lost ? "Date last seen " : "Date found ";
+    $("p-last_seen").placeholder = lost ? "Near the boat ramp at Little Ridge Park" : "Running along Hwy 20 near Sawnee Mountain";
+  }
+  form.querySelectorAll("[name=kind]").forEach(function (r) { r.addEventListener("change", function () { setKind(r.value); }); });
+  document.querySelectorAll("a[data-kind]").forEach(function (a) { a.addEventListener("click", function () { setKind(a.dataset.kind); }); });
+  if (location.hash === "#post" && q.get("kind") === "found") setKind("found");
+
+  function shrink(file) {
+    return new Promise(function (ok, bad) {
+      var img = new Image();
+      img.onload = function () {
+        var s = Math.min(1, 1400 / Math.max(img.width, img.height)), c = document.createElement("canvas");
+        c.width = Math.round(img.width * s); c.height = Math.round(img.height * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+        URL.revokeObjectURL(img.src); ok(c.toDataURL("image/jpeg", 0.85));
+      };
+      img.onerror = function () { bad(new Error("We couldn't read that photo. Try a JPG or PNG.")); };
+      img.src = URL.createObjectURL(file);
+    });
+  }
+  $("p-photo").addEventListener("change", function () {
+    var f = this.files && this.files[0]; photo = null; if (!f) return;
+    shrink(f).then(function (d) { photo = d; $("prev").src = d; $("prev").hidden = false; $("dropin").hidden = true; $("drop").classList.add("has"); })
+      .catch(function (e) { say(e.message, true); });
+  });
+  function say(t, bad) { var m = $("lfSay"); m.hidden = false; m.textContent = t; m.classList.toggle("err", !!bad); }
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var data = { action: "post", t0: t0, photo: photo || "" };
+    form.querySelectorAll("input[name], select[name], textarea[name]").forEach(function (el) {
+      el.removeAttribute("aria-invalid");
+      if (el.type === "radio") { if (el.checked) data[el.name] = el.value; }
+      else data[el.name] = el.type === "checkbox" ? el.checked : el.value.trim();
+    });
+    if (data.kind === "found") data.pet_name = "";
+    var btn = $("lfBtn"); btn.disabled = true; say(photo ? "Uploading your post…" : "Sending…");
+    fetch("/api/lostfound", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })
+      .then(function (r) { return r.json().catch(function () { return { ok: false }; }); })
+      .then(function (d) {
+        if (!d.ok) { var el = d.field && form.querySelector('[name="' + d.field + '"]'); if (el) { el.setAttribute("aria-invalid", "true"); el.focus(); } return say(d.error || "Something went wrong. Please try again.", true); }
+        form.hidden = true; $("lfDone").hidden = false; $("lfDone").scrollIntoView({ block: "center" });
+      })
+      .catch(function () { say("Couldn't reach us. Check your connection and try again.", true); })
+      .then(function () { btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

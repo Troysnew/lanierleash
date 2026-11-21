@@ -35,6 +35,18 @@
   ],
   "rewrites": [
     {
+      "source": "/lost-found/:id([a-z0-9-]+)/photo",
+      "destination": "/api/lostfound?photo=:id"
+    },
+    {
+      "source": "/lost-found/:id([a-z0-9-]+)",
+      "destination": "/api/lostfound?page=:id"
+    },
+    {
+      "source": "/lost-found/:id([a-z0-9-]+)/",
+      "destination": "/api/lostfound?page=:id"
+    },
+    {
       "source": "/events.ics",
       "destination": "/api/event?feed=1"
     },

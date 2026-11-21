@@ -2,8 +2,8 @@
 import { siteUrl } from "./util.js";
 import { fmtDay, fmtShort, timeRange, fmtMi } from "./content.js";
 
-const C = { navy: "#0B3A5B", teal: "#117A8B", mint: "#E0F7F5", cream: "#FFF7ED", coral: "#CF3F47", slate: "#334155", muted: "#5B6B7B", line: "#E6ECEF", bg: "#F3F6F8", ok: "#178A5E", warn: "#A3620B", hot: "#B8323A" };
-const FONT = "'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif";
+export const C = { navy: "#0B3A5B", teal: "#117A8B", mint: "#E0F7F5", cream: "#FFF7ED", coral: "#CF3F47", slate: "#334155", muted: "#5B6B7B", line: "#E6ECEF", bg: "#F3F6F8", ok: "#178A5E", warn: "#A3620B", hot: "#B8323A" };
+export const FONT = "'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif";
 
 export const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const links = (t) => {
@@ -12,14 +12,14 @@ const links = (t) => {
 };
 const address = () => (process.env.MAILING_ADDRESS || "").trim();
 
-function button(href, label) {
+export function button(href, label) {
   return `<table role="presentation" cellspacing="0" cellpadding="0" border="0" style="margin:22px 0"><tr><td style="border-radius:999px;background:${C.coral}">` +
     `<a href="${esc(href)}" style="display:inline-block;padding:13px 26px;font:700 15px ${FONT};color:#ffffff;text-decoration:none;border-radius:999px">${esc(label)}</a></td></tr></table>`;
 }
-const h2 = (t) => `<h2 style="margin:28px 0 10px;font:800 19px/1.25 ${FONT};color:${C.navy};letter-spacing:-.01em">${t}</h2>`;
-const p = (t, extra = "") => `<p style="margin:0 0 14px;font:15px/1.6 ${FONT};color:${C.slate};${extra}">${t}</p>`;
+export const h2 = (t) => `<h2 style="margin:28px 0 10px;font:800 19px/1.25 ${FONT};color:${C.navy};letter-spacing:-.01em">${t}</h2>`;
+export const p = (t, extra = "") => `<p style="margin:0 0 14px;font:15px/1.6 ${FONT};color:${C.slate};${extra}">${t}</p>`;
 
-function layout({ preheader, body, token, why }) {
+export function layout({ preheader, body, token, why }) {
   const s = siteUrl(), L = token ? links(token) : null, addr = address();
   const foot = [
     why ? esc(why) : "",
@@ -38,7 +38,7 @@ function layout({ preheader, body, token, why }) {
 </table></td></tr></table></body></html>`;
 }
 
-function textFooter(token) {
+export function textFooter(token) {
   const s = siteUrl(), L = token ? links(token) : null, addr = address();
   return ["", "—", L ? "Change ZIP or radius: " + L.manage : "", L ? "Unsubscribe: " + L.unsub : "", "Privacy: " + s + "/privacy/", addr ? "Lanier Leash · " + addr : ""].filter((x) => x !== "").join("\n");
 }
@@ -103,6 +103,15 @@ function placeRow(pl, s) {
     `<div style="color:${C.muted}">${esc(pl.town)} · ${fmtMi(pl.mi)} · <span style="color:${conf ? C.ok : C.warn};font-weight:700">${conf ? "Official rule" : "Unconfirmed, call ahead"}</span></div>` +
     (pl.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(pl.dog_rule)}</div>` : "") + `</td></tr>`;
 }
+function lostRow(x, s) {
+  const url = `${s}/lost-found/${esc(x.id)}/`;
+  return `<tr><td width="76" valign="top" style="padding:12px 12px 12px 0;border-top:1px solid ${C.line}">` +
+    (x.photo ? `<a href="${url}"><img src="${s}${esc(x.photo)}" width="64" height="64" alt="" style="display:block;width:64px;height:64px;object-fit:cover;border-radius:12px;border:0"></a>` : "") +
+    `</td><td valign="top" style="padding:12px 0;border-top:1px solid ${C.line};font:14px/1.5 ${FONT};color:${C.slate}">` +
+    `<a href="${url}" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(x.headline)}</a>` +
+    `<div style="color:${C.muted}">${esc(x.looks)}</div>` +
+    `<div>Last seen ${esc(fmtShort(x.date_seen))} near ${esc(x.last_seen)}, ${esc(x.town)}${x.mi != null ? " · " + fmtMi(x.mi) : ""}</div></td></tr>`;
+}
 const table = (rows) => `<table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0">${rows}</table>`;
 
 function wxBlock(w) {
@@ -142,6 +151,8 @@ export function weeklyEmail(sub, issue) {
   if (issue.ongoing.length) body += h2("Ongoing") + table(issue.ongoing.map((e) => eventRow(e, s)).join(""));
   if (issue.later.length) body += h2("Coming up") + table(issue.later.map((e) => eventRow(e, s)).join(""));
   if (issue.sponsor) body += sponsorBlock(issue.sponsor);
+  if (issue.lost && issue.lost.length) body += h2("Help bring them home") + p(`Missing near you. Seen one? Tap to message the owner.`, `margin:0 0 4px`) + table(issue.lost.map((x) => lostRow(x, s)).join("")) +
+    p(`<a href="${s}/lost-found/" style="color:${C.teal}">See the lost &amp; found board</a> or post a pet free.`, `font-size:13px;margin-top:8px`);
   if (issue.places.length) body += h2("Places to try") + table(issue.places.map((pl) => placeRow(pl, s)).join(""));
   if (issue.birthdays && issue.birthdays.length) body += h2("Pack birthdays this week 🎂") +
     p(issue.birthdays.map((x) => `<b>${esc(x.name)}</b>${x.town ? " of " + esc(x.town) : ""} (${esc(x.day)})`).join(" · ") + `. <a href="${s}/pack/" style="color:${C.teal}">Meet the pack</a> or <a href="${s}/submit/?type=pup" style="color:${C.teal}">add your pup</a>.`);
@@ -154,6 +165,7 @@ export function weeklyEmail(sub, issue) {
   tl("This weekend", issue.events); tl("Ongoing", issue.ongoing); tl("Coming up", issue.later);
   if (issue.sponsor) t.push(`SPONSORED BY ${issue.sponsor.name.toUpperCase()}: ${issue.sponsor.text}${issue.sponsor.url ? " " + issue.sponsor.url : ""}`, "");
   if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");
+  if (issue.lost && issue.lost.length) { t.push("HELP BRING THEM HOME"); issue.lost.forEach((x) => t.push(`- ${x.headline} (${x.looks}), last seen near ${x.last_seen}, ${x.town}\n  ${s}/lost-found/${x.id}/`)); t.push(""); }
   if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)}): ${pl.dog_rule}\n  ${s}/places/${pl.id}/`)); }
 
   return {

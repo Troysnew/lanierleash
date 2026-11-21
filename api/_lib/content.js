@@ -6,7 +6,8 @@ import { siteUrl, etParts } from "./util.js";
 import { publishedEvents } from "./events.js";
 import { publishedPlaces } from "./places.js";
 import { activeSponsor } from "./sponsor.js";
-import { approvedPups } from "./db.js";
+import { approvedPups, boardPosts } from "./db.js";
+import { isLive, toPublic as lostPublic } from "./lostfound.js";
 
 // ---------- CSV + dates (same rules as assets/data.js) ----------
 export function parseCSV(text) {
@@ -74,7 +75,7 @@ async function readData(name) {
 
 export async function loadData(today) {
   // Events and places come from the database (each falls back to its CSV).
-  const [ev, pl, sponsor, pups] = await Promise.all([publishedEvents(today), publishedPlaces(), activeSponsor(today).catch(() => null), approvedPups(500).catch(() => [])]);
+  const [ev, pl, sponsor, pups, lostRows] = await Promise.all([publishedEvents(today), publishedPlaces(), activeSponsor(today).catch(() => null), approvedPups(500).catch(() => []), boardPosts().catch(() => [])]);
   const events = ev.events.map((e) => {
     e.last = e.end_date && e.end_date > e.date ? e.end_date : e.date;
     e.multi = e.last !== e.date;
@@ -82,7 +83,9 @@ export async function loadData(today) {
     return e;
   }).filter((e) => e.last >= today);
   const places = pl.places.filter((p) => p.status !== "nodogs");
-  return { events, places, sponsor, birthdays: birthdaysThisWeek(pups, today) };
+  // Lost pets posted in the last 14 days that are still missing (found pets are on the board).
+  const lost = lostRows.filter((r) => isLive(r) && r.kind === "lost" && Date.now() - Date.parse(r.confirmed_at || r.created_at) < 14 * 864e5).map(lostPublic);
+  return { events, places, sponsor, lost, birthdays: birthdaysThisWeek(pups, today) };
 }
 
 // Pack pups whose birthday (month and day) falls in the 7 days starting `today`.
@@ -182,5 +185,6 @@ export function buildIssue(sub, data, wx, today = etParts().date) {
     ? `${n} dog-friendly ${n === 1 ? "event" : "events"} this weekend near ${sub.zip}` + (wx ? ` · ${wx.head.toLowerCase()}` : "")
     : wx ? `Your dog weekend near ${sub.zip}: ${wx.head.toLowerCase()}` : `Your dog weekend near ${sub.zip}`;
 
-  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, events: weekendList, ongoing, later, places: picks, sponsor: data.sponsor || null, birthdays: (data.birthdays || []).slice(0, 8) };
+  const lost = (data.lost || []).map((x) => ({ ...x })).filter(near).sort((a, b) => a.mi - b.mi).slice(0, 4);
+  return { subject, today, weekend: wk, radius: r, zip: sub.zip, wx, lost, events: weekendList, ongoing, later, places: picks, sponsor: data.sponsor || null, birthdays: (data.birthdays || []).slice(0, 8) };
 }

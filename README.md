@@ -52,3 +52,11 @@ In `/admin/` → Places, each place shows its reader counts. Flags like "Dogs no
 Every event has its own page at `/events/<date>-<title-slug>/` (`api/event.js`): the dog rule, map, directions, add to calendar (`?format=ics`), Google Calendar, share, the venue's place page when we list it, more events at the same venue, and dog-friendly spots nearby. The homepage, the web email and the weekly email all link here. Old `/events/#<id>` links forward to the new page.
 
 `/events/` and `/places/` keep their filters in the address, so any view can be linked: `/events/?when=weekend&type=adopt&q=santa&r=25`, `/places/?cat=lake&status=official&q=cumming`.
+
+## Lost & found
+`/lost-found/` is a free board for lost and found pets. Anyone can post. A post goes live when the poster taps the link in their confirmation email, and it stays up 30 days. The same link lets them mark the pet home, renew the post or take it down. A reminder goes out 3 days before a post ends (from the daily `/api/cron/events` job).
+- Each post gets a page at `/lost-found/<id>/` with a map, share buttons, a printable flyer and a message form. Messages are emailed to the poster with Reply-To set to the sender, so the poster's email is never shown. Only a record that a message was sent is kept, for spam limits.
+- Photos are stored in the private `submissions` bucket and served through `/lost-found/<id>/photo`.
+- You get an email for each new post. Hide or delete posts in Admin → Lost & found.
+- Lost pets posted in the last 14 days show in the weekly email for readers within range, and on the homepage.
+- Needs the "Lost & found" SQL block in `api/_lib/schema.sql`.
