@@ -2,9 +2,9 @@
 
 Static homepage for lanierleash.com. No build step: `index.html`, `favicon.svg` and `img/` are served as they are.
 
-Deploy: connect this repo to Netlify (or Vercel) with no build command and publish directory `/`.
+Deploy: hosted on Vercel (no build command, publish directory `/`). Pushing to `main` deploys.
 
-Note: listings, counts and photos are sample content, and the signup forms do not collect emails yet.
+Data lives in Supabase (subscribers, submissions, events, places, settings). The CSVs in `data/` are the fallback and the import source.
 
 ## Weekly email
 
