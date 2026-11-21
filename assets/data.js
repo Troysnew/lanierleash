@@ -161,7 +161,7 @@
     if (crit) a.push("critters");
     return a;
   }
-  var ANIMAL = { dogs: "Dogs", cats: "Cats", critters: "Other critters" };
+  var ANIMAL = { dogs: "Dogs", cats: "Cats", critters: "Other pets" };
   var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
   // Generic illustration tiles by category (not photos of the actual place). Each place always gets

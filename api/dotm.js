@@ -7,7 +7,7 @@
 //   GET  /api/dotm?confirm=<token>                 the vote counts once that link is clicked
 import crypto from "node:crypto";
 import { signPhotos, subByEmail, insertSub, updateSub } from "./_lib/db.js";
-import { entries, winner, findEntry, openContest, currentTitle, closesOn, monthName, monthLabel, KINDS, kindOf,
+import { entries, winner, findEntry, openContest, currentTitle, closesOn, monthName, monthLabel, KINDS, kindOf, CRITTERS_ON,
   voteByEmail, voteByToken, insertVote, updateVote, recentVotesBy } from "./_lib/dotm.js";
 import { esc, layout, h2, p, button, textFooter, welcomeEmail } from "./_lib/templates.js";
 import { send, message } from "./_lib/mail.js";
@@ -65,6 +65,7 @@ function winnerBanner(w, month) {
 
 async function viewPage(req, res) {
   const q0 = req.query || {}, K = q0.kind === "critter" ? KINDS.critter : KINDS.dog;
+  if (K.key === "critter" && !CRITTERS_ON) return redirect(res, "/dog-of-the-month/");
   const today = etParts().date, open = openContest(today, K.key), now = currentTitle(today, K.key);
   const enter = K.key === "dog" ? "/submit/?type=pup" : "/submit/?type=pup&amp;pet=critter", enterTxt = K.key === "dog" ? "Enter your pup" : "Enter your pet";
   const [list, champ] = await Promise.all([entries(open), winner(now).catch(() => null)]);
@@ -74,7 +75,7 @@ async function viewPage(req, res) {
   <h1>Vote for ${esc(monthName(open))}'s ${K.title}</h1>
   <p class="lede">${K.key === "dog" ? "Local pups" : "Cats, birds, reptiles, bunnies and every other kind of local pet"}, sent in by their people. Vote for your favorite (one vote per email). The ${K.noun} with the most votes when voting closes <b>${esc(closes)}</b> is ${esc(monthName(open))}'s ${K.title} on the homepage, in the Thursday email and in the pack.</p>
   <p class="acts"><a class="btn btn-coral" href="${enter}">${ic("u-camera")}${enterTxt}</a><a class="btn btn-out" href="#how">How it works</a></p>
-  <p class="fine" style="margin-top:12px">${K.key === "dog" ? `Got a cat, a parrot or a bearded dragon? They're up for <a href="/critter-of-the-month/">Critter of the Month</a>.` : `Dogs have their own contest: <a href="/dog-of-the-month/">Dog of the Month</a>.`}</p>
+  ${!CRITTERS_ON ? "" : `<p class="fine" style="margin-top:12px">${K.key === "dog" ? `Got a cat, a parrot or a bearded dragon? They're up for <a href="/critter-of-the-month/">Critter of the Month</a>.` : `Dogs have their own contest: <a href="/dog-of-the-month/">Dog of the Month</a>.`}</p>`}
 </div></section>
 <section class="blk" style="padding-top:8px"><div class="wrap">
   ${q.confirmed === "1" && voted ? `<p class="note good"><b>Your vote for ${esc(voted.name)} is in. Thanks!</b> Want to help more? ${shareBtn(voted, true, "linkbtn")}</p>` : ""}
@@ -101,6 +102,7 @@ async function entryPage(req, res, id) {
   const x = await findEntry(id);
   if (!x) return sendHtml(res, 404, shell({ title: "Pup not found · Lanier Leash", description: "That pup isn't in the running right now.", path: "/dog-of-the-month/", noindex: true,
     body: `<section class="page-hero"><div class="wrap"><span class="eyebrow">Dog of the Month</span><h1>We couldn't find that pup</h1><p class="lede">The entry may have been removed. <a href="/dog-of-the-month/">See who's up this month</a>.</p></div></section>` }), "public, s-maxage=60");
+  if (kindOf(x.contest).key === "critter" && !CRITTERS_ON) return redirect(res, "/dog-of-the-month/");
   const K = kindOf(x.contest), today = etParts().date, open = x.contest === openContest(today, K.key), won = !open && x.contest.slice(0, 7) <= today.slice(0, 7) && (await winner(x.contest).catch(() => null))?.sid === x.sid;
   const photo = `${K.base}${x.id}/photo`;
   const body = `<section class="page-hero"><div class="wrap"><p class="crumbs"><a href="${K.base}">${K.title}</a> › ${esc(monthLabel(x.contest))}</p></div></section>
@@ -137,7 +139,7 @@ async function askVote(req, res) {
   const email = cleanEmail(b.email);
   if (!email) return json(res, 400, { ok: false, error: "That email doesn't look right." });
   let contest = null, x = null;
-  for (const k of ["dog", "critter"]) {
+  for (const k of CRITTERS_ON ? ["dog", "critter"] : ["dog"]) {
     const c = openContest(undefined, k), hit = (await entries(c, { photos: false })).find((e) => e.id === String(b.pup || ""));
     if (hit) { contest = c; x = hit; break; }
   }

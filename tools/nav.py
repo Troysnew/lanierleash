@@ -8,7 +8,6 @@ SERVICES = [("/vet-care/", "Vet care", "Low-cost clinics and emergency vets", "v
             ("/adopt/", "Adopt or foster", "Shelters and rescues near the lake", "adopt-and-rescues")]
 COMMUNITY = [("/pack/", "The pack", "Local pups sent in by their people", "the-pack-community"),
              ("/dog-of-the-month/", "Dog of the Month", "Vote for your favorite pup", "lanier-leash-emblem"),
-             ("/critter-of-the-month/", "Critter of the Month", "Cats, birds, reptiles and more", "the-pack-community"),
              ("/#conditions", "Walk conditions", "Weekend forecast and pavement check", "conditions-sun-good-walk-day"),
              ("/tips/", "Owner tips", "Ticks, heat, lake safety and more", "tips"),
              ("/issue/", "This week's email", "Read the latest Thursday email", "newsletter")]

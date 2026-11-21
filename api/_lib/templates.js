@@ -200,7 +200,7 @@ export function weeklyEmail(sub, issue) {
 export const SUBMIT_TYPES = {
   pup: { label: "Pup of the Week", emailRequired: true, fields: [
     { name: "species", label: "Kind of pet", max: 20 },
-    { name: "dog_name", label: "Pet's name", required: true, max: 60 },
+    { name: "dog_name", label: "Dog's name", required: true, max: 60 },
     { name: "age", label: "Age", max: 30 },
     { name: "town", label: "Town", required: true, max: 60 },
     { name: "story", label: "One line about your pup", required: true, max: 200 },

@@ -16,13 +16,16 @@ export const monthName = (ym) => MON[+ym.slice(5, 7) - 1];
 export const monthLabel = (ym) => `${monthName(ym)} ${ym.slice(0, 4)}`;
 // Two contests run side by side: Dog of the Month ("YYYY-MM") and Critter of the Month for cats, birds,
 // reptiles and other pets ("YYYY-MM-c"). Same rules, separate ballots.
+// Off switch for the second contest. While false, its pages send people to Dog of the Month, it's out of
+// the menu and the submit form, and every pup is treated as a dog. Flip to true (and see the TODO list) to bring it back.
+export const CRITTERS_ON = false;
 export const KINDS = {
   dog: { key: "dog", suffix: "", title: "Dog of the Month", base: "/dog-of-the-month/", noun: "pup", nouns: "pups" },
   critter: { key: "critter", suffix: "-c", title: "Critter of the Month", base: "/critter-of-the-month/", noun: "pet", nouns: "pets" },
 };
 export const kindOf = (contest) => (/-c$/.test(contest || "") ? KINDS.critter : KINDS.dog);
 // A pup submission is a critter when the sender picked a kind of pet other than dog.
-export const kindOfData = (d) => (d && d.species && d.species !== "dog" ? KINDS.critter : KINDS.dog);
+export const kindOfData = (d) => (CRITTERS_ON && d && d.species && d.species !== "dog" ? KINDS.critter : KINDS.dog);
 // Voting this month picks next month's winner.
 export const openContest = (today = etParts().date, kind = "dog") => shiftMonth(today.slice(0, 7), 1) + KINDS[kind].suffix;
 // The contest whose winner holds the title right now.

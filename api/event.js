@@ -14,7 +14,7 @@ const longDate = (iso) => `${DOWL[new Date(iso + "T12:00:00Z").getUTCDay()]}, ${
 const RX_CAT = /\b(cats?|kittens?|kitties|kitty|feline)\b/i;
 const RX_CRIT = /\b(reptiles?|snakes?|lizards?|geckos?|turtles?|tortoises?|birds?|parrots?|rabbits?|bunn(y|ies)|guinea pigs?|hamsters?|ferrets?|chickens?|horses?|goats?|exotics?|small animals?|critters?|herp\w*)\b/i;
 // Cats / other critters tags, read from the title and notes (same rule as the events list).
-const petTags = (e) => { const t = [e.title, e.notes].join(" "); return [RX_CAT.test(t) && ["cats", "Cats"], RX_CRIT.test(t) && ["critters", "Critters"]].filter(Boolean).map(([k, l]) => `<a class="tag t-pet" href="/events/?animal=${k}">${l}</a>`).join(""); };
+const petTags = (e) => { const t = [e.title, e.notes].join(" "); return [RX_CAT.test(t) && ["cats", "Cats"], RX_CRIT.test(t) && ["critters", "Other pets"]].filter(Boolean).map(([k, l]) => `<a class="tag t-pet" href="/events/?animal=${k}">${l}</a>`).join(""); };
 const TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
 const ICON = { restaurant: "i-dine", brewery: "i-brew", winery: "i-wine", coffee: "i-coffee", trail: "i-trail", park: "i-park", dogpark: "i-dogpark", lake: "i-lake", shop: "i-shop", stay: "i-stay" };
 const ic = (id) => `<svg class="ic" aria-hidden="true"><use href="#${id}"/></svg>`;
