@@ -89,7 +89,7 @@ async function viewPage(req, res) {
 </div></section>${VOTE_DLG}`;
   const ogx = list[0];
   return sendHtml(res, 200, shell({ title: `Vote for ${monthName(open)}'s Dog of the Month · Lanier Leash`, description: `Vote for the Lake Lanier pup of the month. ${plural(list.length, "local pup")} up for ${monthLabel(open)}. Voting closes ${closes}.`,
-    path: "/dog-of-the-month/", body, scripts: VOTE_JS, current: "", image: ogx ? `/dog-of-the-month/${ogx.id}/card.png` : "/img/hero.jpg",
+    path: "/dog-of-the-month/", body, scripts: VOTE_JS, current: "community", image: ogx ? `/dog-of-the-month/${ogx.id}/card.png` : "/img/hero.jpg",
     head: '<meta name="twitter:card" content="summary_large_image">' }), q.voted || q.confirmed ? "no-store" : "public, s-maxage=60, stale-while-revalidate=300");
 }
 
@@ -114,7 +114,7 @@ async function entryPage(req, res, id) {
 </div></section>${open ? VOTE_DLG : ""}`;
   return sendHtml(res, 200, shell({ title: `${open ? "Vote for " : ""}${x.name}${x.town ? " of " + x.town : ""} · Dog of the Month · Lanier Leash`,
     description: open ? `${x.name} is up for ${monthName(x.contest)}'s Dog of the Month on Lanier Leash. ${x.story ? "“" + x.story + "” " : ""}Vote with one click.` : `${x.name}${x.town ? " of " + x.town : ""} on Lanier Leash. ${x.story || ""}`,
-    path: `/dog-of-the-month/${x.id}/`, body, scripts: VOTE_JS, image: `/dog-of-the-month/${x.id}/card.png`,
+    path: `/dog-of-the-month/${x.id}/`, body, scripts: VOTE_JS, current: "community", image: `/dog-of-the-month/${x.id}/card.png`,
     head: '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image">' }), "public, s-maxage=60, stale-while-revalidate=300");
 }
 

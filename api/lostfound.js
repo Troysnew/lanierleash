@@ -254,7 +254,7 @@ window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom
 window.L.circle(ll,{radius:${r.approx ? 2500 : 600},color:"#CF3F47",weight:2,fillOpacity:.12}).addTo(m);})();</script>` : "";
   const data = JSON.stringify({ id: r.id, url, text: shareText, title: headline(r), name: r.pet_name || "", kind: r.kind }).replace(/</g, "\\u003c");
   return sendHtml(res, 200, shell({
-    title, description: desc, path: `/lost-found/${r.id}/`, body, noindex: !live,
+    title, description: desc, path: `/lost-found/${r.id}/`, body, noindex: !live, current: "lost",
     image: P.photo ? `/lost-found/${r.id}/photo` : "/img/hero.jpg",
     head: `<meta name="referrer" content="strict-origin-when-cross-origin">`,
     scripts: leaflet + `<script>window.LF=${data};</script><script src="/assets/lostfound.js"></script>`,

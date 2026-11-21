@@ -1005,3 +1005,37 @@ a.chip b { color: var(--muted); font-weight: 700; }
 .ofbtags .chip { padding: 6px 11px; border-radius: 999px; border: 1.5px solid var(--line); background: #fff; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; color: var(--slate, #334155); }
 .ofbtags .chip[aria-pressed="true"] { border-color: var(--teal); background: var(--mint); color: var(--navy); }
 .ofbmsg { margin: 0; font-size: 12.5px; color: var(--muted); } .ofbmsg:empty { display: none; }
+
+/* ---------- Top menu dropdowns ---------- */
+img.mark { object-fit: contain; }
+.links { align-items: center; }
+.links .dd { position: relative; }
+.links .ddt { display: inline-flex; align-items: center; gap: 4px; }
+.links .chev { width: 12px; height: 12px; transition: transform .2s; }
+.links .dd:hover .chev, .links .dd:focus-within .chev { transform: rotate(180deg); }
+.links .ddm { position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%) translateY(-4px); min-width: 300px; padding: 8px; border-radius: 22px; background: #fff; box-shadow: 0 18px 44px -12px rgba(11,58,91,.35), 0 0 0 1px rgba(11,58,91,.06); display: grid; gap: 2px; opacity: 0; visibility: hidden; transition: opacity .15s, transform .15s, visibility .15s; z-index: 50; }
+.links .ddm::before { content: ""; position: absolute; left: 0; right: 0; top: -12px; height: 12px; } /* keeps hover alive across the gap */
+.links .dd:hover .ddm, .links .dd:focus-within .ddm { opacity: 1; visibility: visible; transform: translateX(-50%) translateY(0); }
+.links .ddm a { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 14px; font-weight: 700; font-size: 14.5px; }
+.links .ddm a:hover, .links .ddm a:focus-visible { background: var(--mint); }
+.links .ddm img { width: 34px; height: 34px; flex: none; object-fit: contain; }
+.links .ddm b { display: block; color: var(--navy); } .links .ddm small { display: block; font-weight: 500; font-size: 12.5px; color: var(--muted); }
+.links .ddm .ddall { justify-content: center; font-size: 13.5px; color: var(--teal); margin-top: 2px; border-top: 1px solid var(--line); border-radius: 0 0 14px 14px; }
+.links .lfl::after, .mnav .lfl::after { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--coral-btn); margin-left: 6px; vertical-align: 2px; box-shadow: 0 0 0 3px rgba(207,63,71,.18); }
+@media (max-width: 1120px) and (min-width: 941px) { .nav { gap: 14px; } .links a { padding: 10px 11px; font-size: 14.5px; } .brand .wm b { font-size: 22px; } }
+.mnav .mh { margin: 10px 16px 2px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.mnav a { padding: 11px 16px; }
+
+/* Badges in place of line icons */
+.help .tb.badge, .chipcard .tile-ic.badge { background: none; }
+.help .tb.badge img { width: 56px; height: 56px; object-fit: contain; }
+.chipcard .tile-ic.badge img { width: 44px; height: 44px; object-fit: contain; }
+@media (max-width: 760px) { .chipcard .tile-ic.badge img { width: 36px; height: 36px; } }
+.mini .mb { width: 40px; height: 40px; object-fit: contain; }
+
+/* Services hub */
+.hubgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.hubcard { display: flex; gap: 16px; align-items: center; padding: 18px; border-radius: 22px; background: #fff; border: 1px solid var(--line); box-shadow: var(--sh); text-decoration: none; color: var(--navy); transition: transform .15s, border-color .15s; }
+.hubcard:hover { transform: translateY(-2px); border-color: var(--teal); }
+.hubcard img { width: 72px; height: 72px; flex: none; object-fit: contain; }
+.hubcard b { display: block; font-size: 18px; letter-spacing: -.01em; } .hubcard small { display: block; color: var(--muted); font-size: 14px; margin-top: 3px; line-height: 1.45; }

@@ -6,7 +6,9 @@ Pages: /adopt/ (data/rescues.csv), /vet-care/ (data/vetcare.csv), /tips/ (data/t
 /pack/, /about/, /advertise/. It also puts the current footer on every static page.
 Edit the data files, then run this again. Keep FOOTER in step with api/_lib/page.js.
 """
-import csv, html, json, pathlib, re
+import csv, html, json, pathlib, re, sys
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+from nav import links as nav_links, mnav as nav_mobile, section_of  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 esc = lambda s: html.escape(str(s or ""), quote=True)
@@ -17,7 +19,7 @@ FOOTER = """<footer>
   <div class="lakeband" aria-hidden="true"></div>
   <div class="wrap">
     <div>
-      <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><img class="mark" src="/img/icons/lanier-leash-emblem-96.webp" alt="" width="46" height="46"><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
       <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
     </div>
     <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/dog-of-the-month/">Dog of the Month</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
@@ -41,7 +43,7 @@ def shell(path, title, desc, body, scripts=""):
 <meta property="og:description" content="{esc(desc)}">
 <meta property="og:image" content="https://lanierleash.com/img/hero.jpg">
 <meta name="theme-color" content="#0B3A5B">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
@@ -52,12 +54,12 @@ def shell(path, title, desc, body, scripts=""):
 <div class="mesh" aria-hidden="true" style="height:420px"></div>
 <div class="wrap navwrap">
   <nav class="nav glass" aria-label="Main">
-    <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
-    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a></div>
+    <a class="brand" href="/" aria-label="Lanier Leash home"><img class="mark" src="/img/icons/lanier-leash-emblem-96.webp" alt="" width="46" height="46"><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    {nav_links(section_of(path))}
     <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </nav>
-  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a><a href="/lost-found/">Lost &amp; found</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+  {nav_mobile()}
 </div>
 <main id="top">
 {body}
@@ -369,7 +371,20 @@ def advertise():
     return shell("/advertise/", "Advertise with Lanier Leash", "Sponsor the Lanier Leash Thursday email and reach dog owners around Cumming and Lake Lanier. Founding sponsors get their first three issues free.", body)
 
 
-PAGES = {"adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise, "services": services}
+def dog_services():
+    cards = [("/vet-care/", "vet-care", "Vet care", "Low-cost clinics, spay and neuter, vaccine clinics, food pantries and help paying vet bills."),
+             ("/vet-care/#emergency", "conditions-water-hydration", "Emergency vets", "24/7 hospitals, after-hours urgent care and pet poison lines, nearest first."),
+             ("/services/", "services", "Groomers &amp; trainers", "Groomers, trainers, dog walkers, sitters and boarding around the lake."),
+             ("/adopt/", "adopt-and-rescues", "Adopt or foster", "County shelters, humane societies and foster-based rescues."),
+             ("/lost-found/", "lost-and-found", "Lost &amp; found", "Post a lost or found dog for free. Neighbors can message you without seeing your email."),
+             ("/places/?cat=shop", "pet-friendly-shopping", "Pet stores", "Pet stores and shops where your dog can come in with you.")]
+    grid = "".join(f'<a class="hubcard" href="{h}"><img src="/img/icons/{i}-192.webp" alt="" width="72" height="72"><span><b>{t}</b><small>{d}</small></span></a>' for h, i, t, d in cards)
+    body = hero("Services", "Dog services near Lake Lanier", "Vets, groomers, trainers, shelters and help when a dog goes missing, around Cumming, Gainesville and north metro Atlanta.") +         f'<section class="blk" style="padding-top:12px"><div class="wrap"><div class="hubgrid">{grid}</div>'         '<p class="note" style="margin-top:26px">Run a dog business we should list? <a href="/submit/?type=place">Tell us about it</a>, or see <a href="/advertise/">featured listings</a>.</p></div></section>'
+    return shell("/dog-services/", "Dog services near Cumming and Lake Lanier · Lanier Leash",
+                 "Vet care, emergency vets, groomers, trainers, shelters and lost and found help near Cumming, Gainesville and Lake Lanier.", body)
+
+
+PAGES = {"adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise, "services": services, "dog-services": dog_services}
 
 if __name__ == "__main__":
     for name, fn in PAGES.items():
