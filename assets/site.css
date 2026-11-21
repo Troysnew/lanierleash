@@ -870,3 +870,9 @@ a.badge:hover { filter: brightness(.96); text-decoration: underline; }
 .ptdisc { margin-top: 26px; padding: 16px 18px; border-radius: 16px; background: var(--bg); color: var(--slate); font-size: 14px; }
 .ptdisc p { margin: 6px 0 0; }
 .pin.partner { background: #E08A1E; }
+
+/* Buttons keep their own colors inside text blocks (.prose a, .note a etc. would otherwise turn them teal). */
+a.btn { text-decoration: none; }
+a.btn.btn-coral, a.btn.btn-coral:hover, a.btn.btn-coral:visited { color: #fff; }
+a.btn.btn-out, a.btn.btn-out:visited { color: var(--navy); }
+a.btn.btn-out:hover { color: #fff; }
