@@ -310,7 +310,20 @@
       $("#statTowns").textContent = Object.keys(towns).length;
       var wkn = weekendEvents().length;
       if (wkn) { $("#evChipN").textContent = wkn + (wkn === 1 ? " event" : " events"); $("#evChipS").textContent = "this weekend near you"; }
-      else { var n14 = upcoming(14).length; $("#evChipN").textContent = n14 + (n14 === 1 ? " event" : " events"); $("#evChipS").textContent = "in the next two weeks"; }
+      else {
+        var n14 = upcoming(14).length, sub = "in the next two weeks";
+        if (!n14) {
+          /* Nothing in range: show the nearest wider radius that has something, instead of "0 events". */
+          var end14 = L.addDays(L.todayISO(), 14);
+          [10, 15, 25, 35].some(function (r) {
+            if (r <= st.r) return false;
+            var k = EVENTS.filter(function (e) { return e.mi != null && e.mi <= r && e.date <= end14; }).length;
+            if (k) { n14 = k; sub = "within " + r + " mi, next two weeks"; return true; }
+          });
+        }
+        $("#evChipN").textContent = n14 ? n14 + (n14 === 1 ? " event" : " events") : "Dog events";
+        $("#evChipS").textContent = n14 ? sub : "see the calendar";
+      }
       var na = upcoming(30).filter(function (e) { return e.type !== "dog"; }).length;
       $("#adoptN").textContent = na ? na + (na === 1 ? " adoption event" : " adoption events") : "Adopt or foster";
     }
