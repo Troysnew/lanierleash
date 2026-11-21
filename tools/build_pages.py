@@ -88,7 +88,7 @@ def tel(p):
 def org_card(r, extra=""):
     bits = []
     if r.get("address"): bits.append(f'<p class="addr">{ic("u-pin")}<a href="https://www.google.com/maps/search/?api=1&amp;query={esc(r["name"] + ", " + r["address"])}" target="_blank" rel="noopener">{esc(r["address"])}</a></p>')
-    if r.get("phone"): bits.append(f'<p class="addr">{ic("u-arrow")}{tel(r["phone"])}</p>')
+    if r.get("phone"): bits.append(f'<p class="addr">{ic("u-phone")}{tel(r["phone"])}</p>')
     links = []
     if r.get("website"): links.append(f'<a class="lnk" href="{esc(r["website"])}" target="_blank" rel="noopener">{ic("u-arrow")}Website</a>')
     if r.get("events_url"): links.append(f'<a class="lnk" href="{esc(r["events_url"])}" target="_blank" rel="noopener">{ic("i-cal")}Adoption events</a>')
@@ -96,7 +96,7 @@ def org_card(r, extra=""):
     name = f'<a href="{esc(r["website"])}" target="_blank" rel="noopener">{esc(r["name"])}</a>' if r.get("website") else esc(r["name"])
     tags = " ".join(x for x, on in (("adopt", r.get("adopt") == "yes"), ("foster", r.get("foster") == "yes")) if on)
     ll = f' data-lat="{r["lat"]}" data-lng="{r["lng"]}"' if r.get("lat") and r.get("lng") else ""
-    town = "By phone, 24/7" if r.get("kind") == "poison line" else esc(r.get("town")) if ll else (esc(r.get("town")) + " · serves the whole area" if r.get("town") else "Serves the whole area")
+    town = "By phone, 24/7" if r.get("kind") == "poison line" else esc(r.get("town")) if ll else "Statewide" if r.get("town") == "Statewide" else (esc(r.get("town")) + " · serves the whole area" if r.get("town") else "Serves the whole area")
     return (f'<article class="org" data-tags="{tags}"{ll}><div class="top"><h3>{name}</h3><span class="town">{town}<b class="dist"></b></span></div>'
             f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}<div class="acts">{"".join(links)}</div></article>')
 
@@ -165,7 +165,7 @@ def emergency_section():
         facts = [("Hours", r.get("hours"))]
         dl = '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in facts if v) + "</dl>"
         call = f'<p class="ercall"><a class="btn btn-coral btn-sm" href="tel:{esc(re.sub(r"[^0-9+]", "", r["phone"]))}">Call {esc(r["phone"])}</a></p>' if r.get("phone") else ""
-        return org_card(r, dl + call)
+        return org_card(dict(r, phone="") if call else r, dl + call)
     er = [r for r in rows if r["kind"] == "24/7 emergency"]
     ah = [r for r in rows if r["kind"].startswith("after-hours")]
     po = [r for r in rows if r["kind"] == "poison line"]
@@ -250,20 +250,37 @@ def pack():
 
 def about():
     body = hero("About", "A local guide for dog people",
-                "Lanier Leash is a free guide to dog-friendly events and places around Cumming, Lake Lanier and north metro Atlanta.") + \
-        """<section class="blk" style="padding-top:20px"><div class="wrap narrow prose">
+                "Lanier Leash is a free guide to dog-friendly events and places around Cumming, Lake Lanier and north metro Atlanta. It's run by one guy and one very good boy.") + \
+        """<section class="blk" style="padding-top:20px"><div class="wrap narrow">
+  <div class="meet">
+    <figure class="meetpic"><img src="/img/hero.jpg" alt="Riley, a golden retriever in a teal bandana, smiling in Lake Lanier" width="600" height="600"><figcaption><b>Riley</b> · Chief Patio Inspector</figcaption></figure>
+    <div class="prose">
+      <span class="eyebrow">Meet the pack</span>
+      <h2 class="h2s">Hi, I'm Troy. That's Riley.</h2>
+      <p>I live in Cumming with my golden retriever, Riley. If he looks familiar, it's because he's the guy smiling on our home page. Yes, that's really him, and no, he has not stopped bringing it up.</p>
+      <p>Riley handles field testing: patios, trails, lake parks and any place that might drop a fry. I handle the boring part, like reading the actual dog rules, checking the dates and writing the Thursday email.</p>
+      <p>Between the two of us, we just want it to be easy to find where your dog is welcome around the lake. If we got something wrong, or you know a spot we'd love, <a href="/submit/">tell us</a>. Riley takes recommendations very seriously.</p>
+      <ul class="riley">
+        <li><b>Job title:</b> Chief Patio Inspector</li>
+        <li><b>Specialties:</b> shade, splashing, finding the one person with a snack</li>
+        <li><b>Rating system:</b> tail wags</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+<section class="blk"><div class="wrap narrow prose">
   <h2 class="h2s">What we do</h2>
-  <p>Every Thursday morning we send a short email with the weekend's dog-friendly events near your ZIP, a walk check with the forecast and a pavement estimate, and a few places worth trying. The website has the full events calendar and a directory of restaurants, breweries, trails, parks, lake access, pet stores and hotels that welcome dogs.</p>
+  <p>Every Thursday morning we send a short email with the weekend's dog-friendly events near your ZIP, a walk check with the forecast and a pavement estimate, and a place worth trying. The website has the full events calendar and a directory of restaurants, breweries, trails, parks, lake access, pet stores and hotels that welcome dogs, plus groomers, trainers, vet care, adoption and a lost &amp; found board.</p>
   <h2 class="h2s">How we check</h2>
-  <p>Dog rules change, and a lot of "dog-friendly" lists online are out of date. So every place shows its dog rule, where that rule came from, and the date we last checked. A green badge means the place or the agency that runs it says so. "Unconfirmed" means we only found it on a third-party site, so call ahead. <a href="/places/#how-we-check">More on the badges</a>.</p>
+  <p>Dog rules change, and a lot of "dog-friendly" lists online are out of date. So every place shows its dog rule, where that rule came from, and the date we last checked. "Official rule" means the place or the agency that runs it posts the rule. "Venue confirmed" means they told us directly. "Unconfirmed" means we only found it on a third-party site, so call ahead. <a href="/places/#how-we-check">More on the badges</a>.</p>
   <h2 class="h2s">Independent</h2>
   <p>We aren't affiliated with any venue, county or agency. Sponsors are always labeled, and they never change a dog rule or a badge. <a href="/advertise/">How sponsorship works</a>.</p>
   <h2 class="h2s">Help us keep it right</h2>
   <p>Readers make this better. <a href="/submit/?type=event">Send an event</a>, <a href="/submit/?type=place">suggest a place</a>, <a href="/submit/?type=fix">fix a listing</a>, or <a href="/submit/?type=pup">send your pup</a> for Pup of the Week. Run a dog-friendly business? <a href="/submit/?type=claim">Claim your listing</a> for free. You can also reply to any of our emails.</p>
   <h2 class="h2s">Your privacy</h2>
-  <p>We only use your email to send the weekly guide, and you can unsubscribe in one click. We don't sell or share it. <a href="/privacy/">Privacy details</a>.</p>
+  <p>We use your email to send the Thursday email and anything you've asked us for, and you can unsubscribe in one click. We don't sell it or share it with sponsors. <a href="/privacy/">Privacy details</a>.</p>
 </div></section>"""
-    return shell("/about/", "About Lanier Leash", "Lanier Leash is a free, independent guide to dog-friendly events and places around Cumming, Lake Lanier and north metro Atlanta.", body)
+    return shell("/about/", "About Lanier Leash: meet Troy and Riley", "Lanier Leash is a free, independent guide to dog-friendly events and places around Cumming and Lake Lanier, run by Troy and his golden retriever, Riley.", body)
 
 
 def services():
@@ -294,7 +311,7 @@ def services():
   {empty}
 </div></section>""" + "".join(out) + \
         """<section class="blk"><div class="wrap">
-  <p class="note">Free listings, checked """ + CHECKED + """ from each business's own website. We don't rank or review them, and no one pays to be on this list. Featured partners above are labeled Sponsored. Something wrong, or a business we missed? <a href="/submit/?type=place&amp;category=other">Tell us</a>.</p>
+  <p class="note">Free listings, checked """ + CHECKED + """ from each business's own website. We don't rank or review them, and no one pays to be on this list. Featured partners are labeled Sponsored. Something wrong, or a business we missed? <a href="/submit/?type=place&amp;category=other">Tell us</a>.</p>
   <div class="lfhelp" style="margin-top:30px">
     <div><h2 class="h2s">Choosing a groomer or daycare</h2><ul class="ticks">
       <li>Ask to see where dogs wait and play. Clean, cool and supervised is what you want.</li>
@@ -307,7 +324,7 @@ def services():
       <li>Watch a class first if you can. Dogs and people should both look relaxed.</li>
     </ul></div>
   </div>
-  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Run a dog business near the lake?</b><p>Featured partners get their own page here and a spot in the Thursday email.</p><a class="btn btn-coral" href="/advertise/#partners">""" + ic("u-heart") + """Become a partner</a></div>
+  <div class="joincard" style="margin-top:30px;max-width:560px"><b>Run a dog business near the lake?</b><p>Featured partners get their own page here and a mention in the first Thursday email each month.</p><a class="btn btn-coral" href="/advertise/#partners">""" + ic("u-heart") + """Become a partner</a></div>
 </div></section>"""
     return shell("/services/", "Dog groomers, trainers and daycare near Cumming, GA · Lanier Leash",
                  "Dog groomers, mobile groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta, with addresses, phones and services.", body, DIST_JS + partner_js(["groomer", "trainer", "daycare", "other"], 6))
@@ -322,7 +339,7 @@ def advertise():
     <ul class="ticks">
       <li><b>The sponsor spot in the Thursday email.</b> Your name, one or two lines and a link, right after the weekend's events. Only one sponsor per issue.</li>
       <li><b>Readers who are making plans.</b> The email goes out Thursday morning, when people are deciding where to go this weekend with their dog.</li>
-      <li><b>Local only.</b> Readers sign up with their ZIP code, and almost all of them live around Forsyth, Hall, Dawson, north Gwinnett and north Fulton.</li>
+      <li><b>Local only.</b> Readers sign up with their ZIP code, and the email only covers events around Forsyth, Hall, Dawson, north Gwinnett and north Fulton.</li>
     </ul>
     <h2 class="h2s">Founding sponsors</h2>
     <p>We're new. The first local businesses to sponsor get their first three issues free, so you can see how it works before you pay anything. <a href="/issue/">Read this week's email</a> to see exactly what readers get.</p>
@@ -333,7 +350,7 @@ def advertise():
       <tbody>
         <tr><td>Under 1,000</td><td><b>$40</b></td><td><b>$140</b> <small>save $20</small></td></tr>
         <tr><td>1,000 to 2,500</td><td><b>$75</b></td><td><b>$260</b> <small>save $40</small></td></tr>
-        <tr><td>2,500 to 5,000</td><td><b>$125</b></td><td><b>$440</b> <small>save $60</small></td></tr>
+        <tr><td>2,501 to 5,000</td><td><b>$125</b></td><td><b>$440</b> <small>save $60</small></td></tr>
         <tr><td>Over 5,000</td><td colspan="2">$25 for every 1,000 people on the list</td></tr>
       </tbody>
     </table></div>

@@ -88,7 +88,7 @@ async function post(req, res, b) {
   if (pic) row.photo_path = await uploadPhoto(`lostfound/${today.slice(0, 7)}/${crypto.randomUUID()}.${pic.ext}`, pic.buf, pic.type);
   const saved = await insertLost(row);
   try { await send(message({ to: saved.email, ...lfConfirmEmail(saved) })); }
-  catch (e) { log("lf confirm email failed", e.message); return json(res, 500, { ok: false, error: "We saved your post but couldn't send the email. Please try again in a minute." }); }
+  catch (e) { log("lf confirm email failed", e.message); return json(res, 500, { ok: false, error: "Your post is saved, but the confirm email didn't go out. Give it a few minutes and check your inbox (and spam) before posting again." }); }
   return json(res, 200, { ok: true, sent: true });
 }
 

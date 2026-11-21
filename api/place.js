@@ -45,8 +45,8 @@ export default async function handler(req, res) {
   const nearCard = (x) => `<a class="nearby" href="/places/${encodeURIComponent(x.id)}/"><span class="cat">${ic(ICON[x.category] || "i-park")}</span><span><b>${esc(x.name)}</b><small>${esc((CATS[x.category] || CATS.park).short)} · ${esc(x.town)} · ${x.mi < 0.1 ? "next door" : fmtMi(x.mi) + " away"}</small></span></a>`;
 
   const isNo = p.status === "nodogs";
-  const title = isNo ? `${p.name}, ${p.town}: are dogs allowed? · Lanier Leash` : `${p.name}, ${p.town}: dog-friendly ${c.short.toLowerCase()} · Lanier Leash`;
-  const description = (isNo ? `Dogs are not allowed at ${p.name} in ${p.town}, GA. ` : `Dog rule at ${p.name} in ${p.town}, GA: `) + (p.dog_rule || "") + (p.checked ? ` Checked ${fmtChecked(p.checked)}.` : "");
+  const title = isNo ? `${p.name}, ${p.town}: are dogs allowed? · Lanier Leash` : `${p.name}, ${p.town}: dog rules · Lanier Leash`;
+  const description = (isNo ? `Dogs are not allowed at ${p.name} in ${p.town}, GA. ` : `Dog rule at ${p.name} in ${p.town}, GA: `) + (p.dog_rule ? p.dog_rule.replace(/[.\s]*$/, ".") : "") + (p.checked ? ` Checked ${fmtChecked(p.checked)}.` : "");
   const links = [
     `<a class="btn btn-coral" href="${esc(maps(p))}" target="_blank" rel="noopener">${ic("u-pin")}Directions</a>`,
     p.website ? `<a class="btn btn-out" href="${esc(p.website)}" target="_blank" rel="noopener">${ic("u-arrow")}Website</a>` : "",
@@ -87,7 +87,7 @@ export default async function handler(req, res) {
       <div class="fbsum" id="fbSum"></div>
       <p class="fbmsg" id="fbMsg" role="status"></p>
     </div>`}
-    <p class="note">Dog rules change, so a quick call ahead never hurts. <a href="${esc(fix)}">Something wrong or out of date?</a> Own this place? <a href="/submit/?type=claim&amp;business=${encodeURIComponent(p.name)}">Claim the listing</a> to update it.</p>
+    <p class="note">${isNo ? "" : "Dog rules change, so a quick call ahead never hurts. "}<a href="${esc(fix)}">Something wrong or out of date?</a>${isNo ? "" : ` Own this place? <a href="/submit/?type=claim&amp;business=${encodeURIComponent(p.name)}">Claim the listing</a> to update it.`}</p>
     ${sameKind.length ? `<h2 class="h2s">More ${esc(c.label.toLowerCase())} nearby</h2><div class="nearlist">${sameKind.map(nearCard).join("")}</div>` : ""}
     ${other.length ? `<h2 class="h2s">Also near here</h2><div class="nearlist">${other.map(nearCard).join("")}</div>` : ""}
   </div>

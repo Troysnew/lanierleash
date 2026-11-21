@@ -7,7 +7,9 @@
 <meta name="description" content="One free email every Thursday: dog events, dog-friendly patios, trails and lake spots around Cumming and Lake Lanier, with the dog rule checked.">
 <meta property="og:title" content="Lanier Leash · Dog-friendly Lake Lanier">
 <meta property="og:description" content="Dog events and dog-friendly places around Lake Lanier, every Thursday.">
-<meta property="og:image" content="/img/hero.jpg">
+<link rel="canonical" href="https://lanierleash.com/">
+<meta property="og:url" content="https://lanierleash.com/">
+<meta property="og:image" content="https://lanierleash.com/img/hero.jpg">
 <meta name="theme-color" content="#0B3A5B">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,7 +31,7 @@
     <a class="btn btn-coral btn-sm" href="#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </nav>
-  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="#conditions">Conditions</a><a href="/pack/">Community</a><a class="btn btn-coral" href="#top">Join free</a></nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="#conditions">Conditions</a><a href="/pack/">Community</a><a href="/lost-found/">Lost &amp; found</a><a class="btn btn-coral" href="#top">Join free</a></nav>
 </div>
 
 <main id="top">
@@ -113,13 +115,13 @@
         <article class="card c-photo photo-card">
           <img src="/img/golden-sunset.jpg" alt="A golden retriever in Lake Lanier at sunset">
           <a class="cover" href="/places/?cat=lake" aria-label="See lake access spots"></a>
-          <div class="cap"><span class="k">Lake access</span><b>Swim spots and sunset docks</b><span><span id="lakeCount">2</span> lake spots within your radius</span></div>
+          <div class="cap"><span class="k">Lake access</span><b>Lake parks and sunset docks</b><span><span id="lakeCount">&nbsp;</span> <span id="lakeWord">lake spots</span> within your radius</span></div>
         </article>
 
         <article class="card c-pup photo-card" id="community">
-          <img id="pupImg" src="/img/dalmatian.jpg" alt="Domino the dalmatian smiling by the lake at sunset">
+          <img id="pupImg" src="/img/dalmatian.jpg" alt="A dalmatian smiling by the lake at sunset">
           <a class="btn btn-sm cta glass" style="color:var(--navy)" href="/submit/?type=pup"><svg class="ic" style="color:var(--coral-btn)"><use href="#u-camera"/></svg>Send your pup</a>
-          <div class="cap"><span class="k" id="pupK">Pup of the week</span><b id="pupB">Domino, 4, Cumming</b><span id="pupS">Swims out to greet every pontoon at Mary Alice Park and shakes off on whoever is closest. (with Jen)</span><a class="packlnk" id="pupL" href="/submit/?type=pup">Send yours for next week →</a></div>
+          <div class="cap"><span class="k" id="pupK">Pup of the Week</span><b id="pupB">Your pup could be first</b><span id="pupS">Send a photo and a line about your dog. We pick one each week for the Thursday email.</span><a class="packlnk" id="pupL" href="/submit/?type=pup">Send yours for next week →</a></div>
         </article>
 
         <article class="card c-issue">
@@ -308,7 +310,8 @@
     renderTiles();
     $("#sum").innerHTML = '<a href="/events/?when=weekend&amp;r=' + st.r + '">' + ne + (ne === 1 ? " event" : " events") + ' this weekend</a> · <a href="/places/?r=' + st.r + '">' + np + ' places</a>';
     $("#placeCount").textContent = np;
-    $("#lakeCount").textContent = PLACES.filter(function (p) { return p.category === "lake" && inR(p); }).length;
+    var nLake = PLACES.filter(function (p) { return p.category === "lake" && inR(p); }).length;
+    $("#lakeCount").textContent = nLake; $("#lakeWord").textContent = nLake === 1 ? "lake spot" : "lake spots";
     if (PLACES.length) {
       var towns = {}; PLACES.forEach(function (p) { if (p.town) towns[p.town.split(" (")[0]] = 1; });
       $("#statPlaces").textContent = PLACES.length;
@@ -563,7 +566,7 @@
 
 
 <script>
-/* Pup of the Week: picked in /admin/. Until one is picked, the card shows Domino. */
+/* Pup of the Week: picked in /admin/. Until one is picked, the card invites readers to send theirs. */
 (function () {
   fetch("/api/pup").then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
     var p = d && d.pup; if (!p || !p.photo) return;
@@ -572,7 +575,7 @@
       var el = document.getElementById("pupImg");
       el.src = p.photo; el.alt = p.name + ", this week's Pup of the Week";
       el.style.objectFit = "cover";
-      document.getElementById("pupK").textContent = "Pup of the week";
+      document.getElementById("pupK").textContent = "Pup of the Week";
       var pl = document.getElementById("pupL"); pl.href = "/pack/"; pl.textContent = "Meet the pack →";
       document.getElementById("pupB").textContent = [p.name, p.age, p.town].filter(Boolean).join(", ");
       document.getElementById("pupS").textContent = p.story + (p.owner ? " (with " + p.owner + ")" : "");

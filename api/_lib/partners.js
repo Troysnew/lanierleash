@@ -5,17 +5,17 @@ import { slug } from "./content.js";
 
 export const MAX_PER_CAT = 2;
 export const PCATS = {
-  vet: { label: "Vet clinic", where: "vet-care" },
-  groomer: { label: "Groomer", where: "services" },
-  trainer: { label: "Trainer", where: "services" },
-  daycare: { label: "Daycare & boarding", where: "services" },
-  other: { label: "Dog services", where: "services" },
-  shop: { label: "Pet store", where: "places" },
-  restaurant: { label: "Restaurant", where: "places" },
-  brewery: { label: "Brewery", where: "places" },
-  winery: { label: "Winery", where: "places" },
-  coffee: { label: "Coffee shop", where: "places" },
-  stay: { label: "Hotel or rental", where: "places" },
+  vet: { label: "Vet clinic", where: "vet-care", a: "a vet clinic" },
+  groomer: { label: "Groomer", where: "services", a: "a dog groomer" },
+  trainer: { label: "Trainer", where: "services", a: "a dog trainer" },
+  daycare: { label: "Daycare & boarding", where: "services", a: "a dog daycare and boarding spot" },
+  other: { label: "Dog services", where: "services", a: "a local dog business" },
+  shop: { label: "Pet store", where: "places", a: "a pet store" },
+  restaurant: { label: "Restaurant", where: "places", a: "a dog-friendly restaurant" },
+  brewery: { label: "Brewery", where: "places", a: "a dog-friendly brewery" },
+  winery: { label: "Winery", where: "places", a: "a dog-friendly winery" },
+  coffee: { label: "Coffee shop", where: "places", a: "a dog-friendly coffee shop" },
+  stay: { label: "Hotel or rental", where: "places", a: "a dog-friendly place to stay" },
 };
 export const PARTNER_COLS = ["name", "category", "tagline", "about", "services", "address", "town", "lat", "lng", "phone", "website", "booking_url", "hours_text", "offer", "place_id", "email_mention", "starts_on", "ends_on", "contact_email", "notes", "status"];
 export const EVENT_KINDS = ["view", "card", "call", "directions", "website", "booking", "offer"];

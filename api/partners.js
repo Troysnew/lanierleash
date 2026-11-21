@@ -36,7 +36,7 @@ export default async function handler(req, res) {
   } catch (e) {
     log("partners failed", e.message);
     if (q.list) return json(res, 200, { ok: true, partners: [] }); // no table yet: pages just show no partner cards
-    if (q.page) return sendHtml(res, 503, "<p>Please try again in a minute.</p>", "no-store");
+    if (q.page) return sendHtml(res, 503, shell({ title: "Back in a minute · Lanier Leash", description: "", path: "/services/", noindex: true, body: `<section class="blk"><div class="wrap"><h1>Back in a minute</h1><p>We couldn’t load this page just now. Please try again shortly.</p></div></section>` }), "no-store");
     return json(res, 500, { ok: false, error: "Something went wrong." });
   }
 }
@@ -100,7 +100,7 @@ async function page(res, id) {
   };
 
   const body = `<section class="page-hero pthero"><div class="wrap">
-  <p class="crumbs"><a href="${back[0]}">${back[1]}</a> › ${esc(cat.label)}</p>
+  <p class="crumbs"><a href="${back[0]}">${back[1]}</a>${back[1] === cat.label ? "" : " › " + esc(cat.label)}</p>
   <span class="sponsor-tag">Sponsored · Featured partner</span>
   <h1>${esc(P.name)}</h1>
   ${P.tagline ? `<p class="lede">${esc(P.tagline)}</p>` : ""}
@@ -108,7 +108,7 @@ async function page(res, id) {
 </div></section>
 <section class="blk" style="padding-top:4px"><div class="wrap placegrid">
   <div>
-    ${P.photos.length ? `<div class="ptgal${P.photos.length > 1 ? " multi" : ""}">${P.photos.map((u, i) => `<img src="${esc(u)}" alt="${esc(P.name)}${i ? "" : ""}" ${i ? 'loading="lazy"' : ""}>`).join("")}</div>` : ""}
+    ${P.photos.length ? `<div class="ptgal${P.photos.length > 1 ? " multi" : ""}">${P.photos.map((u, i) => `<img src="${esc(u)}" alt="${esc(P.name)}, photo ${i + 1}" ${i ? 'loading="lazy"' : ""}>`).join("")}</div>` : ""}
     ${P.offer ? `<div class="ptoffer"><span class="eyebrow">Lanier Leash reader offer</span><p>${esc(P.offer)}</p><button type="button" class="btn btn-coral btn-sm" id="ptOfferBtn" data-track="offer">Show this offer</button><p class="fine" id="ptOfferSay" hidden>Show this screen or mention Lanier Leash when you book.</p></div>` : ""}
     <div class="acts big">${acts}</div>
     ${P.about ? `<h2 class="h2s">About</h2><div class="prose">${esc(P.about).split(/\n{2,}/).map((x) => `<p>${x.replace(/\n/g, "<br>")}</p>`).join("")}</div>` : ""}
@@ -119,7 +119,7 @@ async function page(res, id) {
   </div>
   <aside>
     ${hasLL ? `<div class="mapbox small"><div id="map" role="region" aria-label="Map of ${esc(P.name)}"></div></div>` : ""}
-    <div class="joincard"><b>Run a dog business near the lake?</b><p>Featured partner pages put you in front of local dog owners every week.</p><a class="btn btn-coral" href="/advertise/#partners">${ic("u-heart")}Become a partner</a></div>
+    <div class="joincard"><b>Run a dog business near the lake?</b><p>Featured partners get their own page, a card on the right page of the site and a mention in the first Thursday email each month.</p><a class="btn btn-coral" href="/advertise/#partners">${ic("u-heart")}Become a partner</a></div>
   </aside>
 </div></section>`;
 
@@ -133,7 +133,7 @@ t("view");document.addEventListener("click",function(e){var a=e.target.closest("
 var ob=document.getElementById("ptOfferBtn");if(ob)ob.addEventListener("click",function(){document.getElementById("ptOfferSay").hidden=false;ob.hidden=true;});})();</script>`;
   return sendHtml(res, 200, shell({
     title: `${P.name}${P.town ? ", " + P.town : ""}: ${cat.label.toLowerCase()} · Lanier Leash`,
-    description: (P.tagline || `${P.name} is a ${cat.label.toLowerCase()}${P.town ? " in " + P.town + ", GA" : ""}.`) + " Featured partner of Lanier Leash.",
+    description: (P.tagline || `${P.name} is ${cat.a || "a local dog business"}${P.town ? " in " + P.town + ", GA" : ""}.`) + " Featured partner of Lanier Leash.",
     path: `/partners/${P.id}/`, body, image: P.photos.length ? P.photos[0] : "/img/hero.jpg",
     head: `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`,
     scripts: leaflet + tracker,

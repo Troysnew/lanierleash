@@ -54,7 +54,7 @@
     } else if (st.status === "reunited") {
       html = "<p class=\"lfok\"><b>So glad " + (D.kind === "lost" ? who + " is home" : "they're back home") + ".</b> The post now shows as reunited, which gives everyone who shared some good news.</p><div class=\"acts\"><button class=\"btn btn-out\" data-op=\"reopen\">Oops, still looking</button><button class=\"btn btn-out\" data-op=\"remove\">Take it down</button></div>";
     } else if (st.status === "expired") {
-      html = "<p><b>Your post ended.</b> Still looking? Put it back up for 30 days.</p><div class=\"acts\"><button class=\"btn btn-coral\" data-op=\"renew\">Put it back up</button><button class=\"btn btn-out\" data-op=\"reunited\">They're home</button><button class=\"btn btn-out\" data-op=\"remove\">Take it down</button></div>";
+      html = "<p><b>Your post ended.</b> " + (D.kind === "lost" ? "Still looking?" : "Still have them?") + " Put it back up for 30 days.</p><div class=\"acts\"><button class=\"btn btn-coral\" data-op=\"renew\">Put it back up</button><button class=\"btn btn-out\" data-op=\"reunited\">" + (D.kind === "lost" ? "They're home" : "Back with their family") + "</button><button class=\"btn btn-out\" data-op=\"remove\">Take it down</button></div>";
     } else html = "<p>This post is down.</p>";
     box.innerHTML = html + "<p class=\"msg\" id=\"lfOwnSay\" role=\"status\" hidden></p>";
   }

@@ -71,11 +71,17 @@ export function manageEmail(sub) {
 }
 
 // ---------- welcome ----------
+// "Nov 20–22", or "Oct 30–Nov 1" when the weekend crosses into a new month.
+export function weekendRange(wk) {
+  const a = fmtShort(wk.fri), b = fmtShort(wk.to);
+  return wk.fri.slice(5, 7) === wk.to.slice(5, 7) ? `${a}–${+wk.to.slice(8, 10)}` : `${a}–${b}`;
+}
+
 export function welcomeEmail(sub) {
   const s = siteUrl();
   const body = h2("You're in. Welcome to Lanier Leash.") +
     p(`Every Thursday morning you'll get the weekend's dog-friendly events within <b>${esc(sub.radius)} miles of ${esc(sub.zip)}</b>, a walk check with the pavement estimate, and a few places worth trying.`) +
-    p(`Every listing links to where we checked it, and we mark how sure we are: <b style="color:${C.ok}">Official rule</b> means a park or agency says so; <b style="color:${C.warn}">Unconfirmed</b> means call ahead.`) +
+    p(`Every listing links to where we checked it, and we mark how sure we are: <b style="color:${C.ok}">Official rule</b> means it's posted on the park's or business's own website; <b style="color:${C.warn}">Unconfirmed</b> means call ahead.`) +
     p(`Know a dog-friendly patio or event we're missing? Just reply to this email.`) +
     button(s + "/events/", "See this week's events");
   return {
@@ -97,10 +103,10 @@ function eventRow(e, s) {
     (e.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(e.dog_rule)}</div>` : "") + `</td></tr>`;
 }
 function placeRow(pl, s) {
-  const conf = pl.status === "official" || pl.status === "venue";
+  const B = { venue: ["Venue confirmed", C.ok], official: ["Official rule", C.ok], readers: ["Readers say yes", C.ok] }[pl.status] || ["Unconfirmed, call ahead", C.warn];
   return `<tr><td style="padding:12px 0;border-top:1px solid ${C.line};font:14px/1.5 ${FONT};color:${C.slate}">` +
     `<a href="${s}/places/${esc(pl.id)}/" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(pl.name)}</a>` +
-    `<div style="color:${C.muted}">${esc(pl.town)} · ${fmtMi(pl.mi)} · <span style="color:${conf ? C.ok : C.warn};font-weight:700">${conf ? "Official rule" : "Unconfirmed, call ahead"}</span></div>` +
+    `<div style="color:${C.muted}">${esc(pl.town)} · ${fmtMi(pl.mi)} · <span style="color:${B[1]};font-weight:700">${B[0]}</span></div>` +
     (pl.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(pl.dog_rule)}</div>` : "") + `</td></tr>`;
 }
 function partnerRow(x, s) {
@@ -150,7 +156,7 @@ function sponsorBlock(sp) {
 
 export function weeklyEmail(sub, issue) {
   const s = siteUrl(), wk = issue.weekend;
-  const range = `${fmtShort(wk.fri)}–${+wk.to.slice(8, 10)}`;
+  const range = weekendRange(wk);
   let body = `<div style="font:700 12px ${FONT};color:${C.coral};text-transform:uppercase;letter-spacing:.05em">Your dog weekend · ${esc(range)}</div>` +
     `<h1 style="margin:6px 0 16px;font:800 26px/1.15 ${FONT};color:${C.navy};letter-spacing:-.02em">What's on within ${issue.radius} miles of ${esc(issue.zip)}</h1>` +
     wxBlock(issue.wx);
@@ -173,17 +179,18 @@ export function weeklyEmail(sub, issue) {
 
   const t = [`YOUR DOG WEEKEND · ${range} · within ${issue.radius} mi of ${issue.zip}`, ""];
   if (issue.wx) t.push(`WALK CHECK: ${issue.wx.head}. Best day ${issue.wx.bestDay}, high ${issue.wx.high}°, best walk ${issue.wx.window}. Pavement ~${issue.wx.pavement}°F at 2 PM (${issue.wx.paws}). Rain ${issue.wx.rain}%.`, "");
-  const tl = (title, list) => { if (list.length) { t.push(title.toUpperCase()); list.forEach((e) => t.push(`- ${e.multi ? "Through " + fmtShort(e.last) : fmtDay(e.date) + " " + timeRange(e)}: ${e.title}, ${[e.venue, e.town].filter(Boolean).join(", ")} (${fmtMi(e.mi)})\n  ${s}/events/${e.id}/`)); t.push(""); } };
+  const tl = (title, list) => { if (list.length) { t.push(title.toUpperCase()); list.forEach((e) => t.push(`- ${e.multi ? "Through " + fmtShort(e.last) : fmtDay(e.date) + " " + timeRange(e)}: ${e.title}, ${[e.venue, e.town].filter(Boolean).join(", ")} (${fmtMi(e.mi)}${e.cost ? ", " + e.cost : ""})${e.dog_rule ? "\n  Dogs: " + e.dog_rule : ""}\n  ${s}/events/${e.id}/`)); t.push(""); } };
+  if (!issue.events.length) t.push("THIS WEEKEND IS QUIET", `We didn't find dog events within ${issue.radius} miles this weekend. A good weekend for a trail.`, "");
   tl("This weekend", issue.events); tl("Ongoing", issue.ongoing); tl("Coming up", issue.later);
   if (issue.sponsor) t.push(`SPONSORED BY ${issue.sponsor.name.toUpperCase()}: ${issue.sponsor.text}${issue.sponsor.url ? " " + issue.sponsor.url : ""}`, "");
-  if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");
   if (issue.partners && issue.partners.length) { t.push("FROM OUR FEATURED PARTNERS (SPONSORED)"); issue.partners.forEach((x) => t.push(`- ${x.name}, ${x.catLabel}${x.town ? ", " + x.town : ""}${x.offer ? ". " + x.offer : ""}\n  ${s}/partners/${x.id}/`)); t.push(""); }
+  if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");
   if (issue.lost && issue.lost.length) { t.push("HELP BRING THEM HOME"); issue.lost.forEach((x) => t.push(`- ${x.headline} (${x.looks}), last seen near ${x.last_seen}, ${x.town}\n  ${s}/lost-found/${x.id}/`)); t.push(""); }
-  if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)}): ${pl.dog_rule}\n  ${s}/places/${pl.id}/`)); }
+  if (issue.places.length) { t.push("PLACES TO TRY"); issue.places.forEach((pl) => t.push(`- ${pl.name}, ${pl.town} (${fmtMi(pl.mi)})${pl.dog_rule ? ": " + pl.dog_rule : ""}\n  ${s}/places/${pl.id}/`)); }
 
   return {
     subject: issue.subject,
-    html: layout({ preheader: issue.wx ? `${issue.wx.head}. ${issue.events.length} events near you this weekend.` : `${issue.events.length} events near you this weekend.`, body, token: sub.token, why: `You're getting this because you signed up for the Lanier Leash weekend email for ${sub.zip}.` }),
+    html: layout({ preheader: (issue.wx ? issue.wx.head + ". " : "") + (issue.events.length ? `${issue.events.length} ${issue.events.length === 1 ? "event" : "events"} near you this weekend.` : "A quiet weekend for dog events near you."), body, token: sub.token, why: `You're getting this because you signed up for the Lanier Leash weekend email for ${sub.zip}.` }),
     text: t.join("\n") + textFooter(sub.token),
   };
 }

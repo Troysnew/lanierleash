@@ -124,7 +124,8 @@ export function walkCheck(d, nowH) {
     const D = d.daily, H = d.hourly, n = D.time.length;
     const today = dow(D.time[0]);
     const start = today === 5 || today === 6 || today === 0 ? 0 : (5 - today + 7) % 7;
-    const idx = [start, start + 1, start + 2].filter((i) => i < n);
+    const left = today === 6 ? 2 : today === 0 ? 1 : 3; // Sat: Sat+Sun, Sun: Sun only, otherwise Fri-Sun
+    const idx = [start, start + 1, start + 2].slice(0, left).filter((i) => i < n);
     if (!idx.length) return null;
     const hi = (i) => Math.round(D.temperature_2m_max[i]);
     const pp = (i) => D.precipitation_probability_max[i] || 0;

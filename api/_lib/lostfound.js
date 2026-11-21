@@ -127,9 +127,9 @@ export function lfContactEmail(r, m) {
 
 export function lfReminderEmail(r) {
   const what = headline(r);
-  const body = h2(r.kind === "lost" ? `Still looking for ${esc(r.pet_name || "your pet")}?` : "Still caring for this pet?") +
-    p(`Your post <b>${esc(what)}</b> comes down in a few days. If you're still looking, renew it for another ${DAYS_LIVE} days. If they're home, mark it so people stop searching, and so we can celebrate with you.`) +
-    button(ownerUrl(r), "Renew or mark as home") +
+  const body = h2(r.kind === "lost" ? `Still looking for ${esc(r.pet_name || "your pet")}?` : "Still have this pet?") +
+    p(`Your post <b>${esc(what)}</b> comes down in a few days. ${r.kind === "lost" ? `If you're still looking, renew it for another ${DAYS_LIVE} days. If they're home, mark it so people stop searching, and so we can celebrate with you.` : `If you still have them, renew it for another ${DAYS_LIVE} days. If they're back with their family, mark it so people stop searching, and so we can celebrate with you.`}`) +
+    button(ownerUrl(r), r.kind === "lost" ? "Renew or mark as home" : "Renew or mark as reunited") +
     p(`Doing nothing is fine too. The post just comes down on its own.`, `color:${C.muted};font-size:13px`);
   return {
     subject: `Your lost & found post ends soon: ${what}`,

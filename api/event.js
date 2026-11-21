@@ -104,7 +104,8 @@ export default async function handler(req, res) {
   const plCard = (p) => `<a class="nearby" href="/places/${encodeURIComponent(p.id)}/"><span class="cat">${ic(ICON[p.category] || "i-park")}</span><span><b>${esc(p.name)}</b><small>${esc((CATS[p.category] || CATS.park).short)} · ${p.mi < 0.1 ? "steps away" : fmtMi(p.mi) + " away"}</small></span></a>`;
   const where = [e.venue, e.town].filter(Boolean).join(", ");
   const title = `${e.title} · ${when.replace(/^\w+, /, "")}${e.town ? " · " + e.town : ""} · Lanier Leash`;
-  const description = `${e.title}${where ? " at " + where : ""}, ${when}. ${e.dog_rule ? "Dogs: " + e.dog_rule + "." : ""}`.trim();
+  const venueInTitle = e.venue && e.title.toLowerCase().includes(e.venue.toLowerCase());
+  const description = `${e.title}${where ? (venueInTitle ? (e.town ? " in " + e.town : "") : " at " + where) : ""}, ${when}. ${e.dog_rule ? "Dogs: " + e.dog_rule + "." : ""}`.trim();
   const fix = `/submit/?type=fix&listing=${encodeURIComponent(e.title + " (" + e.date + ")")}&ref=${encodeURIComponent("event:" + id)}`;
 
   const ld = {
@@ -127,8 +128,8 @@ export default async function handler(req, res) {
     <div class="rulecard">
       <span class="eyebrow">The dog rule</span>
       <p class="big">${ic("u-leash")}<span>${esc(e.dog_rule || "Check with the organizer before bringing your dog.")}</span></p>
-      <div class="st"><a class="tag ${T.cls}" href="/events/?type=${e.type === "dog" ? "dog" : "adopt"}">${T.label}</a>${e.cost ? `<span class="chk">${esc(e.cost)}</span>` : ""}<span class="chk">${/^d{4}-d{2}-d{2}$/.test(e.checked || "") ? "Checked " + MON[+e.checked.slice(5, 7) - 1].slice(0, 3) + " " + +e.checked.slice(8, 10) + ", " + e.checked.slice(0, 4) : ""}${e.source_name ? " · " + esc(e.source_name) : ""}</span></div>
-      ${e.url ? `<p class="why">Details come from the organizer. <a href="${esc(e.url)}" target="_blank" rel="noopener">See the event page${host(e.url) ? " (" + esc(host(e.url)) + ")" : ""}</a>.</p>` : ""}
+      <div class="st"><a class="tag ${T.cls}" href="/events/?type=${e.type === "dog" ? "dog" : "adopt"}">${T.label}</a>${e.cost ? `<span class="chk">${esc(e.cost)}</span>` : ""}<span class="chk">${/^\d{4}-\d{2}-\d{2}$/.test(e.checked || "") ? "Checked " + MON[+e.checked.slice(5, 7) - 1].slice(0, 3) + " " + +e.checked.slice(8, 10) + ", " + e.checked.slice(0, 4) : ""}${e.source_name ? " · " + esc(e.source_name) : ""}</span></div>
+      ${e.url ? `<p class="why">Details from ${esc(e.source_name || host(e.url) || "the organizer")}. <a href="${esc(e.url)}" target="_blank" rel="noopener">See the event page${host(e.url) ? " (" + esc(host(e.url)) + ")" : ""}</a>.</p>` : ""}
     </div>
     ${e.notes ? `<p class="prose">${esc(e.notes)}</p>` : ""}
     <div class="acts big">
@@ -138,7 +139,7 @@ export default async function handler(req, res) {
       <button class="btn btn-out" type="button" id="share">${ic("u-arrow")}Share</button>
     </div>
     <p class="note">Plans change, so check the organizer's page before you go. <a href="${esc(fix)}">Something wrong?</a> Hosting a dog event? <a href="/submit/?type=event">Send it to us</a>.</p>
-    ${place ? `<h2 class="h2s">About the venue</h2><div class="nearlist">${plCard({ ...place, mi: 0 }).replace(/ · 0\.0 mi away/, " · " + esc(place.town))}</div>` : ""}
+    ${place ? `<h2 class="h2s">About the venue</h2><div class="nearlist">${plCard({ ...place, mi: 0 }).replace(" · steps away", " · " + esc(place.town))}</div>` : ""}
     ${sameVenue.length ? `<h2 class="h2s">More at ${esc(e.venue)}</h2><div class="nearlist">${sameVenue.map(evCard).join("")}</div>` : ""}
     ${near.length ? `<h2 class="h2s">Dog-friendly spots nearby</h2><div class="nearlist">${near.map(plCard).join("")}</div>` : ""}
   </div>
