@@ -152,9 +152,13 @@
   };
   var GROUP = { food: "Food & drink", outdoors: "Outdoors", shops: "Shops", stays: "Stays" };
   var TYPE = { dog: { label: "Dog event", cls: "t-dog" }, adopt: { label: "Adoption", cls: "t-adopt" }, foster: { label: "Foster", cls: "t-adopt" } };
-  // Decorative photos by category (not photos of the actual place).
+  // Fallback decorative photos by category (not photos of the actual place).
   var PHOTOS = { restaurant: ["bulldog.jpg", "frenchie.jpg", "dachshund-boat.jpg"], brewery: ["frenchie.jpg", "bulldog.jpg"], winery: ["golden-sunset.jpg", "frenchie.jpg"], coffee: ["dalmatian.jpg", "bulldog.jpg"], shop: ["bc-puppy.jpg", "dalmatian.jpg"], stay: ["beagle-sleep.jpg", "golden-close.jpg"], trail: ["hiker.jpg", "beagle.jpg", "beagle-sleep.jpg"], park: ["golden-close.jpg", "beagle.jpg"], dogpark: ["bc-puppy.jpg", "golden-close.jpg"], lake: ["bc-rocks.jpg", "golden-dock.jpg", "golden-sunset.jpg"] };
-  function photoFor(p, i) { var a = PHOTOS[p.category] || PHOTOS.park; return "/img/" + a[i % a.length]; }
+  function stockFor(p, i) { var a = PHOTOS[p.category] || PHOTOS.park; return "/img/" + a[(i || 0) % a.length]; }
+  // Licensed real photos (Wikimedia Commons, public domain) by place id; filled from /assets/place-photos.js.
+  var REAL = (typeof window !== "undefined" && window.LL_PHOTOS) || {};
+  function photoFor(p, i) { var x = REAL[p.id]; return x ? "/img/places/" + x.file : stockFor(p, i); }
+  function photoCredit(p) { return REAL[p.id] || null; }
 
   // ---------- loading ----------
   var cache = null;
@@ -258,7 +262,7 @@
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
-    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor,
+    BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, photoCredit: photoCredit,
     load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

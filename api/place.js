@@ -21,6 +21,14 @@ const maps = (p) => "https://www.google.com/maps/search/?api=1&query=" + encodeU
 const THUMB = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M2 21h4V9H2v12zm20-11a2 2 0 0 0-2-2h-6.3l1-4.6v-.3c0-.4-.2-.8-.4-1.1L13.2 1 6.6 7.6C6.2 8 6 8.5 6 9v10a2 2 0 0 0 2 2h9c.8 0 1.5-.5 1.8-1.2l3-7.1c.1-.2.2-.5.2-.7v-2z"/></svg>`;
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 
+// Licensed real photos (Wikimedia Commons). Credited under the photo, as their licenses require.
+let PHOTOS = null;
+async function photos() {
+  if (PHOTOS) return PHOTOS;
+  try { const r = await fetch(siteUrl() + "/data/place-photos.json"); PHOTOS = r.ok ? await r.json() : {}; } catch { PHOTOS = {}; }
+  return PHOTOS;
+}
+
 function notFound(res) {
   return sendHtml(res, 404, shell({
     title: "Place not found · Lanier Leash", description: "We couldn't find that place.", path: "/places/", current: "places", noindex: true,
@@ -37,6 +45,8 @@ export default async function handler(req, res) {
   if (!p) return notFound(res);
 
   const c = CATS[p.category] || CATS.park, b = BADGE[p.status] || BADGE.unconfirmed;
+  const ph = (await photos())[p.id];
+  const photoHtml = ph ? `<figure class="placephoto"><img src="/img/places/${esc(ph.file)}" alt="${esc(ph.alt || p.name)}" width="${ph.w || 900}" height="${ph.h || 600}"><figcaption>Photo: <a href="${esc(ph.page)}" target="_blank" rel="noopener">${esc(ph.artist || "Wikimedia Commons")}</a>, ${esc(ph.license)}${ph.changed ? ", resized" : ""}</figcaption></figure>` : "";
   const hasLL = p.lat !== "" && p.lng !== "" && !isNaN(+p.lat) && !isNaN(+p.lng);
   const near = hasLL ? places.filter((x) => x.id !== p.id && x.status !== "nodogs" && x.lat !== "" && x.lng !== "")
     .map((x) => ({ ...x, mi: miles({ lat: +p.lat, lng: +p.lng }, x.lat, x.lng) })).filter((x) => x.mi != null && x.mi <= 15).sort((a, z) => a.mi - z.mi) : [];
@@ -71,6 +81,7 @@ export default async function handler(req, res) {
 </div></section>
 <section class="blk" style="padding-top:4px"><div class="wrap placegrid">
   <div>
+    ${photoHtml}
     <div class="rulecard${isNo ? " no" : ""}">
       <span class="eyebrow">${isNo ? "Dogs not allowed" : "The dog rule"}</span>
       <p class="big">${ic("u-leash")}<span>${esc(p.dog_rule)}</span></p>
@@ -104,7 +115,7 @@ export default async function handler(req, res) {
 window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:18,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'}).addTo(m);
 window.L.marker(ll,{icon:window.L.divIcon({className:"",html:'<div class="pin ${isNo ? "nodogs" : p.category}"></div>',iconSize:[30,30],iconAnchor:[15,30]})}).addTo(m);})();</script>` : "";
   const head = `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script>`;
-  return sendHtml(res, 200, shell({ title, description, path: `/places/${p.id}/`, body, head, scripts: scripts + fbScript, current: "places" }));
+  return sendHtml(res, 200, shell({ title, description, path: `/places/${p.id}/`, image: ph ? `/img/places/${ph.file}` : undefined, body, head, scripts: scripts + fbScript, current: "places" }));
 }
 
 // Thumbs + preset tags. Hidden until /api/feedback answers, so the page still works if feedback is down.
