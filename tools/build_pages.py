@@ -267,11 +267,34 @@ def about():
 
 
 def services():
+    path = ROOT / "data/services.csv"
+    rows = list(csv.DictReader(open(path, encoding="utf-8"))) if path.exists() else []
+    groups = [("groomer", "Groomers", "groomers"), ("trainer", "Trainers", "trainers"), ("daycare", "Daycare and boarding", "daycare")]
+    out, nav = [], []
+    for k, title, anchor in groups:
+        g = sorted([r for r in rows if r["kind"] == k], key=lambda r: r["name"].lower())
+        if not g: continue
+        nav.append(f'<a class="chip" href="#{anchor}">{title} <b>{len(g)}</b></a>')
+        def extra(r):
+            return f'<dl class="facts"><dt>Services</dt><dd>{esc(r["services"])}</dd></dl>' if r.get("services") else ""
+        def card(r):
+            if not r.get("address"):
+                lbl = "Mobile" if r["kind"] == "groomer" else "Comes to you"
+                r = dict(r, town=f"{lbl}, based in {r['town']}" if r.get("town") else lbl)
+            html = org_card(r, extra(r))
+            return html.replace(" · serves the whole area", "")
+        out.append(f'<section class="blk rblk" id="{anchor}"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(card(r) for r in g)}</div></div></section>')
+    empty = "" if rows else """<div class="empty" id="ptEmpty" style="text-align:left;max-width:680px">We're building this page now. Know a great groomer, trainer or daycare near the lake? <a href="/submit/?type=place&amp;category=other">Tell us about them</a>.</div>"""
+    navbar = f'<nav class="chips svcnav" aria-label="Jump to">{"".join(nav)}</nav>' if nav else ""
     body = hero("Dog services", "Groomers, trainers and daycare near Lake Lanier",
-                "Local businesses that look after dogs around Cumming, Gainesville and north metro Atlanta. Looking for a vet? See <a href='/vet-care/'>vet care</a>, with <a href='/vet-care/#emergency'>emergency vets</a> first.") + \
-        """<section class="blk" style="padding-top:20px"><div class="wrap">
+                "Local businesses that look after dogs around Cumming, Gainesville and north metro Atlanta, nearest to you first. Looking for a vet? See <a href='/vet-care/'>vet care</a>, with <a href='/vet-care/#emergency'>emergency vets</a> first.") + \
+        f"""<section class="blk" style="padding-top:20px"><div class="wrap">
+  {navbar}
   <div class="ptwrap" id="partners" hidden></div>
-  <div class="empty" id="ptEmpty" style="text-align:left;max-width:680px">We're building this page now. Know a great groomer, trainer or daycare near the lake? <a href="/submit/?type=place&amp;category=other">Tell us about them</a>.</div>
+  {empty}
+</div></section>""" + "".join(out) + \
+        """<section class="blk"><div class="wrap">
+  <p class="note">Free listings, checked """ + CHECKED + """ from each business's own website. We don't rank or review them, and no one pays to be on this list. Featured partners above are labeled Sponsored. Something wrong, or a business we missed? <a href="/submit/?type=place&amp;category=other">Tell us</a>.</p>
   <div class="lfhelp" style="margin-top:30px">
     <div><h2 class="h2s">Choosing a groomer or daycare</h2><ul class="ticks">
       <li>Ask to see where dogs wait and play. Clean, cool and supervised is what you want.</li>
@@ -287,7 +310,7 @@ def services():
   <div class="joincard" style="margin-top:30px;max-width:560px"><b>Run a dog business near the lake?</b><p>Featured partners get their own page here and a spot in the Thursday email.</p><a class="btn btn-coral" href="/advertise/#partners">""" + ic("u-heart") + """Become a partner</a></div>
 </div></section>"""
     return shell("/services/", "Dog groomers, trainers and daycare near Cumming, GA · Lanier Leash",
-                 "Dog groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta.", body, partner_js(["groomer", "trainer", "daycare", "other"], 6))
+                 "Dog groomers, mobile groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta, with addresses, phones and services.", body, DIST_JS + partner_js(["groomer", "trainer", "daycare", "other"], 6))
 
 
 def advertise():

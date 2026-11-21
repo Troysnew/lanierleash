@@ -876,3 +876,8 @@ a.btn { text-decoration: none; }
 a.btn.btn-coral, a.btn.btn-coral:hover, a.btn.btn-coral:visited { color: #fff; }
 a.btn.btn-out, a.btn.btn-out:visited { color: var(--navy); }
 a.btn.btn-out:hover { color: #fff; }
+
+/* Services page jump links */
+.svcnav { margin: 0 0 18px; }
+a.chip { text-decoration: none; }
+a.chip b { color: var(--muted); font-weight: 700; }
