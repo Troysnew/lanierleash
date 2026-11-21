@@ -5,6 +5,7 @@ import { miles, fmtMi } from "./_lib/content.js";
 import { esc } from "./_lib/templates.js";
 import { shell, sendHtml } from "./_lib/page.js";
 import { siteUrl, log } from "./_lib/util.js";
+import PHOTOS from "../data/place-photos.json" with { type: "json" };
 
 const BADGE = {
   venue: { cls: "b-ok", icon: "u-check", label: "Venue confirmed", desc: "The venue told us its dog rule directly." },
@@ -22,12 +23,8 @@ const THUMB = `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path fill
 const host = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch { return ""; } };
 
 // Licensed real photos (Wikimedia Commons). Credited under the photo, as their licenses require.
-let PHOTOS = null;
-async function photos() {
-  if (PHOTOS) return PHOTOS;
-  try { const r = await fetch(siteUrl() + "/data/place-photos.json"); PHOTOS = r.ok ? await r.json() : {}; } catch { PHOTOS = {}; }
-  return PHOTOS;
-}
+// Bundled with the function, so a deploy always serves the current list (no fetch, no stale cache).
+async function photos() { return PHOTOS; }
 
 function notFound(res) {
   return sendHtml(res, 404, shell({
