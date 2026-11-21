@@ -165,7 +165,7 @@
       <div class="trust trust4">
         <div class="tr"><span class="badge b-ok"><svg class="ic"><use href="#u-check"/></svg>Venue confirmed</span><p>The venue or park told us its dog rule directly. <a href="/submit/?type=claim">Own a dog-friendly spot? Claim it</a>.</p></div>
         <div class="tr"><a class="badge b-off" href="/places/?status=official"><svg class="ic"><use href="#u-check"/></svg>Official rule</a><p>Posted on the place's own website. We link it and date it.</p></div>
-        <div class="tr"><span class="badge b-rd"><svg class="ic"><use href="#u-users"/></svg>Readers say yes</span><p>Readers visited with their dogs and gave it a thumbs up. Been somewhere? Vote on its page.</p></div>
+        <div class="tr"><span class="badge b-rd"><svg class="ic"><use href="#u-users"/></svg>Readers say yes</span><p>Readers who visit with their dogs vote “Good for dogs” on a place’s page. Enough yes votes earns this badge. Been somewhere? Cast the first vote.</p></div>
         <div class="tr"><a class="badge b-unv" href="/places/?status=unconfirmed"><svg class="ic"><use href="#u-q"/></svg>Unconfirmed</a><p>Only listed on a third-party site. Call ahead, or help us confirm it.</p></div>
       </div>
     </div>
@@ -258,7 +258,7 @@
 
   function renderTiles() {
     $("#tiles").innerHTML = CATS.map(function (c) {
-      var n = c.id === "events" ? upcoming(30).length : PLACES.filter(function (p) { return inR(p) && catOk(p, c.id); }).length;
+      var n = c.id === "events" ? L.groupRepeats(upcoming(30)).length : PLACES.filter(function (p) { return inR(p) && catOk(p, c.id); }).length;
       return '<button class="tile" type="button" data-c="' + c.id + '" aria-pressed="' + (st.cat === c.id) + '"><span class="tb">' + ic(c.icon) + '</span><span>' + c.label + '<small>' + n + (c.id === "events" ? " coming up" : n === 1 ? " spot" : " spots") + '</small></span></button>';
     }).join("");
   }
@@ -315,9 +315,9 @@
     if (PLACES.length) {
       var towns = {}; PLACES.forEach(function (p) { if (p.town) towns[p.town.split(" (")[0]] = 1; });
       $("#statPlaces").textContent = PLACES.length;
-      $("#statEvents").textContent = EVENTS.filter(function (e) { return e.date <= L.addDays(L.todayISO(), 30); }).length;
+      $("#statEvents").textContent = L.groupRepeats(EVENTS.filter(function (e) { return e.date <= L.addDays(L.todayISO(), 30); })).length;
       $("#statTowns").textContent = Object.keys(towns).length;
-      var wkn = weekendEvents().length;
+      var wkn = weekendEvents().filter(function (e) { return !e.multi; }).length;
       if (wkn) { $("#evChipN").textContent = wkn + (wkn === 1 ? " event" : " events"); $("#evChipS").textContent = "this weekend"; }
       else {
         var n14 = upcoming(14).length, sub = "in the next two weeks";
@@ -545,17 +545,23 @@
     }
   });
 
+  // No forecast at all: don't show a wall of "--". Keep the card short and useful.
   function fail() {
-    set("wxH", "Forecast unavailable");
-    set("wxChipS", "Forecast unavailable right now");
-    var bs = el("wxBigS"); if (bs) bs.innerHTML = "High in Cumming<br>Try again shortly";
-    set("wxPillT", "Pavement estimate unavailable");
+    var c = el("conditions"); if (c) c.classList.add("wxoff");
+    set("wxK", "Walk check");
+    set("wxH", "The forecast is napping");
+    set("wxChipT", "Walk check");
+    set("wxChipS", "Back shortly");
+    var src = c && c.querySelector(".wxsrc");
+    if (src) src.innerHTML = 'We couldn’t reach the forecast just now. Refresh in a bit, or read our <a href="/tips/#hot-pavement-georgia-summer">pavement</a> and <a href="/tips/#ticks-in-georgia">tick</a> tips.';
   }
 
   var cached = null;
   try { cached = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
   if (cached && cached.d && Date.now() - cached.at < TTL) { try { render(cached.d); return; } catch (e) {} }
-  fetch(URL).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) {
+  // Our own cached copy first (same forecast the email uses); Open-Meteo directly only as a backup.
+  function get(u) { return fetch(u).then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function (d) { if (!d || !d.daily) throw new Error("bad"); return d; }); }
+  get("/api/weather").catch(function () { return get(URL); }).then(function (d) {
     render(d);
     try { localStorage.setItem(KEY, JSON.stringify({ at: Date.now(), d: d })); } catch (e) {}
   }).catch(function () {

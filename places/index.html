@@ -164,7 +164,7 @@
     $("#stats").innerHTML = STATS.map(function (k) {
       var n = inR.filter(function (p) { return inCat(p, st.cat) && (k === "all" ? p.status !== "nodogs" : p.status === k); }).length;
       if (k !== "all" && !n) return "";
-      return '<button class="chip" type="button" data-status="' + k + '" aria-pressed="' + (st.status === k) + '">' + (k === "all" ? "Any status" : L.BADGE[k].label) + " <small>" + n + "</small></button>";
+      return '<button class="chip" type="button" data-status="' + k + '" aria-pressed="' + (st.status === k) + '">' + (k === "all" ? "Dogs welcome" : L.BADGE[k].label) + " <small>" + n + "</small></button>";
     }).join("") + (function () {
       var withH = inR.filter(function (p) { return inCat(p, st.cat) && p.hours; });
       if (!withH.length) return "";
@@ -175,7 +175,8 @@
     $("#list").innerHTML = list.length ? list.map(card).join("") : '<p class="empty">Nothing matches within ' + r + " miles of " + esc(L.home.zip) + ". Try a wider radius or another category.</p>";
     syncURL();
     partners();
-    $("#count").textContent = list.length + (list.length === 1 ? " place" : " places") + " within " + r + " miles of " + L.home.zip;
+    var far = (st.cat === "all" && st.status === "all" && !st.q && !st.open) ? DATA.places.filter(function (p) { return p.status !== "nodogs" && p.mi != null && p.mi > r; }).length : 0;
+    $("#count").textContent = list.length + (list.length === 1 ? " place" : " places") + " within " + r + " miles of " + L.home.zip + (far ? " · " + far + " more farther out" : "");
 
     if (map) {
       layer.clearLayers(); markers = {};

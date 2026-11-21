@@ -59,12 +59,14 @@
       var b = document.getElementById("bday"); b.hidden = false;
       b.innerHTML = "<b>🎂 Pack birthdays this week</b> " + d.birthdays.map(function (x) { return esc(x.name) + (x.town ? " of " + esc(x.town) : "") + " <small>(" + esc(x.day) + ")</small>"; }).join(" · ");
     }
-    if (!d.pups || !d.pups.length) { g.innerHTML = '<p class="empty">The pack is just getting started. <a href="/submit/?type=pup">Be the first to send your pup</a>.</p>'; return; }
-    g.innerHTML = d.pups.map(function (p) {
+    // Riley (our co-founder) is always in the pack, so it's never empty.
+    var riley = { name: "Riley", town: "Cumming", owner: "Troy", photo: "/img/hero.jpg", story: "Co-founder. Works for pizza crust.", founder: true };
+    var pups = (d.pups || []).concat([riley]);
+    g.innerHTML = pups.map(function (p) {
       return '<figure class="pup">' + '<img src="' + esc(p.photo) + '" alt="' + esc(p.name) + (p.town ? ' from ' + esc(p.town) : '') + '" loading="lazy">' +
-        (p.featured ? '<span class="pow">★ Pup of the Week</span>' : '') +
+        (p.featured ? '<span class="pow">★ Pup of the Week</span>' : p.founder ? '<span class="pow">Co-founder</span>' : '') +
         '<figcaption><b>' + esc(p.name) + (p.age ? ', ' + esc(p.age) : '') + '</b><span>' + esc([p.town, p.owner ? 'with ' + p.owner : ''].filter(Boolean).join(' · ')) + '</span>' + (p.story ? '<em>' + esc(p.story) + '</em>' : '') + '</figcaption></figure>';
-    }).join("");
+    }).join("") + (pups.length === 1 ? '<a class="pup pupnext" href="/submit/?type=pup"><b>Your pup next?</b><span>Riley is lonely. Send a photo and a line about your dog.</span></a>' : '');
   }).catch(function () { document.getElementById("pack").innerHTML = '<p class="empty">We couldn’t load the pack right now. Try again in a minute.</p>'; });
 })();
 </script>

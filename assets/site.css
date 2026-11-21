@@ -103,7 +103,7 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .hero h1 .hl { color: var(--teal); position: relative; white-space: nowrap; }
 .hero .lede { font-size: 19px; color: var(--muted); margin-top: 22px; max-width: 46ch; }
 
-.pillform { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, .7fr) minmax(0, .8fr) auto; align-items: center; background: var(--white); border-radius: 999px; padding: 7px; box-shadow: var(--sh-lg); border: 1px solid var(--line); }
+.pillform { margin-top: 30px; display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(124px, .7fr) minmax(96px, .8fr) auto; align-items: center; background: var(--white); border-radius: 999px; padding: 7px; box-shadow: var(--sh-lg); border: 1px solid var(--line); }
 .pillform .fld { display: grid; padding: 4px 18px; border-right: 1px solid var(--line); min-width: 0; }
 .pillform .fld:nth-child(3) { border-right: 0; }
 .pillform label { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
@@ -891,3 +891,15 @@ a.chip b { color: var(--muted); font-weight: 700; }
 .meet .riley li { margin: 3px 0; }
 .meet .riley b { color: var(--navy); }
 @media (max-width: 720px) { .meet { grid-template-columns: 1fr; gap: 20px; } .meetpic { max-width: 340px; } }
+
+/* Walk check with no forecast: hide the empty numbers */
+.c-cond.wxoff .bigtemp, .c-cond.wxoff .okpill, .c-cond.wxoff .minis, .c-cond.wxoff .days, .c-cond.wxoff .wxweek { display: none; }
+.pillform .fld:nth-child(2), .pillform .fld:nth-child(3) { padding-inline: 14px; }
+.pup img[src="/img/hero.jpg"] { object-position: 88% center; }
+.pupnext { display: grid; place-content: center; gap: 8px; text-align: center; padding: 28px; min-height: 260px; border: 2px dashed var(--line); background: var(--cream); box-shadow: none; text-decoration: none; }
+.pupnext:hover b { color: var(--coral-dk); }
+/* Mid widths: the hero column is too narrow for one row, so email gets its own row */
+@media (min-width: 681px) and (max-width: 1240px) {
+  .pillform { grid-template-columns: minmax(124px, 1fr) minmax(96px, 1fr) auto; border-radius: 28px; row-gap: 2px; }
+  .pillform .fld:first-child { grid-column: 1 / -1; border-right: 0; border-bottom: 1px solid var(--line); padding-block: 6px 8px; }
+}

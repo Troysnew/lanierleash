@@ -206,7 +206,9 @@
     var label = st.when === "weekend" ? "this weekend" : st.when === "30" ? "in the next 30 days" : "coming up";
     syncURL();
     LIST = list; drawMap();
-    $("#count").textContent = list.length + (list.length === 1 ? " event " : " events ") + label + " within " + r + " miles of " + L.home.zip;
+    var uniq = L.groupRepeats(list).length;
+    var far = (st.type === "all" && !st.q) ? L.groupRepeats(DATA.events.filter(function (e) { return e.mi != null && e.mi > r && inWindow(e); })).length : 0;
+    $("#count").textContent = uniq + (uniq === 1 ? " event " : " events ") + label + " within " + r + " miles of " + L.home.zip + (far ? " · " + far + " more farther out" : "");
   }
 
   document.querySelectorAll(".seg button").forEach(function (b) { b.addEventListener("click", function () { L.setRadius(+b.dataset.r); render(); }); });
