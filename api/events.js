@@ -15,6 +15,6 @@ export default async function handler(req, res) {
     log("events failed", e.message);
     res.statusCode = 200;
     res.setHeader("Cache-Control", "no-store");
-    return res.end(JSON.stringify({ ok: false, events: [] }));
+    return res.end(JSON.stringify({ ok: false, events: [], error: String(e.message || e).slice(0, 200) }));
   }
 }
