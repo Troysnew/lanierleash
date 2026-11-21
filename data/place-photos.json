@@ -238,5 +238,12 @@
   "w": 900,
   "h": 675,
   "changed": true
+ },
+ "bald-ridge-creek-campground": {
+  "file": "bald-ridge-creek-campground.jpg",
+  "illustration": true,
+  "alt": "Illustration of a lakeside campsite with a golden retriever",
+  "w": 1200,
+  "h": 886
  }
 }

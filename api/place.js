@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 
   const c = CATS[p.category] || CATS.park, b = BADGE[p.status] || BADGE.unconfirmed;
   const ph = (await photos())[p.id];
-  const photoHtml = ph ? `<figure class="placephoto"><img src="/img/places/${esc(ph.file)}" alt="${esc(ph.alt || p.name)}" width="${ph.w || 900}" height="${ph.h || 600}"><figcaption>Photo: <a href="${esc(ph.page)}" target="_blank" rel="noopener">${esc(ph.artist || "Wikimedia Commons")}</a>, ${esc(ph.license)}${ph.changed ? ", resized" : ""}</figcaption></figure>` : "";
+  const photoHtml = ph ? `<figure class="placephoto"><img src="/img/places/${esc(ph.file)}" alt="${esc(ph.alt || p.name)}" width="${ph.w || 900}" height="${ph.h || 600}"><figcaption>${ph.illustration ? "Illustration (AI-generated), not a photo of this place." : `Photo: <a href="${esc(ph.page)}" target="_blank" rel="noopener">${esc(ph.artist || "Wikimedia Commons")}</a>, ${esc(ph.license)}${ph.changed ? ", resized" : ""}`}</figcaption></figure>` : "";
   const hasLL = p.lat !== "" && p.lng !== "" && !isNaN(+p.lat) && !isNaN(+p.lng);
   const near = hasLL ? places.filter((x) => x.id !== p.id && x.status !== "nodogs" && x.lat !== "" && x.lng !== "")
     .map((x) => ({ ...x, mi: miles({ lat: +p.lat, lng: +p.lng }, x.lat, x.lng) })).filter((x) => x.mi != null && x.mi <= 15).sort((a, z) => a.mi - z.mi) : [];
