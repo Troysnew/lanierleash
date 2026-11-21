@@ -53,11 +53,11 @@ def shell(path, title, desc, body, scripts=""):
 <div class="wrap navwrap">
   <nav class="nav glass" aria-label="Main">
     <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
-    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <div class="links"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a></div>
     <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </nav>
-  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
 </div>
 <main id="top">
 {body}
@@ -93,8 +93,30 @@ def org_card(r, extra=""):
     if r.get("website"): links.append(f'<a class="lnk" href="{esc(r["website"])}" target="_blank" rel="noopener">{ic("u-arrow")}Website</a>')
     if r.get("events_url"): links.append(f'<a class="lnk" href="{esc(r["events_url"])}" target="_blank" rel="noopener">{ic("i-cal")}Adoption events</a>')
     if r.get("source_url") and r.get("source_url") != r.get("website"): links.append(f'<a class="lnk" href="{esc(r["source_url"])}" target="_blank" rel="noopener">{ic("u-check")}Source</a>')
-    return (f'<article class="org"><div class="top"><h3>{esc(r["name"])}</h3><span class="town">{esc(r.get("town"))}</span></div>'
+    name = f'<a href="{esc(r["website"])}" target="_blank" rel="noopener">{esc(r["name"])}</a>' if r.get("website") else esc(r["name"])
+    tags = " ".join(x for x, on in (("adopt", r.get("adopt") == "yes"), ("foster", r.get("foster") == "yes")) if on)
+    return (f'<article class="org" data-tags="{tags}"><div class="top"><h3>{name}</h3><span class="town">{esc(r.get("town"))}</span></div>'
             f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}<div class="acts">{"".join(links)}</div></article>')
+
+
+ADOPT_JS = """<script>(function(){function show(v){document.querySelectorAll(".org").forEach(function(o){o.hidden=!!v&&(" "+o.dataset.tags+" ").indexOf(" "+v+" ")<0});
+document.querySelectorAll(".orgf [data-of]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.of===v))});
+document.querySelectorAll("section.blk").forEach(function(sec){var c=sec.querySelectorAll(".org");if(c.length)sec.hidden=[].every.call(c,function(o){return o.hidden})})}
+document.addEventListener("click",function(e){var b=e.target.closest("[data-of]");if(!b)return;show(b.dataset.of);if(b.closest(".org"))document.querySelector(".orgf").scrollIntoView({behavior:"smooth",block:"center"})})})();</script>"""
+
+# Where to go next from each tip, on this site.
+RELATED = {
+    "hot-pavement-georgia-summer": [("Shady trails and parks", "/places/?cat=outdoors"), ("This weekend's walk check", "/#conditions")],
+    "ticks-in-georgia": [("Low-cost vaccine and vet clinics", "/vet-care/"), ("Trails near you", "/places/?cat=trail")],
+    "lake-lanier-water-safety": [("Lake Lanier access spots", "/places/?cat=lake")],
+    "toxic-algae-lake-lanier": [("Lake Lanier access spots", "/places/?cat=lake"), ("Low-cost vet care", "/vet-care/")],
+    "leptospirosis-lakes-puddles": [("Low-cost vaccine clinics", "/vet-care/")],
+    "leash-and-at-large-rules": [("Fenced dog parks", "/places/?cat=dogpark"), ("Parks and trails", "/places/?cat=outdoors")],
+    "georgia-rabies-law": [("Low-cost vaccine clinics", "/vet-care/")],
+    "holiday-food-and-plant-hazards": [("Low-cost vet care", "/vet-care/"), ("Holiday dog events", "/events/?q=santa")],
+    "fireworks-and-thunderstorms": [("This weekend's walk check", "/#conditions")],
+    "dog-friendly-patios": [("Dog-friendly restaurants and breweries", "/places/?cat=food"), ("Coffee shops", "/places/?cat=coffee")],
+}
 
 
 def adopt():
@@ -109,14 +131,15 @@ def adopt():
         if not g: continue
         def tags(r):
             t = [x for x, on in (("Adopt", r.get("adopt") == "yes"), ("Foster", r.get("foster") == "yes")) if on]
-            return f'<p class="tags">{"".join(f"<span>{x}</span>" for x in t)}</p>' if t else ""
+            return f'<p class="tags">{"".join(f'<button type="button" data-of="{x.lower()}" title="Show only places that offer this">{x}</button>' for x in t)}</p>' if t else ""
         out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div><p>{blurb}</p></div><div class="orgs">{"".join(org_card(r, tags(r)) for r in g)}</div></div></section>')
     body = hero("Adopt or foster", "Shelters and rescues near Lake Lanier",
                 "County shelters, humane societies and foster-based rescues around Cumming, Gainesville and north metro Atlanta. Fostering, even for a weekend, frees up a kennel. "
-                '<a href="/events/">See adoption events this weekend</a>.') + "".join(out) + \
-        f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Hours and programs change, so call or check the website before you go. Run a rescue we missed? <a href="/submit/?type=place">Tell us about it</a>.</p></div></section>'
+                '<a href="/events/?type=adopt&amp;when=weekend">See adoption events this weekend</a>.'
+                '<span class="orgf" role="group" aria-label="Show"><button type="button" data-of="" aria-pressed="true">All</button><button type="button" data-of="adopt" aria-pressed="false">Adopt</button><button type="button" data-of="foster" aria-pressed="false">Foster</button></span>') + "".join(out) + \
+        f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Hours and programs change, so call or check the website before you go. Run a rescue we missed? <a href="/submit/?type=place&amp;category=rescue">Tell us about it</a>.</p></div></section>'
     return shell("/adopt/", "Adopt or foster a dog near Cumming and Lake Lanier · Lanier Leash",
-                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body)
+                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body, ADOPT_JS)
 
 
 def vetcare():
@@ -138,6 +161,11 @@ def vetcare():
                  "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body)
 
 
+def rel_links(slug):
+    rel = " · ".join(f'<a href="{u}">{esc(n)}</a>' for n, u in RELATED.get(slug, []))
+    return f'<p class="rel"><b>On Lanier Leash:</b> {rel}</p>' if rel else ""
+
+
 def tips():
     data = json.load(open(ROOT / "data/tips.json", encoding="utf-8"))
     toc = "".join(f'<a href="#{esc(t["slug"])}">{esc(t["title"])}</a>' for t in data)
@@ -146,6 +174,7 @@ def tips():
         paras = "".join(f"<p>{esc(p)}</p>" for p in t["body"].split("\n\n") if p.strip())
         src = " · ".join(f'<a href="{esc(s["url"])}" target="_blank" rel="noopener">{esc(s["name"])}</a>' for s in t.get("sources", []))
         arts.append(f'<article class="tip" id="{esc(t["slug"])}"><h2>{esc(t["title"])}</h2><p class="sum">{esc(t["summary"])}</p><div class="prose">{paras}</div>'
+                    f'{rel_links(t["slug"])}'
                     f'{f"<p class=src><b>Sources:</b> {src}</p>" if src else ""}</article>')
     body = hero("Owner tips", "Smart, local dog tips",
                 "Short, practical advice for dog owners around Lake Lanier: heat, ticks, lake safety, local leash rules and more. Each tip links its sources.") + \
@@ -214,7 +243,7 @@ def advertise():
       <li><b>Local only.</b> Readers sign up with their ZIP code, and almost all of them live around Forsyth, Hall, Dawson, north Gwinnett and north Fulton.</li>
     </ul>
     <h2 class="h2s">Founding sponsors</h2>
-    <p>We're new. The first local businesses to sponsor get their first three issues free, so you can see how it works before you pay anything. After that it's a simple flat price per issue, based on how many people get the email. Ask and we'll send current numbers.</p>
+    <p>We're new. The first local businesses to sponsor get their first three issues free, so you can see how it works before you pay anything. After that it's a simple flat price per issue, based on how many people get the email. Ask and we'll send current numbers, or <a href="/issue/">read this week's email</a> to see exactly what readers get.</p>
     <h2 class="h2s">The rules</h2>
     <p>Sponsors are always labeled "Sponsor." Sponsoring never changes a dog rule, a badge or whether a place is listed. Businesses that aren't dog-friendly can't sponsor. A free listing is open to every dog-friendly business: <a href="/submit/?type=claim">claim yours</a>.</p>
   </div>

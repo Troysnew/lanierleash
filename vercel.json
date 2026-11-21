@@ -35,6 +35,14 @@
   ],
   "rewrites": [
     {
+      "source": "/events/:id([a-z0-9-]+)",
+      "destination": "/api/event?id=:id"
+    },
+    {
+      "source": "/events/:id([a-z0-9-]+)/",
+      "destination": "/api/event?id=:id"
+    },
+    {
       "source": "/places/:id([a-z0-9-]+)",
       "destination": "/api/place?id=:id"
     },

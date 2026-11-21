@@ -346,7 +346,8 @@ section.blk { padding-block: 72px 0; }
 .joinrow input { border: 0; background: transparent; min-height: 50px; padding: 0 18px; font: 600 16px var(--f); color: var(--navy); outline: none; min-width: 0; }
 .joinrow input + input { border-left: 1px solid var(--line); }
 .feat { display: flex; gap: 22px; flex-wrap: wrap; font-weight: 700; color: var(--navy); font-size: 14.5px; }
-.feat span { display: inline-flex; gap: 8px; align-items: center; }
+.feat span, .feat a { display: inline-flex; gap: 8px; align-items: center; color: inherit; text-decoration: none; }
+.feat a:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
 .feat .ic { font-size: 26px; }
 .pines { position: absolute; left: 0; bottom: -2px; width: 100%; height: 90px; color: var(--navy); opacity: .08; z-index: 0; }
 @media (max-width: 900px) {
@@ -477,6 +478,7 @@ footer .wrap.legal { display: block; border-top: 1px solid rgba(255,255,255,.08)
 .pin { width: 30px; height: 30px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 3px solid #fff; box-shadow: 0 4px 10px rgba(11,58,91,.35); }
 .pin.restaurant { background: var(--coral-btn); } .pin.brewery { background: #E08A1E; } .pin.winery { background: #9B2C5A; } .pin.coffee { background: #7A4E2D; } .pin.shop { background: #3BA7A4; } .pin.stay { background: #5B4FB0; } .pin.trail { background: #2BA58A; } .pin.park { background: var(--teal); } .pin.dogpark { background: var(--sun); } .pin.lake { background: #2563A8; }
 .pin.home { background: var(--navy); }
+.pin.event { background: var(--coral-btn); }
 .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12.5px; font-weight: 700; color: var(--muted); margin-top: 10px; }
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
 @media (max-width: 960px) {
@@ -648,3 +650,49 @@ a.stat:hover span { color: var(--teal); text-decoration: underline; text-underli
 .fbsum .said .good { background: var(--mint); color: var(--navy); }
 .fbsum .said .bad { background: #fff4e0; color: #8a5300; }
 .fbmsg { font-size: 13px; color: var(--teal); min-height: 1em; }
+
+.rulecard .st a.tag { text-decoration: none; }
+/* Event card links */
+.evcard h3 a { color: inherit; text-decoration: none; }
+.evcard h3 a:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
+.evcard .m a.venue { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.evcard .m a.venue:hover { color: var(--teal); }
+.evcard .side a.mi { text-decoration: none; color: inherit; }
+.evcard .side a.mi:hover { color: var(--teal); }
+button.tag { border: 0; font-family: inherit; cursor: pointer; }
+button.tag:hover { filter: brightness(.95); text-decoration: underline; }
+
+/* Homepage links that used to be dead ends */
+a.mini, button.mini { color: inherit; text-decoration: none; font: inherit; text-align: left; cursor: pointer; transition: background .15s; }
+a.mini:hover, button.mini:hover { background: rgba(255,255,255,.14); }
+.c-issue a.isrow { display: grid; grid-template-columns: 40px minmax(0, 1fr); gap: 12px; align-items: center; color: inherit; text-decoration: none; border-radius: 12px; }
+.c-issue a.isrow:hover b { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
+.c-issue li:has(.isrow) { display: block; }
+.near .sum a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.near .sum a:hover { color: var(--teal); }
+.ev:hover h4 { color: var(--teal); }
+a.badge { text-decoration: none; }
+a.badge:hover { filter: brightness(.96); text-decoration: underline; }
+.tr p a { color: inherit; font-weight: 700; }
+
+/* Places list: badge, town and category filter the list */
+.pl .town button.tl { background: none; border: 0; padding: 0; font: inherit; color: inherit; cursor: pointer; border-bottom: 1px dotted currentColor; }
+.pl .town button.tl:hover { color: var(--teal); }
+.pl .st button.badge { border: 0; font-family: inherit; cursor: pointer; }
+.pl .st button.badge:hover { filter: brightness(.96); text-decoration: underline; }
+#legend button { background: none; border: 0; font: inherit; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; padding: 2px 4px; border-radius: 6px; }
+#legend button:hover { background: rgba(17,122,139,.08); color: var(--teal); }
+
+.placehero .eyebrow a, .placehero .addr a { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.placehero .eyebrow a:hover, .placehero .addr a:hover { color: var(--teal); }
+.rulecard .chk a { color: inherit; }
+/* Adopt / vet org cards */
+.org h3 a { color: inherit; text-decoration: none; }
+.org h3 a:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
+.org .tags button { font: inherit; font-size: 12px; font-weight: 800; border: 0; border-radius: 999px; padding: 4px 10px; background: var(--mint); color: var(--navy); cursor: pointer; margin-right: 6px; }
+.org .tags button:hover { text-decoration: underline; }
+.orgf { display: inline-flex; gap: 6px; margin-left: 10px; vertical-align: middle; flex-wrap: wrap; }
+.orgf button { font: inherit; font-size: 13px; font-weight: 700; border: 1.5px solid var(--line); background: #fff; color: var(--navy); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.orgf button[aria-pressed="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
+.tip .rel { margin-top: 12px; font-size: 14px; padding: 10px 14px; background: var(--mint); border-radius: 14px; }
+.tip .rel a { font-weight: 700; }

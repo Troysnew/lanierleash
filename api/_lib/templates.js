@@ -92,7 +92,7 @@ function eventRow(e, s) {
   const tag = e.type === "adopt" ? ` <span style="display:inline-block;padding:1px 8px;border-radius:999px;background:#FFE6E3;color:${C.coral};font-size:11px;font-weight:700">Adoption</span>` : "";
   return `<tr><td style="padding:12px 0;border-top:1px solid ${C.line};font:14px/1.5 ${FONT};color:${C.slate}">` +
     `<div style="font-size:12px;font-weight:700;color:${C.teal};text-transform:uppercase;letter-spacing:.04em">${esc(when)}</div>` +
-    `<a href="${s}/events/#${esc(e.id)}" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(e.title)}</a>${tag}` +
+    `<a href="${s}/events/${esc(e.id)}/" style="font-size:16px;font-weight:800;color:${C.navy};text-decoration:none">${esc(e.title)}</a>${tag}` +
     `<div style="color:${C.muted}">${esc(where)}${e.mi != null ? " · " + fmtMi(e.mi) : ""}${e.cost ? " · " + esc(e.cost) : ""}</div>` +
     (e.dog_rule ? `<div style="margin-top:3px">🐾 ${esc(e.dog_rule)}</div>` : "") + `</td></tr>`;
 }
@@ -150,7 +150,7 @@ export function weeklyEmail(sub, issue) {
 
   const t = [`YOUR DOG WEEKEND · ${range} · within ${issue.radius} mi of ${issue.zip}`, ""];
   if (issue.wx) t.push(`WALK CHECK: ${issue.wx.head}. Best day ${issue.wx.bestDay}, high ${issue.wx.high}°, best walk ${issue.wx.window}. Pavement ~${issue.wx.pavement}°F at 2 PM (${issue.wx.paws}). Rain ${issue.wx.rain}%.`, "");
-  const tl = (title, list) => { if (list.length) { t.push(title.toUpperCase()); list.forEach((e) => t.push(`- ${e.multi ? "Through " + fmtShort(e.last) : fmtDay(e.date) + " " + timeRange(e)}: ${e.title}, ${[e.venue, e.town].filter(Boolean).join(", ")} (${fmtMi(e.mi)})\n  ${s}/events/#${e.id}`)); t.push(""); } };
+  const tl = (title, list) => { if (list.length) { t.push(title.toUpperCase()); list.forEach((e) => t.push(`- ${e.multi ? "Through " + fmtShort(e.last) : fmtDay(e.date) + " " + timeRange(e)}: ${e.title}, ${[e.venue, e.town].filter(Boolean).join(", ")} (${fmtMi(e.mi)})\n  ${s}/events/${e.id}/`)); t.push(""); } };
   tl("This weekend", issue.events); tl("Ongoing", issue.ongoing); tl("Coming up", issue.later);
   if (issue.sponsor) t.push(`SPONSORED BY ${issue.sponsor.name.toUpperCase()}: ${issue.sponsor.text}${issue.sponsor.url ? " " + issue.sponsor.url : ""}`, "");
   if (issue.birthdays && issue.birthdays.length) t.push("PACK BIRTHDAYS THIS WEEK: " + issue.birthdays.map((x) => x.name + (x.town ? " of " + x.town : "") + " (" + x.day + ")").join(", "), "");

@@ -46,3 +46,9 @@ A scheduled Claude task (Mondays, 6 AM, on the computer running the Claude app) 
 Every place page has a "Been here with your dog?" box: thumbs up ("Good for dogs") or down ("Heads-up"), then tags picked from a fixed list (`api/_lib/feedback.js`). There's no free text, so nothing needs moderating. One vote per visitor per place, identified by a salted hash of the IP (never the IP itself), capped at 30 places an hour. Votes are stored in `place_feedback` (see `schema.sql`).
 
 In `/admin/` → Places, each place shows its reader counts. Flags like "Dogs not allowed anymore", "Rule is different than listed" and "Closed or moved" show in red, and the "Reader flags only" box filters to those. Unconfirmed places with 3+ thumbs up and no flags get a hint to switch them to the Readers say yes badge.
+
+## Event pages and shareable filters
+
+Every event has its own page at `/events/<date>-<title-slug>/` (`api/event.js`): the dog rule, map, directions, add to calendar (`?format=ics`), Google Calendar, share, the venue's place page when we list it, more events at the same venue, and dog-friendly spots nearby. The homepage, the web email and the weekly email all link here. Old `/events/#<id>` links forward to the new page.
+
+`/events/` and `/places/` keep their filters in the address, so any view can be linked: `/events/?when=weekend&type=adopt&q=santa&r=25`, `/places/?cat=lake&status=official&q=cumming`.

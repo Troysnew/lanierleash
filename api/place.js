@@ -65,17 +65,17 @@ export default async function handler(req, res) {
 
   const body = `<section class="page-hero placehero"><div class="wrap">
   <p class="crumbs"><a href="/places/">Places</a> › <a href="/places/?cat=${p.category}">${esc(c.label)}</a></p>
-  <span class="eyebrow">${ic(ICON[p.category] || "i-park")} ${esc(c.short)} · ${esc(p.town)}</span>
+  <span class="eyebrow">${ic(ICON[p.category] || "i-park")} <a href="/places/?cat=${p.category}">${esc(c.short)}</a> · <a href="/places/?q=${encodeURIComponent((p.town || "").split(" (")[0])}">${esc(p.town)}</a></span>
   <h1>${esc(p.name)}</h1>
-  ${p.address ? `<p class="lede addr">${ic("u-pin")}${esc(p.address)}</p>` : ""}
+  ${p.address ? `<p class="lede addr">${ic("u-pin")}<a href="${esc(maps(p))}" target="_blank" rel="noopener">${esc(p.address)}</a></p>` : ""}
 </div></section>
 <section class="blk" style="padding-top:4px"><div class="wrap placegrid">
   <div>
     <div class="rulecard${isNo ? " no" : ""}">
       <span class="eyebrow">${isNo ? "Dogs not allowed" : "The dog rule"}</span>
       <p class="big">${ic("u-leash")}<span>${esc(p.dog_rule)}</span></p>
-      <div class="st"><span class="badge ${b.cls}">${ic(b.icon)}${b.label}</span><span class="chk">${p.checked ? "Checked " + esc(fmtChecked(p.checked)) : "Not checked yet"}${p.source_name ? " · " + esc(p.source_name) : ""}</span></div>
-      <p class="why">${esc(b.desc)}${p.source_url ? ` <a href="${esc(p.source_url)}" target="_blank" rel="noopener">See the source${host(p.source_url) ? " (" + esc(host(p.source_url)) + ")" : ""}</a>.` : ""}</p>
+      <div class="st"><a class="badge ${b.cls}" href="/places/?status=${p.status}" title="See every place with this badge">${ic(b.icon)}${b.label}</a><span class="chk">${p.checked ? (p.source_url ? `<a href="${esc(p.source_url)}" target="_blank" rel="noopener">Checked ${esc(fmtChecked(p.checked))}</a>` : "Checked " + esc(fmtChecked(p.checked))) : "Not checked yet"}${p.source_name ? " · " + esc(p.source_name) : ""}</span></div>
+      <p class="why">${esc(b.desc)} <a href="/places/#how-we-check">How we check</a>.${p.source_url ? ` <a href="${esc(p.source_url)}" target="_blank" rel="noopener">See the source${host(p.source_url) ? " (" + esc(host(p.source_url)) + ")" : ""}</a>.` : ""}</p>
     </div>
     ${p.description ? `<div class="prose">${esc(p.description).split(/\n{2,}/).map((x) => `<p>${x}</p>`).join("")}</div>` : p.notes ? `<p class="prose">${esc(p.notes)}</p>` : ""}
     <div class="acts big">${links}</div>

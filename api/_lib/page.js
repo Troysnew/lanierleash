@@ -45,11 +45,11 @@ ${head}
 <div class="wrap navwrap">
   <nav class="nav glass" aria-label="Main">
     <a class="brand" href="/" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
-    <div class="links"><a href="/events/"${cur("events")}>Events</a><a href="/places/"${cur("places")}>Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a></div>
+    <div class="links"><a href="/events/"${cur("events")}>Events</a><a href="/places/"${cur("places")}>Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a></div>
     <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </nav>
-  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/#community">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="/#conditions">Conditions</a><a href="/pack/">Community</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
 </div>
 <main id="top">
 ${body}

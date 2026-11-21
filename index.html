@@ -25,11 +25,11 @@
 <div class="wrap navwrap">
   <nav class="nav glass" aria-label="Main">
     <a class="brand" href="#top" aria-label="Lanier Leash home"><svg class="mark" aria-hidden="true"><use href="#i-logo"/></svg><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
-    <div class="links" id="links"><span class="lens" id="lens" aria-hidden="true"></span><a href="/events/" data-s="weekend">Events</a><a href="/places/" data-s="places">Places</a><a href="#conditions" data-s="conditions">Conditions</a><a href="#community" data-s="community">Community</a></div>
+    <div class="links" id="links"><span class="lens" id="lens" aria-hidden="true"></span><a href="/events/" data-s="weekend">Events</a><a href="/places/" data-s="places">Places</a><a href="#conditions" data-s="conditions">Conditions</a><a href="/pack/" data-s="community">Community</a></div>
     <a class="btn btn-coral btn-sm" href="#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
     <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
   </nav>
-  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="#conditions">Conditions</a><a href="#community">Community</a><a class="btn btn-coral" href="#top">Join free</a></nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a href="#conditions">Conditions</a><a href="/pack/">Community</a><a class="btn btn-coral" href="#top">Join free</a></nav>
 </div>
 
 <main id="top">
@@ -97,9 +97,9 @@
           <div class="bigtemp"><b id="wxBig">--°</b><span id="wxBigS">High in Cumming<br>Best walk time loading</span></div>
           <span class="okpill" id="wxPill"><svg class="ic" id="wxPillIc"><use href="#u-check"/></svg><span id="wxPillT">Pavement estimate loading</span></span>
           <div class="minis">
-            <div class="mini"><svg class="ic"><use href="#i-drop"/></svg><b id="wxRain">--</b><span>Rain chance</span></div>
-            <div class="mini"><svg class="ic"><use href="#i-tick"/></svg><b id="wxTick">--</b><span>Tick risk, seasonal</span></div>
-            <div class="mini"><svg class="ic"><use href="#i-thermo"/></svg><b id="wxPave">--</b><span>Pavement, 2 PM est.</span></div>
+            <button type="button" class="mini" id="wxRainBtn" title="See the full week"><svg class="ic"><use href="#i-drop"/></svg><b id="wxRain">--</b><span>Rain chance</span></button>
+            <a class="mini" href="/tips/#ticks-in-georgia" title="Tick tips for Georgia"><svg class="ic"><use href="#i-tick"/></svg><b id="wxTick">--</b><span>Tick risk, seasonal</span></a>
+            <a class="mini" href="/tips/#hot-pavement-georgia-summer" title="Hot pavement tips"><svg class="ic"><use href="#i-thermo"/></svg><b id="wxPave">--</b><span>Pavement, 2 PM est.</span></a>
           </div>
           <div class="days" id="wxDays" role="group" aria-label="Pick a day">
             <button type="button" disabled><span>Fri</span><b>--</b><i>&nbsp;</i></button>
@@ -119,16 +119,16 @@
         <article class="card c-pup photo-card" id="community">
           <img id="pupImg" src="/img/dalmatian.jpg" alt="Domino the dalmatian smiling by the lake at sunset">
           <a class="btn btn-sm cta glass" style="color:var(--navy)" href="/submit/?type=pup"><svg class="ic" style="color:var(--coral-btn)"><use href="#u-camera"/></svg>Send your pup</a>
-          <div class="cap"><span class="k" id="pupK">Pup of the week</span><b id="pupB">Domino, 4, Cumming</b><span id="pupS">Swims out to greet every pontoon at Mary Alice Park and shakes off on whoever is closest. (with Jen)</span><a class="packlnk" href="/pack/">Meet the pack →</a></div>
+          <div class="cap"><span class="k" id="pupK">Pup of the week</span><b id="pupB">Domino, 4, Cumming</b><span id="pupS">Swims out to greet every pontoon at Mary Alice Park and shakes off on whoever is closest. (with Jen)</span><a class="packlnk" id="pupL" href="/submit/?type=pup">Send yours for next week →</a></div>
         </article>
 
         <article class="card c-issue">
           <div class="hdr"><span id="isK">This week's email</span><span>2 min read</span></div>
           <h3 id="isH">Your dog weekend: events, a walk check and places to try</h3>
           <ul>
-            <li><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b id="isE">Events near you</b><span id="isE2">This weekend within your radius</span></span></li>
-            <li><span class="ib"><svg class="ic"><use href="#i-sun"/></svg></span><span><b>Walk check</b><span id="isW">Best day, best hours, pavement estimate</span></span></li>
-            <li><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place to try</b><span id="isP">A dog-friendly spot near you</span></span></li>
+            <li><a class="isrow" id="isEL" href="/events/?when=weekend"><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b id="isE">Events near you</b><span id="isE2">This weekend within your radius</span></span></a></li>
+            <li><a class="isrow" href="#conditions"><span class="ib"><svg class="ic"><use href="#i-sun"/></svg></span><span><b>Walk check</b><span id="isW">Best day, best hours, pavement estimate</span></span></a></li>
+            <li><a class="isrow" id="isPL" href="/places/"><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place to try</b><span id="isP">A dog-friendly spot near you</span></span></a></li>
           </ul>
           <a class="btn btn-out btn-sm" id="isA" href="/issue/" style="width:100%">Read this week's email</a>
         </article>
@@ -160,10 +160,10 @@
       </div>
       <div class="track" id="track"></div>
       <div class="trust trust4">
-        <div class="tr"><span class="badge b-ok"><svg class="ic"><use href="#u-check"/></svg>Venue confirmed</span><p>The venue or park told us its dog rule directly.</p></div>
-        <div class="tr"><span class="badge b-off"><svg class="ic"><use href="#u-check"/></svg>Official rule</span><p>Posted on the place's own website. We link it and date it.</p></div>
-        <div class="tr"><span class="badge b-rd"><svg class="ic"><use href="#u-users"/></svg>Readers say yes</span><p>Readers visited with their dogs and reported back.</p></div>
-        <div class="tr"><span class="badge b-unv"><svg class="ic"><use href="#u-q"/></svg>Unconfirmed</span><p>Only listed on a third-party site. Call ahead, or help us confirm it.</p></div>
+        <div class="tr"><span class="badge b-ok"><svg class="ic"><use href="#u-check"/></svg>Venue confirmed</span><p>The venue or park told us its dog rule directly. <a href="/submit/?type=claim">Own a dog-friendly spot? Claim it</a>.</p></div>
+        <div class="tr"><a class="badge b-off" href="/places/?status=official"><svg class="ic"><use href="#u-check"/></svg>Official rule</a><p>Posted on the place's own website. We link it and date it.</p></div>
+        <div class="tr"><span class="badge b-rd"><svg class="ic"><use href="#u-users"/></svg>Readers say yes</span><p>Readers visited with their dogs and gave it a thumbs up. Been somewhere? Vote on its page.</p></div>
+        <div class="tr"><a class="badge b-unv" href="/places/?status=unconfirmed"><svg class="ic"><use href="#u-q"/></svg>Unconfirmed</a><p>Only listed on a third-party site. Call ahead, or help us confirm it.</p></div>
       </div>
     </div>
   </section>
@@ -175,7 +175,7 @@
           <span class="eyebrow">Join the pack</span>
           <h2>Ready for your next adventure?</h2>
           <p>Join the Lanier Leash community and get the best dog-friendly trails, patios and events around Lake Lanier every Thursday.</p>
-          <div class="feat"><span><svg class="ic"><use href="#i-park"/></svg>Places</span><span><svg class="ic"><use href="#i-trail"/></svg>Trails</span><span><svg class="ic"><use href="#i-cal"/></svg>Events</span><span><svg class="ic"><use href="#i-people"/></svg>Community</span></div>
+          <div class="feat"><a href="/places/"><svg class="ic"><use href="#i-park"/></svg>Places</a><a href="/places/?cat=trail"><svg class="ic"><use href="#i-trail"/></svg>Trails</a><a href="/events/"><svg class="ic"><use href="#i-cal"/></svg>Events</a><a href="/pack/"><svg class="ic"><use href="#i-people"/></svg>Community</a></div>
           <form class="joinrow" id="joinForm" novalidate>
             <label class="sr" for="jEmail">Email</label><input id="jEmail" type="email" placeholder="Your email address" autocomplete="email">
             <label class="sr" for="jZip">ZIP</label><input id="jZip" inputmode="numeric" maxlength="5" value="30041" autocomplete="postal-code"><div class="hp" aria-hidden="true"><label>Leave this empty<input name="website" tabindex="-1" autocomplete="off"></label></div>
@@ -247,9 +247,11 @@
   var ic = function (id) { return '<svg class="ic"><use href="#' + id + '"/></svg>'; };
   function catOk(p, c) { return c === "all" || c === "events" || p.category === c || (c === "food" && L.CAT[p.category].group === "food") || (c === "trail" && p.category === "park"); }
   function inR(x) { return x.mi != null && x.mi <= st.r; }
+  /* Events with no map location (e.g. "participating stores") count everywhere, same as the events page. */
+  function inRE(e) { return e.mi == null || e.mi <= st.r; }
   function byDate(a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start_time || "99") < (b.start_time || "99") ? -1 : 1; }
-  function weekendEvents() { var wk = L.weekend(); return EVENTS.filter(function (e) { return inR(e) && e.date <= wk.to && e.last >= wk.from; }); }
-  function upcoming(days) { var end = L.addDays(L.todayISO(), days); return EVENTS.filter(function (e) { return inR(e) && e.date <= end; }); }
+  function weekendEvents() { var wk = L.weekend(); return EVENTS.filter(function (e) { return inRE(e) && e.date <= wk.to && e.last >= wk.from; }); }
+  function upcoming(days) { var end = L.addDays(L.todayISO(), days); return EVENTS.filter(function (e) { return inRE(e) && e.date <= end; }); }
 
   function renderTiles() {
     $("#tiles").innerHTML = CATS.map(function (c) {
@@ -274,12 +276,12 @@
     $("#wkTitle").textContent = label.indexOf("This weekend") === 0 ? "Your weekend, sorted." : "What’s coming up.";
     $("#events").innerHTML = shown.length ? shown.map(function (e) {
       var d = e.date < t ? t : e.date, T = L.TYPE[e.type];
-      return '<div class="ev"><div class="date"><small>' + L.fmtDay(d).slice(0, 3) + '</small><b>' + (+d.slice(8, 10)) + '</b></div><div style="min-width:0"><h4><a href="/events/#' + e.id + '" style="color:inherit;text-decoration:none">' + esc(e.title) + '</a></h4><p class="m">' + esc(L.timeRange(e)) + ' · ' + esc([e.venue, e.town].filter(Boolean).join(", ")) + '</p><p class="rule">' + ic("u-leash") + esc(e.dog_rule || "Dog rule not stated, check with the host") + '</p></div>' +
-        '<div class="r"><span class="mi">' + L.fmtMi(e.mi) + '</span><span class="tag ' + T.cls + '">' + T.label + '</span></div></div>';
+      return '<div class="ev" style="position:relative"><div class="date"><small>' + L.fmtDay(d).slice(0, 3) + '</small><b>' + (+d.slice(8, 10)) + '</b></div><div style="min-width:0"><h4><a class="stretch" href="/events/' + e.id + '/">' + esc(e.title) + '</a></h4><p class="m">' + esc(L.timeRange(e)) + ' · ' + esc([e.venue, e.town].filter(Boolean).join(", ")) + '</p><p class="rule">' + ic("u-leash") + esc(e.dog_rule || "Dog rule not stated, check with the host") + '</p></div>' +
+        '<div class="r"><span class="mi">' + L.fmtMi(e.mi) + '</span><a class="tag ' + T.cls + '" style="position:relative;z-index:2;text-decoration:none" href="/events/?type=' + (e.type === "dog" ? "dog" : "adopt") + '">' + T.label + '</a></div></div>';
     }).join("") : '<p class="empty">No events in the next 30 days yet. <a href="/events/">See all events</a>.</p>';
     var long = EVENTS.filter(function (e) { return e.multi && inR(e) && e.date <= L.addDays(t, 14); }).sort(byDate)[0];
     $("#season").hidden = !long;
-    if (long) $("#seasonTxt").innerHTML = '<b>Ongoing:</b> ' + esc(long.title) + ', ' + esc(long.town) + ' · through ' + L.fmtShort(long.last) + ' · ' + L.fmtMi(long.mi);
+    if (long) $("#seasonTxt").innerHTML = '<b>Ongoing:</b> <a href="/events/' + long.id + '/" style="color:inherit">' + esc(long.title) + '</a>' + ', ' + esc(long.town) + ' · through ' + L.fmtShort(long.last) + ' · ' + L.fmtMi(long.mi);
     return weekendEvents().length;
   }
   function renderPlaces() {
@@ -303,7 +305,7 @@
     document.querySelectorAll(".js-r").forEach(function (n) { n.textContent = st.r; });
     var ne = renderEvents(), np = renderPlaces();
     renderTiles();
-    $("#sum").textContent = ne + (ne === 1 ? " event" : " events") + " this weekend · " + np + " places";
+    $("#sum").innerHTML = '<a href="/events/?when=weekend&amp;r=' + st.r + '">' + ne + (ne === 1 ? " event" : " events") + ' this weekend</a> · <a href="/places/?r=' + st.r + '">' + np + ' places</a>';
     $("#placeCount").textContent = np;
     $("#lakeCount").textContent = PLACES.filter(function (p) { return p.category === "lake" && inR(p); }).length;
     if (PLACES.length) {
@@ -527,6 +529,7 @@
     if (!WX) return;
     var btn = e.target.closest && e.target.closest("#wxDays button");
     if (btn) { SEL = +btn.dataset.i; show(); return; }
+    if (e.target.closest && e.target.closest("#wxRainBtn")) { if (!WEEK) { WEEK = true; show(); } el("wxDays").scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
     if (e.target.closest && e.target.closest("#wxWeek")) {
       WEEK = !WEEK;
       try { localStorage.setItem("ll-wx-week", WEEK ? "1" : "0"); } catch (err) {}
@@ -568,6 +571,7 @@
       el.src = p.photo; el.alt = p.name + ", this week's Pup of the Week";
       el.style.objectFit = "cover";
       document.getElementById("pupK").textContent = "Pup of the week";
+      var pl = document.getElementById("pupL"); pl.href = "/pack/"; pl.textContent = "Meet the pack →";
       document.getElementById("pupB").textContent = [p.name, p.age, p.town].filter(Boolean).join(", ");
       document.getElementById("pupS").textContent = p.story + (p.owner ? " (with " + p.owner + ")" : "");
     };
@@ -586,7 +590,8 @@
     $("isE").textContent = d.count ? d.count + (d.count === 1 ? " event" : " events") + " near " + d.zip : "Events near " + d.zip;
     $("isE2").textContent = d.events.length ? d.events.map(function (e) { return e.title; }).join(" · ") : "A quiet weekend, so the email suggests a trail";
     if (d.wx) $("isW").textContent = d.wx;
-    if (d.place) $("isP").textContent = d.place.name + ", " + d.place.town;
+    if (d.place) { $("isP").textContent = d.place.name + ", " + d.place.town; if (d.place.id) $("isPL").href = "/places/" + d.place.id + "/"; }
+    $("isEL").href = "/events/?when=weekend&r=" + r;
     $("isA").href = "/issue/?zip=" + encodeURIComponent(d.zip) + "&radius=" + d.radius;
   }).catch(function () {});
 })();
