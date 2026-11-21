@@ -176,12 +176,16 @@ export async function featuredPup() {
 // ---------- events ----------
 export const EVENT_COLS = ["date", "end_date", "start_time", "end_time", "title", "type", "venue", "town", "address", "lat", "lng", "cost", "dog_rule", "url", "source_name", "notes", "checked"];
 
-export function listEvents({ status, from, to, limit = 500 } = {}) {
+// Older rows were saved with placeholder wording; show the current phrasing.
+const OLD_RULE = /^not stated,? check with (the )?host\.?$/i;
+function tidyEvent(e) { if (e && e.dog_rule && OLD_RULE.test(e.dog_rule.trim())) e.dog_rule = "No dog rule posted. Ask the host."; return e; }
+
+export async function listEvents({ status, from, to, limit = 500 } = {}) {
   let q = `events?select=*&order=date.asc,start_time.asc&limit=${limit}`;
   if (status && status !== "all") q += `&status=eq.${enc(status)}`;
   if (from) q += `&or=(date.gte.${enc(from)},end_date.gte.${enc(from)})`;
   if (to) q += `&date=lte.${enc(to)}`;
-  return db(q);
+  return (await db(q)).map(tidyEvent);
 }
 
 export async function countEvents() {
@@ -201,7 +205,7 @@ export async function insertEventsIgnoreDupes(rows) {
 
 export async function getEvent(id) {
   const rows = await db(`events?id=eq.${enc(id)}&select=*&limit=1`);
-  return rows[0] || null;
+  return tidyEvent(rows[0] || null);
 }
 
 export async function updateEvent(id, patch) {

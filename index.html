@@ -61,7 +61,7 @@
         <div class="main"><img src="/img/hero.jpg" alt="A golden retriever in a teal pine-tree bandana smiling in Lake Lanier"></div>
         <div class="inset"><img src="/img/bc-splash.jpg" alt="A border collie splashing in the lake"></div>
         <a class="chipcard cc1" href="#conditions" aria-label="See the walk check"><span class="tile-ic"><svg class="ic"><use id="wxChipIc" href="#i-sun"/></svg></span><span><b id="wxChipT">Weekend walk check</b><span id="wxChipS">Loading the forecast…</span></span></a>
-        <a class="chipcard cc2" href="#weekend" aria-label="See dog events near you"><span class="faces"><img src="/img/beagle.jpg" alt=""><img src="/img/dalmatian.jpg" alt=""><img src="/img/frenchie.jpg" alt=""></span><span><b id="evChipN">Events</b><span id="evChipS">near you</span></span></a>
+        <a class="chipcard cc2" href="#weekend" aria-label="See this weekend's dog events"><span class="faces"><img src="/img/beagle.jpg" alt=""><img src="/img/dalmatian.jpg" alt=""><img src="/img/frenchie.jpg" alt=""></span><span><b id="evChipN">Events</b><span id="evChipS">this weekend</span></span></a>
       </div>
     </div>
   </section>
@@ -88,7 +88,7 @@
 
       <div class="bento">
         <article class="card c-events">
-          <div class="cardhead"><div><span class="k">Dog events</span><h3 style="margin-top:6px">Happening near you</h3></div><a class="more" href="/events/">All events<svg class="ic"><use href="#u-arrow"/></svg></a></div>
+          <div class="cardhead"><div><span class="k">Dog events</span><h3 style="margin-top:6px">Coming up</h3></div><a class="more" href="/events/">All events<svg class="ic"><use href="#u-arrow"/></svg></a></div>
           <div class="evlist" id="events"><p class="empty">Loading events…</p></div>
           <p class="seasonal" id="season" hidden><svg class="ic"><use href="#i-sun"/></svg><span id="seasonTxt"></span></p>
         </article>
@@ -128,9 +128,9 @@
           <div class="hdr"><span id="isK">This week's email</span><span>2 min read</span></div>
           <h3 id="isH">Your dog weekend: events, a walk check and places to try</h3>
           <ul>
-            <li><a class="isrow" id="isEL" href="/events/?when=weekend"><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b id="isE">Events near you</b><span id="isE2">This weekend within your radius</span></span></a></li>
+            <li><a class="isrow" id="isEL" href="/events/?when=weekend"><span class="ib"><svg class="ic"><use href="#i-cal"/></svg></span><span><b id="isE">This weekend's events</b><span id="isE2">This weekend within your radius</span></span></a></li>
             <li><a class="isrow" href="#conditions"><span class="ib"><svg class="ic"><use href="#i-sun"/></svg></span><span><b>Walk check</b><span id="isW">Best day, best hours, pavement estimate</span></span></a></li>
-            <li><a class="isrow" id="isPL" href="/places/"><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place to try</b><span id="isP">A dog-friendly spot near you</span></span></a></li>
+            <li><a class="isrow" id="isPL" href="/places/"><span class="ib"><svg class="ic"><use href="#i-park"/></svg></span><span><b>Place to try</b><span id="isP">One spot worth a visit</span></span></a></li>
           </ul>
           <a class="btn btn-out btn-sm" id="isA" href="/issue/" style="width:100%">Read this week's email</a>
         </article>
@@ -196,7 +196,7 @@
       <div class="venue">
         <div>
           <span class="eyebrow" style="color:var(--aqua)">For local businesses</span>
-          <h3 style="margin-top:12px">Run a dog-friendly spot?</h3>
+          <h3 style="margin-top:12px">Own a dog-friendly spot?</h3>
           <p>Claim your free listing and confirm your dog rule. Confirmed venues get the green badge.</p>
           <ul>
             <li><svg class="ic"><use href="#u-check"/></svg>Free listing and event posts</li>
@@ -208,7 +208,7 @@
         <div class="round"><img src="/img/bulldog.jpg" alt="A bulldog relaxing by the lake"></div>
       </div>
       <div class="help">
-        <a href="/adopt/"><span class="tb"><svg class="ic"><use href="#i-home"/></svg></span><span><b>Adopt or foster</b><span>Shelters and rescues near you</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
+        <a href="/adopt/"><span class="tb"><svg class="ic"><use href="#i-home"/></svg></span><span><b>Adopt or foster</b><span>Local shelters and rescues</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
         <a href="/vet-care/"><span class="tb"><svg class="ic"><use href="#i-vet"/></svg></span><span><b>Low-cost vet care</b><span>Spay, neuter and vaccine clinics</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
         <a href="/tips/"><span class="tb"><svg class="ic"><use href="#i-bulb"/></svg></span><span><b>Smart owner tips</b><span>Short, sourced, local advice</span></span><svg class="ic go"><use href="#u-arrow"/></svg></a>
       </div>
@@ -259,7 +259,7 @@
   function renderTiles() {
     $("#tiles").innerHTML = CATS.map(function (c) {
       var n = c.id === "events" ? upcoming(30).length : PLACES.filter(function (p) { return inR(p) && catOk(p, c.id); }).length;
-      return '<button class="tile" type="button" data-c="' + c.id + '" aria-pressed="' + (st.cat === c.id) + '"><span class="tb">' + ic(c.icon) + '</span><span>' + c.label + '<small>' + n + ' near you</small></span></button>';
+      return '<button class="tile" type="button" data-c="' + c.id + '" aria-pressed="' + (st.cat === c.id) + '"><span class="tb">' + ic(c.icon) + '</span><span>' + c.label + '<small>' + n + (c.id === "events" ? " coming up" : n === 1 ? " spot" : " spots") + '</small></span></button>';
     }).join("");
   }
   function renderEvents() {
@@ -318,7 +318,7 @@
       $("#statEvents").textContent = EVENTS.filter(function (e) { return e.date <= L.addDays(L.todayISO(), 30); }).length;
       $("#statTowns").textContent = Object.keys(towns).length;
       var wkn = weekendEvents().length;
-      if (wkn) { $("#evChipN").textContent = wkn + (wkn === 1 ? " event" : " events"); $("#evChipS").textContent = "this weekend near you"; }
+      if (wkn) { $("#evChipN").textContent = wkn + (wkn === 1 ? " event" : " events"); $("#evChipS").textContent = "this weekend"; }
       else {
         var n14 = upcoming(14).length, sub = "in the next two weeks";
         if (!n14) {
@@ -472,9 +472,10 @@
   function render(d) {
     var D = d.daily, n = D.time.length, nowH = nowHour();
     var today = dowOf(D.time[0]);
-    // Fri-Sun: show today and the next two days. Mon-Thu: show the coming Fri, Sat, Sun.
+    // Mon-Thu: the coming Fri, Sat, Sun. Fri: Fri-Sun. Sat: Sat-Sun. Sun: Sunday only. Never spill into Monday.
     var start = (today === 5 || today === 6 || today === 0) ? 0 : (5 - today + 7) % 7;
-    var wknd = [start, start + 1, start + 2].filter(function (i) { return i < n; });
+    var left = today === 6 ? 2 : today === 0 ? 1 : 3;
+    var wknd = [start, start + 1, start + 2].slice(0, left).filter(function (i) { return i < n; });
     if (!wknd.length) throw new Error("no days");
     var week = []; for (var k = 0; k < Math.min(7, n); k++) week.push(k);
     var info = week.concat(wknd).reduce(function (o, i) { if (!o[i]) o[i] = dayInfo(d, i, nowH); return o; }, {});
@@ -610,7 +611,7 @@
     if (!near.length) return;
     var $ = function (id) { return document.getElementById(id); }, p = near[0];
     $("lfStrip").classList.add("on");
-    $("lfStripB").textContent = near.length === 1 ? "Lost near you: " + (p.pet_name || p.headline) : near.length + " lost pets near " + (L.home.zip || "you");
+    $("lfStripB").textContent = near.length === 1 ? "Lost nearby: " + (p.pet_name || p.headline) : near.length + " lost pets near " + (L.home.zip || "you");
     $("lfStripS").textContent = near.length === 1 ? (p.looks ? p.looks + ". " : "") + "Last seen near " + p.last_seen + ", " + p.town + ". Seen them?" : "Help bring them home. " + near.slice(0, 3).map(function (x) { return (x.pet_name || "a " + x.species) + " in " + x.town; }).join(", ") + ".";
     if (p.photo) $("lfStripImg").innerHTML = '<img src="' + L.esc(p.photo) + '" alt="">';
     $("lfStrip").href = near.length === 1 ? "/lost-found/" + encodeURIComponent(p.id) + "/" : "/lost-found/?kind=lost";
