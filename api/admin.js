@@ -7,6 +7,8 @@
 //   POST {action:"place_save", id?, ...fields, publish?, from_submission?} | {action:"place_status", id, status} | {action:"place_delete", id} | {action:"places_import"}
 //   POST {action:"sponsor_save", name, text, url, until, on}
 //   POST {action:"update", id, status?, note?} | {action:"feature", id, on} | {action:"delete", id} | {action:"test_email", to, type, zip, radius}
+import { allFeedback } from "./_lib/db.js";
+import { FLAG_TAGS, TAG_LABEL } from "./_lib/feedback.js";
 import {
   allSubscribers, recentSends, listSubmissions, submissionCounts, getSubmission, updateSubmission,
   deleteSubmission, deletePhoto, signPhotos,
@@ -191,6 +193,16 @@ export default async function handler(req, res) {
         let csvNew = 0;
         try { const have = new Set(all.map((r) => r.id)); csvNew = (await csvPlaces()).filter((p) => !have.has(p.id)).length; } catch {}
         const items = all.filter((r) => r.status === view).map((r) => ({ ...r, mi: r.lat != null ? Math.round(miles(DEFAULT_HOME, r.lat, r.lng) * 10) / 10 : null }));
+        // Reader thumbs and flags, per place (empty if the feedback table isn't set up yet).
+        const fb = {};
+        try {
+          for (const r of await allFeedback()) {
+            const x = fb[r.place_id] || (fb[r.place_id] = { up: 0, down: 0, flags: {} });
+            if (r.vote === 1) x.up++; else x.down++;
+            for (const t of r.tags || []) if (FLAG_TAGS.has(t)) x.flags[TAG_LABEL[t]] = (x.flags[TAG_LABEL[t]] || 0) + 1;
+          }
+        } catch {}
+        for (const it of items) it.fb = fb[it.id] || null;
         return json(res, 200, { ok: true, empty: all.length === 0, counts, csvNew, items, cats: CATS });
       }
       case "place_save": {
@@ -253,7 +265,7 @@ export default async function handler(req, res) {
     }
   } catch (e) {
     log("admin failed", action, e.message);
-    const hint = /(submissions|events|places|settings)/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
+    const hint = /(submissions|events|places|settings|place_feedback)/.test(e.message) && /(column|relation|does not exist|42703|42P01|PGRST)/i.test(e.message)
       ? " The database needs the latest setup: run the newest part of schema.sql in Supabase." : "";
     return json(res, 500, { ok: false, error: "Something went wrong." + hint, detail: e.message.slice(0, 300) });
   }

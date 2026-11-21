@@ -105,6 +105,7 @@
         </div>
         <select id="plCat" aria-label="Category"><option value="all">All categories</option></select>
         <input id="plQ" type="search" placeholder="Search name, town, rule" aria-label="Search places" style="max-width:240px">
+        <label class="small" style="display:inline-flex;gap:6px;align-items:center;white-space:nowrap"><input type="checkbox" id="plFlag">Reader flags only <span id="plFlagN"></span></label>
         <button class="btn btn-sm btn-coral" id="plAdd" type="button" style="margin-left:auto">+ Add place</button>
       </div>
       <p class="fine" id="plHelp"></p>
@@ -559,6 +560,7 @@
   chips("#plF", function (v) { pl.view = v; loadPlaces(); });
   $("#plCat").addEventListener("change", renderPlaces);
   $("#plQ").addEventListener("input", renderPlaces);
+  $("#plFlag").addEventListener("change", renderPlaces);
   function fillCats(cats) {
     if (pl.cats) return; pl.cats = cats;
     var o = Object.keys(cats).map(function (k) { return '<option value="' + k + '">' + esc(cats[k].label) + "</option>"; }).join("");
@@ -581,10 +583,16 @@
   function renderPlaces() {
     var cat = $("#plCat").value, q = $("#plQ").value.trim().toLowerCase();
     var rows = pl.items.filter(function (x) { return (cat === "all" || x.category === cat) && (!q || [x.name, x.town, x.dog_rule, x.address].join(" ").toLowerCase().indexOf(q) >= 0); });
+    if ($("#plFlag").checked) rows = rows.filter(function (x) { return x.fb && (Object.keys(x.fb.flags).length || x.fb.down > x.fb.up); });
+    var nf = pl.items.filter(function (x) { return x.fb && Object.keys(x.fb.flags).length; }).length;
+    $("#plFlagN").textContent = nf ? "(" + nf + ")" : "";
     $("#plList").innerHTML = rows.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr><th>Place</th><th>Dog rule</th><th>Checked</th><th></th></tr></thead><tbody>' + rows.map(function (x) {
       var c = pl.cats && pl.cats[x.category];
       return '<tr data-id="' + esc(x.id) + '"><td><b>' + esc(x.name) + '</b><br><small class="muted">' + esc((c ? c.short : x.category) + " · " + (x.town || "")) + (x.mi != null ? " · " + x.mi + " mi" : "") + "</small>" +
         (x.lat == null ? '<br><span class="sb sb-pending" title="No map pin, so it won\'t show in distance searches">No location</span>' : "") +
+        (x.fb ? '<br><small class="muted">Readers: ' + x.fb.up + ' up · ' + x.fb.down + ' heads-up</small>' : "") +
+        (x.fb ? Object.keys(x.fb.flags).map(function (k) { return '<br><span class="sb sb-unsubscribed">⚑ ' + esc(k) + " (" + x.fb.flags[k] + ")</span>"; }).join("") : "") +
+        (x.fb && x.badge === "unconfirmed" && x.fb.up >= 3 && !Object.keys(x.fb.flags).length ? '<br><span class="sb sb-active" title="Edit the place and set the badge to Readers say yes">' + x.fb.up + ' readers say yes: consider the Readers badge</span>' : "") +
         '</td><td class="rulec">' + esc(x.dog_rule || "") + '<br><span class="sb sb-' + (x.badge === "official" || x.badge === "venue" ? "active" : x.badge === "nodogs" ? "unsubscribed" : "pending") + '">' + BADGE_L[x.badge] + "</span>" +
         (x.source_url ? ' <a class="small" href="' + esc(x.source_url) + '" target="_blank" rel="noopener">Source</a>' : "") +
         '</td><td class="nw">' + (x.checked ? fmtD(x.checked) : "") + '</td><td class="nw acts2">' +

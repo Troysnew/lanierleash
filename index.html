@@ -48,9 +48,9 @@
         <p class="formnote"><svg class="ic"><use href="#u-lock"/></svg>Thursday mornings · Never sold · One-click unsubscribe · <a href="/privacy/">Privacy</a></p>
         <p class="msg" id="heroMsg" hidden role="status"></p>
         <div class="stats">
-          <div class="stat"><b id="statPlaces">&nbsp;</b><span>dog-friendly places</span></div>
-          <div class="stat"><b id="statEvents">&nbsp;</b><span>events in the next 30 days</span></div>
-          <div class="stat"><b id="statTowns">&nbsp;</b><span>towns covered</span></div>
+          <a class="stat" href="/places/"><b id="statPlaces">&nbsp;</b><span>dog-friendly places</span></a>
+          <a class="stat" href="/events/"><b id="statEvents">&nbsp;</b><span>events in the next 30 days</span></a>
+          <a class="stat" href="/places/#map"><b id="statTowns">&nbsp;</b><span>towns covered</span></a>
         </div>
       </div>
       <div class="visual">
@@ -112,6 +112,7 @@
 
         <article class="card c-photo photo-card">
           <img src="/img/golden-sunset.jpg" alt="A golden retriever in Lake Lanier at sunset">
+          <a class="cover" href="/places/?cat=lake" aria-label="See lake access spots"></a>
           <div class="cap"><span class="k">Lake access</span><b>Swim spots and sunset docks</b><span><span id="lakeCount">2</span> lake spots within your radius</span></div>
         </article>
 
@@ -133,17 +134,19 @@
         </article>
 
         <article class="card c-map">
+          <a class="cover" href="/places/" aria-label="See every place and the map"></a>
           <div class="t">
             <span class="k">Checked and dated</span>
             <b id="placeCount">&nbsp;</b>
-            <span>places within <span class="js-r">15</span> mi, each with the date we last checked</span>
+            <span>places within <span class="js-r">25</span> mi, each with the date we last checked</span>
+            <span class="more" style="padding:0;margin-top:6px">See the list and map<svg class="ic"><use href="#u-arrow"/></svg></span>
           </div>
           <img src="/img/lake-map.png" alt="Outline of Lake Lanier">
         </article>
 
         <article class="card c-sun">
           <svg class="ic"><use href="#i-adopt"/></svg>
-          <div><b id="adoptN">Adopt or foster</b><span>Rescues list free, always. <a href="/events/" style="color:inherit;font-weight:700">See adoption events</a></span></div>
+          <div><b><a href="/adopt/" style="color:inherit;text-decoration:none" id="adoptN">Adopt or foster</a></b><span>Rescues list free, always. <a href="/events/?type=adopt" style="color:inherit;font-weight:700">See adoption events</a></span></div>
         </article>
       </div>
     </div>
@@ -284,8 +287,8 @@
     var list = PLACES.filter(function (p) { return inR(p) && catOk(p, cat); }).sort(function (a, b) { return a.mi - b.mi; }).slice(0, 12);
     $("#track").innerHTML = list.length ? list.map(function (p, i) {
       var b = L.BADGE[p.status];
-      return '<article class="pc"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat">' + ic(L.CAT[p.category].icon) + '</span></div>' +
-        '<div class="bd"><h3><a href="/places/#' + p.id + '" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a></h3><p class="town">' + esc(p.town) + '</p><p class="rule">' + ic("u-leash") + '<span>' + esc(p.dog_rule) + '</span></p>' +
+      return '<article class="pc" style="position:relative"><div class="ph"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy"><span class="mi">' + L.fmtMi(p.mi) + '</span><span class="cat">' + ic(L.CAT[p.category].icon) + '</span></div>' +
+        '<div class="bd"><h3><a class="stretch" href="/places/' + p.id + '/" style="color:inherit;text-decoration:none">' + esc(p.name) + '</a></h3><p class="town">' + esc(p.town) + '</p><p class="rule">' + ic("u-leash") + '<span>' + esc(p.dog_rule) + '</span></p>' +
         '<div class="st"><span class="badge ' + b.cls + '">' + ic(b.icon) + b.label + '</span><span class="chk">' + esc(L.fmtChecked(p.checked).replace(/, \d{4}$/, "")) + '</span></div></div></article>';
     }).join("") : '<p class="empty">' + (PLACES.length ? 'Nothing in this category within ' + st.r + ' miles yet. <a href="/places/">See all places</a>.' : 'Loading places…') + '</p>';
     var label = CATS.filter(function (c) { return c.id === cat; })[0];

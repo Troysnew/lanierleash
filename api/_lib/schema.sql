@@ -114,3 +114,19 @@ alter table public.submissions add constraint submissions_type_check check (type
 -- Readers can pick 35 miles.
 alter table public.subscribers drop constraint if exists subscribers_radius_check;
 alter table public.subscribers add constraint subscribers_radius_check check (radius in (5, 10, 15, 25, 35));
+
+-- ---------- Place feedback (added later; safe to run again) ----------
+-- Thumbs up/down plus preset tags on each place page. One row per visitor per place.
+-- "voter" is a salted hash of the visitor's IP, never the IP itself.
+create table if not exists public.place_feedback (
+  id uuid primary key default gen_random_uuid(),
+  place_id text not null,
+  vote smallint not null check (vote in (1, -1)),
+  tags text[] not null default '{}',
+  voter text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (place_id, voter)
+);
+create index if not exists place_feedback_place_idx on public.place_feedback (place_id);
+alter table public.place_feedback enable row level security;

@@ -84,6 +84,7 @@
 (function () {
   var L = window.LL, $ = function (s) { return document.querySelector(s); };
   var st = { when: "30", type: "all", q: "" };
+  (function () { var t = new URLSearchParams(location.search).get("type"); if (t === "dog" || t === "adopt") st.type = t; })();
   try { var w = localStorage.getItem("ll-ev-when"); if (w) st.when = JSON.parse(w); } catch (e) {}
   var DATA = null;
   L.initMenu();

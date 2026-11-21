@@ -263,3 +263,20 @@ export async function setSetting(key, value) {
 export function approvedPups(limit = 120) {
   return db(`submissions?type=eq.pup&status=in.(approved,done)&photo_path=not.is.null&select=id,data,photo_path,featured_at,created_at&order=created_at.desc&limit=${limit}`);
 }
+
+// ---------- Place feedback (thumbs + preset tags) ----------
+export function feedbackFor(placeId) {
+  return db(`place_feedback?place_id=eq.${enc(placeId)}&select=vote,tags,voter&limit=5000`);
+}
+export function recentFeedbackBy(voter, sinceIso) {
+  return db(`place_feedback?voter=eq.${enc(voter)}&updated_at=gte.${enc(sinceIso)}&select=place_id`);
+}
+export function saveFeedback(row) {
+  return db("place_feedback?on_conflict=place_id,voter", { method: "POST", body: [{ ...row, updated_at: new Date().toISOString() }], prefer: "return=minimal,resolution=merge-duplicates" });
+}
+export function deleteFeedback(placeId, voter) {
+  return db(`place_feedback?place_id=eq.${enc(placeId)}&voter=eq.${enc(voter)}`, { method: "DELETE" });
+}
+export function allFeedback() {
+  return db("place_feedback?select=place_id,vote,tags,updated_at&order=updated_at.desc&limit=20000");
+}

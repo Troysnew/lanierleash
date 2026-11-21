@@ -40,3 +40,9 @@ Environment variables (Vercel → Settings → Environment Variables): `SUPABASE
 ## Weekly event research
 
 A scheduled Claude task (Mondays, 6 AM, on the computer running the Claude app) researches upcoming dog events and posts them to `/api/suggest`. That endpoint only adds drafts to Events → Suggested, using the `SUGGEST_KEY` environment variable in Vercel.
+
+## Reader feedback on places
+
+Every place page has a "Been here with your dog?" box: thumbs up ("Good for dogs") or down ("Heads-up"), then tags picked from a fixed list (`api/_lib/feedback.js`). There's no free text, so nothing needs moderating. One vote per visitor per place, identified by a salted hash of the IP (never the IP itself), capped at 30 places an hour. Votes are stored in `place_feedback` (see `schema.sql`).
+
+In `/admin/` → Places, each place shows its reader counts. Flags like "Dogs not allowed anymore", "Rule is different than listed" and "Closed or moved" show in red, and the "Reader flags only" box filters to those. Unconfirmed places with 3+ thumbs up and no flags get a hint to switch them to the Readers say yes badge.
