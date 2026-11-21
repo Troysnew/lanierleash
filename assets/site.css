@@ -655,8 +655,8 @@ a.stat:hover span { color: var(--teal); text-decoration: underline; text-underli
 /* Event card links */
 .evcard h3 a { color: inherit; text-decoration: none; }
 .evcard h3 a:hover { color: var(--teal); text-decoration: underline; text-underline-offset: 3px; }
-.evcard .m a.venue { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
-.evcard .m a.venue:hover { color: var(--teal); }
+.evcard .m a.vlink { color: inherit; text-decoration: none; border-bottom: 1px dotted currentColor; }
+.evcard .m a.vlink:hover { color: var(--teal); }
 .evcard .side a.mi { text-decoration: none; color: inherit; }
 .evcard .side a.mi:hover { color: var(--teal); }
 button.tag { border: 0; font-family: inherit; cursor: pointer; }
@@ -696,3 +696,45 @@ a.badge:hover { filter: brightness(.96); text-decoration: underline; }
 .orgf button[aria-pressed="true"] { background: var(--navy); color: #fff; border-color: var(--navy); }
 .tip .rel { margin-top: 12px; font-size: 14px; padding: 10px 14px; background: var(--mint); border-radius: 14px; }
 .tip .rel a { font-weight: 700; }
+
+/* Use my location */
+.locbtn { flex: none; width: 34px; height: 34px; border-radius: 50%; border: 1.5px solid var(--line); background: #fff; color: var(--teal); display: inline-grid; place-items: center; cursor: pointer; margin-left: 6px; padding: 0; }
+.locbtn:hover { background: var(--mint); border-color: var(--teal); }
+.locbtn.busy svg { animation: locspin 1s linear infinite; }
+@keyframes locspin { to { transform: rotate(360deg); } }
+.fld .locbtn { position: absolute; right: 6px; bottom: 6px; width: 28px; height: 28px; }
+.fld:has(.locbtn) { position: relative; }
+.fld:has(.locbtn) input { padding-right: 34px; }
+
+/* Events map */
+.countrow { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.mapbox.evmap { position: relative; top: 0; height: auto; min-height: 0; margin-bottom: 18px; }
+.evmap #evmap { height: 380px; border-radius: inherit; }
+.pin.event.adopt { background: #7C4DBA; }
+@media (max-width: 700px) { .evmap #evmap { height: 300px; } }
+
+.evcard .repeat { font-size: 13.5px; display: flex; gap: 7px; align-items: flex-start; margin-top: 6px; color: var(--slate); }
+.evcard .repeat .ic { color: var(--teal); font-size: 16px; margin-top: 2px; }
+.evcard .repeat a { color: var(--teal); font-weight: 700; }
+
+.countacts { display: inline-flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.subcal { position: relative; }
+.subcal summary { list-style: none; cursor: pointer; }
+.subcal summary::-webkit-details-marker { display: none; }
+.subpop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 20; width: min(320px, 86vw); background: #fff; border-radius: 18px; box-shadow: var(--sh-lg); padding: 16px; display: grid; gap: 8px; font-size: 14px; }
+.subpop small { color: var(--muted); }
+
+/* Hours and Open now */
+.hoursbox { margin: 18px 0 4px; padding: 16px 20px; border-radius: 20px; background: var(--white); box-shadow: var(--sh); display: grid; gap: 6px; }
+.hoursbox p { font-size: 15px; color: var(--slate); }
+.hoursbox small { color: var(--muted); font-size: 12.5px; }
+.openst { display: inline-block; font-size: 12.5px; font-weight: 800; padding: 3px 10px; border-radius: 999px; margin-right: 8px; }
+.openst.on { background: #DDF5E6; color: #146C3A; }
+.openst.off { background: #F1F3F5; color: #5B6B7B; }
+.pl .openst { margin: 0; }
+.openchip i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #23A55A; margin-right: 6px; }
+/* Emergency vets */
+.erblk { background: linear-gradient(180deg, #FFF4F2, transparent); }
+.erblk .eyebrow { color: var(--coral-btn); }
+.h3s { font-size: 19px; margin: 22px 0 10px; color: var(--navy); }
+.ercall { margin-top: 8px; }

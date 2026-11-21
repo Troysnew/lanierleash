@@ -271,12 +271,12 @@
       }
     }
     list.sort(byDate);
-    var shown = list.slice(0, 6);
+    var shown = L.groupRepeats(list).slice(0, 6);
     $("#wkLbl").textContent = label;
     $("#wkTitle").textContent = label.indexOf("This weekend") === 0 ? "Your weekend, sorted." : "What’s coming up.";
     $("#events").innerHTML = shown.length ? shown.map(function (e) {
       var d = e.date < t ? t : e.date, T = L.TYPE[e.type];
-      return '<div class="ev" style="position:relative"><div class="date"><small>' + L.fmtDay(d).slice(0, 3) + '</small><b>' + (+d.slice(8, 10)) + '</b></div><div style="min-width:0"><h4><a class="stretch" href="/events/' + e.id + '/">' + esc(e.title) + '</a></h4><p class="m">' + esc(L.timeRange(e)) + ' · ' + esc([e.venue, e.town].filter(Boolean).join(", ")) + '</p><p class="rule">' + ic("u-leash") + esc(e.dog_rule || "Dog rule not stated, check with the host") + '</p></div>' +
+      return '<div class="ev" style="position:relative"><div class="date"><small>' + L.fmtDay(d).slice(0, 3) + '</small><b>' + (+d.slice(8, 10)) + '</b></div><div style="min-width:0"><h4><a class="stretch" href="/events/' + e.id + '/">' + esc(e.title) + '</a></h4><p class="m">' + (e.every ? '<b>' + esc(e.every) + '</b> · ' : e.more && e.more.length ? '<b>+' + e.more.length + ' more dates</b> · ' : '') + esc(L.timeRange(e)) + ' · ' + esc([e.venue, e.town].filter(Boolean).join(", ")) + '</p><p class="rule">' + ic("u-leash") + esc(e.dog_rule || "Dog rule not stated, check with the host") + '</p></div>' +
         '<div class="r"><span class="mi">' + L.fmtMi(e.mi) + '</span><a class="tag ' + T.cls + '" style="position:relative;z-index:2;text-decoration:none" href="/events/?type=' + (e.type === "dog" ? "dog" : "adopt") + '">' + T.label + '</a></div></div>';
     }).join("") : '<p class="empty">No events in the next 30 days yet. <a href="/events/">See all events</a>.</p>';
     var long = EVENTS.filter(function (e) { return e.multi && inR(e) && e.date <= L.addDays(t, 14); }).sort(byDate)[0];
@@ -342,6 +342,7 @@
   });
   document.querySelectorAll(".seg button").forEach(function (b) { b.addEventListener("click", function () { setR(+b.dataset.r); }); });
   $("#hRad").addEventListener("change", function (e) { setR(+e.target.value); });
+  L.initLocate(["hZip"]);
   $("#hZip").addEventListener("input", function (e) {
     var z = e.target.value.trim(); if (!/^\d{5}$/.test(z)) return;
     L.setZip(z).then(function () { st.zip = z; $("#jZip").value = z; render(); }).catch(function () {});

@@ -213,6 +213,8 @@
       <div><label for="p-checked">Checked on</label><input id="p-checked" type="date"></div>
       <div><label for="p-website">Website</label><input id="p-website" type="url" maxlength="600" placeholder="https://"></div>
       <div><label for="p-phone">Phone</label><input id="p-phone" maxlength="40"></div>
+      <div class="full"><label for="p-hours_text">Hours (for people)</label><input id="p-hours_text" maxlength="300" placeholder="Mon–Thu 11 AM–9 PM; Fri–Sat 11 AM–10 PM"></div>
+      <div class="full"><label for="p-hours">Hours (for the Open now label)</label><input id="p-hours" maxlength="300" placeholder="Mo-Th 11:00-21:00; Fr-Sa 11:00-22:00; Su 11:00-20:00"><small>Days Mo Tu We Th Fr Sa Su, 24-hour times, rules separated by ; · Leave blank if hours vary.</small></div>
       <div class="full"><label for="p-notes">Short note (one line, shown on cards)</label><input id="p-notes" maxlength="300"></div>
       <div class="full"><label for="p-description">Longer description (shown on the place's own page)</label><textarea id="p-description" rows="3" maxlength="2000"></textarea></div>
       <div><label for="p-lat">Latitude</label><input id="p-lat" inputmode="decimal" placeholder="Found automatically"></div>
@@ -574,8 +576,8 @@
       fillCats(d.cats);
       var c = d.counts || {};
       $("#plN1").textContent = c.published ? "(" + c.published + ")" : ""; $("#plN2").textContent = c.draft ? "(" + c.draft + ")" : ""; $("#plN3").textContent = c.hidden ? "(" + c.hidden + ")" : "";
-      $("#plSetup").hidden = !(d.empty || d.csvNew);
-      $("#plSetupH").textContent = d.empty ? "Set up the places directory." : d.csvNew + " new places in places.csv.";
+      $("#plSetup").hidden = !(d.empty || d.csvNew || d.csvFill);
+      $("#plSetupH").textContent = d.empty ? "Set up the places directory." : [d.csvNew ? d.csvNew + " new places" : "", d.csvFill ? "phone or hours for " + d.csvFill + " places" : ""].filter(Boolean).join(" and ") + " in places.csv.";
       $("#plSetupT").textContent = d.empty ? "Move the site's current places into the admin so you can edit them here. The site keeps using places.csv until you do." : "Add them to the directory. Places you've already edited here stay as they are.";
       pl.items = d.items; renderPlaces();
     }).catch(function () {});
@@ -612,9 +614,9 @@
   });
   $("#plImport").addEventListener("click", function () {
     var b = this; b.disabled = true; b.textContent = "Importing…";
-    api("places_import", { body: {} }).then(function (d) { if (!d.ok) return alert(d.error); alert("Added " + d.count + " places."); loadPlaces(); }).catch(function () {}).then(function () { b.disabled = false; b.textContent = "Import places"; });
+    api("places_import", { body: {} }).then(function (d) { if (!d.ok) return alert(d.error); alert("Added " + d.count + " places" + (d.filled ? ", and filled in phone or hours for " + d.filled : "") + "."); loadPlaces(); }).catch(function () {}).then(function () { b.disabled = false; b.textContent = "Import places"; });
   });
-  var PF = ["name", "category", "badge", "town", "address", "dog_rule", "source_url", "source_name", "checked", "website", "phone", "notes", "description", "lat", "lng"];
+  var PF = ["name", "category", "badge", "town", "address", "dog_rule", "source_url", "source_name", "checked", "website", "phone", "hours", "hours_text", "notes", "description", "lat", "lng"];
   function openPlace(x, prefill) {
     if (!pl.cats) { loadPlaces(); return alert("One moment, still loading categories. Try again."); }
     pl.editing = x || null; pl.fromSub = prefill && prefill.from_submission || null;

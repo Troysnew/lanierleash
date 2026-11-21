@@ -53,12 +53,13 @@
         <button class="chip" type="button" data-type="dog"><svg class="ic"><use href="#i-cal"/></svg>Dog events</button>
         <button class="chip" type="button" data-type="adopt"><svg class="ic"><use href="#i-adopt"/></svg>Adoption &amp; foster</button>
       </div>
-      <p class="count" id="count" aria-live="polite"></p>
+      <div class="countrow"><p class="count" id="count" aria-live="polite"></p><span class="countacts"><details class="subcal"><summary class="lnk"><svg class="ic"><use href="#i-cal"/></svg>Subscribe</summary><div class="subpop"><p><b>Get every new dog event in your calendar.</b> It updates by itself.</p><a class="btn btn-coral btn-sm" id="subApple" href="webcal://lanierleash.com/events.ics">Apple / Outlook</a><a class="btn btn-out btn-sm" id="subGoogle" href="https://calendar.google.com/calendar/r?cid=webcal://lanierleash.com/events.ics" target="_blank" rel="noopener">Google Calendar</a><small>Only adoption events? Use <a href="/events.ics?type=adopt">this feed</a>.</small></div></details><button type="button" class="lnk" id="mapBtn" aria-expanded="false" aria-controls="evmapbox"><svg class="ic"><use href="#u-pin"/></svg><span>Show map</span></button></span></div>
     </div>
   </section>
 
   <section class="blk" style="padding-top:8px">
     <div class="wrap">
+      <div class="mapbox evmap" id="evmapbox" hidden><div id="evmap" role="region" aria-label="Map of events"></div></div>
       <div class="evpage" id="list"><p class="loading">Loading events…</p></div>
       <p class="note"><b>Know an event we missed?</b> <a href="/submit/?type=event">Send it to us</a>. Each event links to the page where we found it. Details change, so check the organizer's page before you go. Distances are straight-line miles from your ZIP. Events that run for several days are listed once, under the day they start.</p>
     </div>
@@ -103,6 +104,7 @@
   }
   var DATA = null;
   L.initMenu();
+  L.initLocate(["zip"]);
   $("#zip").value = L.home.zip;
 
   function inWindow(e) {
@@ -117,6 +119,52 @@
     if (!st.q) return true;
     return [e.title, e.venue, e.town, e.dog_rule, e.notes].join(" ").toLowerCase().indexOf(st.q) >= 0;
   }
+  // Events map: loads the map library only when someone opens it.
+  var LIST = [], emap = null, elayer = null;
+  function loadLeaflet() {
+    if (window.L && window.L.map) return Promise.resolve();
+    return new Promise(function (ok, bad) {
+      var css = document.createElement("link"); css.rel = "stylesheet"; css.href = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"; document.head.appendChild(css);
+      var js = document.createElement("script"); js.src = "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"; js.onload = ok; js.onerror = bad; document.head.appendChild(js);
+    });
+  }
+  function drawMap() {
+    if (!emap) return;
+    var W = window.L, esc = L.esc, pts = [];
+    elayer.clearLayers();
+    var home = W.marker([L.home.lat, L.home.lng], { icon: W.divIcon({ className: "", html: '<div class="pin home"></div>', iconSize: [30, 30], iconAnchor: [15, 30] }), zIndexOffset: 1000 }).addTo(elayer).bindPopup("<b>ZIP " + esc(L.home.zip) + "</b>");
+    pts.push([L.home.lat, L.home.lng]);
+    var seen = {};
+    LIST.forEach(function (e) {
+      if (e.mi == null) return;
+      var k = (+e.lat).toFixed(4) + "," + (+e.lng).toFixed(4);
+      if (seen[k]) { seen[k].items.push(e); return; }
+      var m = W.marker([+e.lat, +e.lng], { icon: W.divIcon({ className: "", html: '<div class="pin event' + (e.type !== "dog" ? " adopt" : "") + '"></div>', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -28] }), title: e.title }).addTo(elayer);
+      seen[k] = { m: m, items: [e] }; pts.push([+e.lat, +e.lng]);
+    });
+    Object.keys(seen).forEach(function (k) {
+      var g = seen[k], v = g.items[0];
+      g.m.bindPopup("<b>" + esc(v.venue || v.town || "") + "</b>" + g.items.slice(0, 6).map(function (e) { return '<br><a href="/events/' + e.id + '/">' + esc(L.fmtShort(e.date) + ": " + e.title) + "</a>"; }).join("") + (g.items.length > 6 ? "<br>+" + (g.items.length - 6) + " more" : ""));
+    });
+    if (pts.length > 1) emap.fitBounds(pts, { padding: [24, 24], maxZoom: 13 }); else emap.setView(pts[0], 11);
+  }
+  function openMap(open) {
+    $("#evmapbox").hidden = !open; $("#mapBtn").setAttribute("aria-expanded", String(open));
+    $("#mapBtn span").textContent = open ? "Hide map" : "Show map";
+    try { localStorage.setItem("ll-ev-map", open ? "1" : "0"); } catch (e) {}
+    if (!open) return;
+    loadLeaflet().then(function () {
+      if (!emap) {
+        emap = window.L.map("evmap", { scrollWheelZoom: false });
+        window.L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 18, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' }).addTo(emap);
+        elayer = window.L.layerGroup().addTo(emap);
+        emap.on("click", function () { emap.scrollWheelZoom.enable(); });
+      }
+      emap.invalidateSize(); drawMap();
+    }).catch(function () { $("#evmapbox").innerHTML = '<p class="loading" style="padding:20px">The map couldn’t load. The list still works.</p>'; });
+  }
+  $("#mapBtn").addEventListener("click", function () { openMap($("#evmapbox").hidden); });
+  try { if (localStorage.getItem("ll-ev-map") === "1" || QS.get("map") === "1") setTimeout(function () { openMap(true); }, 0); } catch (e) {}
   function dirs(e) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([e.venue, e.address || (e.town ? e.town + ", GA" : "")].filter(Boolean).join(", ")); }
   function card(e) {
     var T = L.TYPE[e.type], esc = L.esc, ic = L.ic;
@@ -125,9 +173,10 @@
     return '<article class="evcard" id="' + e.id + '">' +
       '<div class="when">' + esc(when) + (sub && sub !== "Time TBA" ? "<small>" + esc(sub) + "</small>" : "") + "</div>" +
       '<div style="min-width:0"><h3><a href="/events/' + e.id + '/">' + esc(e.title) + "</a></h3>" +
-      '<p class="m">' + (e.venue || e.town ? '<a class="venue" href="' + esc(dirs(e)) + '" target="_blank" rel="noopener">' + esc([e.venue, e.town].filter(Boolean).join(" · ")) + "</a>" : "") + (e.cost ? " · " + esc(e.cost) : "") + "</p>" +
+      '<p class="m">' + (e.venue || e.town ? '<a class="vlink" href="' + esc(dirs(e)) + '" target="_blank" rel="noopener">' + esc([e.venue, e.town].filter(Boolean).join(" · ")) + "</a>" : "") + (e.cost ? " · " + esc(e.cost) : "") + "</p>" +
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(e.dog_rule || "Dog rule not stated, check with the host") + "</span></p>" +
       (e.notes ? '<p class="src">' + esc(e.notes) + "</p>" : "") +
+      (e.more && e.more.length ? '<p class="repeat">' + ic("i-cal") + "<span><b>" + esc(e.every || "Also on") + "</b>" + (e.every ? " · also " : " ") + e.more.slice(0, 5).map(function (x) { return '<a href="/events/' + x.id + '/">' + esc(L.fmtShort(x.date)) + "</a>"; }).join(", ") + (e.more.length > 5 ? " and " + (e.more.length - 5) + " more" : "") + "</span></p>" : "") +
       '<div class="acts"><a class="lnk" href="/events/' + e.id + '/">' + ic("u-arrow") + "Details</a>" + (e.venue || e.town ? '<a class="lnk" href="' + esc(dirs(e)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>" : "") + (e.url ? '<a class="lnk" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Organizer's page</a>" : "") +
       '<button class="lnk" type="button" data-ics="' + e.id + '">' + ic("i-cal") + "Add to calendar</button>" +
       '<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(e.title + " (" + L.fmtShort(e.date) + ")") + '&amp;ref=event:' + encodeURIComponent(e.id) + '">Something wrong?</a></div>' +
@@ -145,7 +194,7 @@
     var list = DATA.events.filter(function (e) { return (e.mi == null || e.mi <= r) && inWindow(e) && matches(e); })
       .sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.start_time || "99") < (b.start_time || "99") ? -1 : 1; });
     var t = L.todayISO(), groups = {}, order = [];
-    list.forEach(function (e) { var k = e.date < t ? t : e.date; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(e); });
+    L.groupRepeats(list).forEach(function (e) { var k = e.date < t ? t : e.date; if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(e); });
     order.sort();
     $("#list").innerHTML = list.length ? order.map(function (k) {
       var tag = k === t ? "Today" : k === L.addDays(t, 1) ? "Tomorrow" : "";
@@ -153,6 +202,7 @@
     }).join("") : '<p class="empty">No events match within ' + r + " miles of " + L.esc(L.home.zip) + ". Try a wider radius or a longer time range.</p>";
     var label = st.when === "weekend" ? "this weekend" : st.when === "30" ? "in the next 30 days" : "coming up";
     syncURL();
+    LIST = list; drawMap();
     $("#count").textContent = list.length + (list.length === 1 ? " event " : " events ") + label + " within " + r + " miles of " + L.home.zip;
   }
 

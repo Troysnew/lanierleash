@@ -20,11 +20,11 @@ export const CATS = {
   stay: { label: "Hotels & stays", short: "Stay", group: "stays" },
 };
 export const BADGES = ["venue", "official", "readers", "unconfirmed", "nodogs"];
-export const PLACE_COLS = ["id", "name", "category", "town", "address", "lat", "lng", "dog_rule", "status", "source_url", "source_name", "website", "phone", "notes", "description", "checked"];
+export const PLACE_COLS = ["id", "name", "category", "town", "address", "lat", "lng", "dog_rule", "status", "source_url", "source_name", "website", "phone", "hours", "hours_text", "notes", "description", "checked"];
 
 export const normCat = (c) => (c === "dine" ? "restaurant" : CATS[c] ? c : "park");
 const ISO = /^\d{4}-\d{2}-\d{2}$/;
-const LIMITS = { name: 150, town: 80, address: 200, dog_rule: 400, source_url: 600, source_name: 120, website: 600, phone: 40, notes: 300, description: 2000 };
+const LIMITS = { name: 150, town: 80, address: 200, dog_rule: 400, source_url: 600, source_name: 120, website: 600, phone: 40, hours: 300, hours_text: 300, notes: 300, description: 2000 };
 
 // Returns { ok, place } or { ok:false, error, field }. "badge" is how we know the dog rule.
 export function cleanPlace(input) {
@@ -40,6 +40,8 @@ export function cleanPlace(input) {
   const lat = input.lat === "" || input.lat == null ? null : +input.lat, lng = input.lng === "" || input.lng == null ? null : +input.lng;
   p.lat = Number.isFinite(lat) ? lat : null; p.lng = Number.isFinite(lng) ? lng : null;
   p.checked = ISO.test(input.checked || "") ? input.checked : etParts().date;
+  // Leave empty hours out, so saving still works on a database that doesn't have the hours columns yet.
+  for (const k of ["hours", "hours_text"]) if (p[k] == null) delete p[k];
   return { ok: true, place: p };
 }
 

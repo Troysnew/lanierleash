@@ -42,7 +42,7 @@ export default async function handler(req, res) {
     .map((x) => ({ ...x, mi: miles({ lat: +p.lat, lng: +p.lng }, x.lat, x.lng) })).filter((x) => x.mi != null && x.mi <= 15).sort((a, z) => a.mi - z.mi) : [];
   const sameKind = near.filter((x) => x.category === p.category).slice(0, 4);
   const other = near.filter((x) => x.category !== p.category && !sameKind.includes(x)).slice(0, 4);
-  const nearCard = (x) => `<a class="nearby" href="/places/${encodeURIComponent(x.id)}/"><span class="cat">${ic(ICON[x.category] || "i-park")}</span><span><b>${esc(x.name)}</b><small>${esc((CATS[x.category] || CATS.park).short)} · ${esc(x.town)} · ${fmtMi(x.mi)} away</small></span></a>`;
+  const nearCard = (x) => `<a class="nearby" href="/places/${encodeURIComponent(x.id)}/"><span class="cat">${ic(ICON[x.category] || "i-park")}</span><span><b>${esc(x.name)}</b><small>${esc((CATS[x.category] || CATS.park).short)} · ${esc(x.town)} · ${x.mi < 0.1 ? "next door" : fmtMi(x.mi) + " away"}</small></span></a>`;
 
   const isNo = p.status === "nodogs";
   const title = isNo ? `${p.name}, ${p.town}: are dogs allowed? · Lanier Leash` : `${p.name}, ${p.town}: dog-friendly ${c.short.toLowerCase()} · Lanier Leash`;
@@ -79,6 +79,7 @@ export default async function handler(req, res) {
     </div>
     ${p.description ? `<div class="prose">${esc(p.description).split(/\n{2,}/).map((x) => `<p>${x}</p>`).join("")}</div>` : p.notes ? `<p class="prose">${esc(p.notes)}</p>` : ""}
     <div class="acts big">${links}</div>
+    ${p.hours_text || p.hours ? `<div class="hoursbox" data-hours="${esc(p.hours || "")}"><span class="eyebrow">Hours</span><p><b class="openst" hidden></b>${esc(p.hours_text || p.hours)}</p><small>Hours change, especially on holidays. Call ahead to be sure.</small></div>` : ""}
     ${isNo ? "" : `<div class="fb" id="fb" data-id="${esc(p.id)}" hidden>
       <div class="fbtop"><div><span class="eyebrow">Been here with your dog?</span><p class="fbq">How was it?</p></div>
         <div class="thumbs"><button type="button" class="th up" data-v="1" aria-pressed="false">${THUMB}<span>Good for dogs</span><b class="n" id="fbUp">0</b></button><button type="button" class="th down" data-v="-1" aria-pressed="false">${THUMB}<span>Heads-up</span><b class="n" id="fbDown">0</b></button></div></div>
@@ -96,7 +97,7 @@ export default async function handler(req, res) {
   </aside>
 </div></section>`;
 
-  const fbScript = isNo ? "" : `<script>${FB_JS}</script>`;
+  const fbScript = (isNo ? "" : `<script>${FB_JS}</script>`) + (p.hours ? `<script src="/assets/hours.js"></script><script>(function(){var b=document.querySelector(".hoursbox"),o=b&&b.querySelector(".openst");if(!o||!window.LLHours)return;var st=window.LLHours.state(b.dataset.hours);if(!st)return;o.hidden=false;o.className="openst "+(st.open?"on":"off");o.textContent=st.label;})();</script>` : "");
   const scripts = hasLL ? `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>(function(){if(!window.L||!window.L.map)return;var ll=[${+p.lat},${+p.lng}];var m=window.L.map("map",{scrollWheelZoom:false}).setView(ll,14);

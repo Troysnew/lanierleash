@@ -191,7 +191,13 @@ export default async function handler(req, res) {
         const all = await listPlaces();
         const counts = all.reduce((o, r) => ((o[r.status] = (o[r.status] || 0) + 1), o), {});
         let csvNew = 0;
-        try { const have = new Set(all.map((r) => r.id)); csvNew = (await csvPlaces()).filter((p) => !have.has(p.id)).length; } catch {}
+        let csvFill = 0;
+        try {
+          const byId = new Map(all.map((r) => [r.id, r])), csv = await csvPlaces();
+          csvNew = csv.filter((p) => !byId.has(p.id)).length;
+          // Places where the CSV has a phone or hours the table doesn't have yet.
+          csvFill = csv.filter((p) => { const r = byId.get(p.id); return r && ["phone", "hours", "hours_text"].some((k) => p[k] && !r[k]); }).length;
+        } catch {}
         const items = all.filter((r) => r.status === view).map((r) => ({ ...r, mi: r.lat != null ? Math.round(miles(DEFAULT_HOME, r.lat, r.lng) * 10) / 10 : null }));
         // Reader thumbs and flags, per place (empty if the feedback table isn't set up yet).
         const fb = {};
@@ -203,7 +209,7 @@ export default async function handler(req, res) {
           }
         } catch {}
         for (const it of items) it.fb = fb[it.id] || null;
-        return json(res, 200, { ok: true, empty: all.length === 0, counts, csvNew, items, cats: CATS });
+        return json(res, 200, { ok: true, empty: all.length === 0, counts, csvNew, csvFill, items, cats: CATS });
       }
       case "place_save": {
         const c = cleanPlace(b);
@@ -249,7 +255,16 @@ export default async function handler(req, res) {
           return c.ok ? { ...c.place, id: p.id, checked: p.checked || today, status: "published", origin: "starter" } : null;
         }).filter(Boolean);
         const out = await insertPlaces(rows, { ignoreDupes: true });
-        return json(res, 200, { ok: true, count: out.length });
+        // Fill in phone numbers and hours from the CSV for places that don't have them yet (never overwrites).
+        let filled = 0;
+        const csvById = new Map((await csvPlaces()).map((p) => [p.id, p]));
+        for (const r of await listPlaces()) {
+          const c = csvById.get(r.id); if (!c) continue;
+          const patch = {};
+          for (const k of ["phone", "hours", "hours_text"]) if (!r[k] && c[k]) patch[k] = String(c[k]).slice(0, k === "phone" ? 40 : 300);
+          if (Object.keys(patch).length) { await updatePlace(r.id, patch); filled++; }
+        }
+        return json(res, 200, { ok: true, count: out.length, filled });
       }
 
       // ---------- email sponsor ----------

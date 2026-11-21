@@ -130,3 +130,8 @@ create table if not exists public.place_feedback (
 );
 create index if not exists place_feedback_place_idx on public.place_feedback (place_id);
 alter table public.place_feedback enable row level security;
+
+-- ---------- Place hours (added later; safe to run again) ----------
+-- "hours" is machine-readable (Mo-Th 11:00-21:00; Fr-Sa 11:00-22:00) for the Open now label; "hours_text" is for people.
+alter table public.places add column if not exists hours text;
+alter table public.places add column if not exists hours_text text;

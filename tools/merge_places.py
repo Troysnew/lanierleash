@@ -16,7 +16,7 @@ MAX_MI = 35
 CATS = {"restaurant", "brewery", "winery", "coffee", "trail", "park", "dogpark", "lake", "shop", "stay"}
 BADGES = {"venue", "official", "readers", "unconfirmed", "nodogs"}
 UA = {"User-Agent": "site-builder/1.0 (place geocoder)"}
-COLS = ["id", "name", "category", "town", "address", "lat", "lng", "dog_rule", "status", "source_url", "source_name", "website", "notes", "checked"]
+COLS = ["id", "name", "category", "town", "address", "lat", "lng", "dog_rule", "status", "source_url", "source_name", "website", "phone", "hours", "hours_text", "notes", "checked"]
 
 
 def miles(lat, lng):

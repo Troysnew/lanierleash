@@ -35,6 +35,10 @@
   ],
   "rewrites": [
     {
+      "source": "/events.ics",
+      "destination": "/api/event?feed=1"
+    },
+    {
       "source": "/events/:id([a-z0-9-]+)",
       "destination": "/api/event?id=:id"
     },

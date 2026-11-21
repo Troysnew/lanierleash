@@ -21,18 +21,29 @@ export const eventId = (e) => slug(e.date + "-" + e.title);
 const lastDay = (e) => (e.end_date && e.end_date > e.date ? e.end_date : e.date);
 
 function icsText(s) { return String(s || "").replace(/\\/g, "\\\\").replace(/\n/g, "\\n").replace(/,/g, "\\,").replace(/;/g, "\\;"); }
-function icsFile(e, id) {
+function vevent(e, id) {
   const d = (iso, hm) => iso.replace(/-/g, "") + (hm ? "T" + hm.replace(":", "") + "00" : "");
-  const L = ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Lanier Leash//Events//EN", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
-    `UID:${id}@lanierleash.com`, "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z"];
+  const L = ["BEGIN:VEVENT", `UID:${id}@lanierleash.com`, "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z"];
   if (e.start_time) {
     const endT = e.end_time || (String(Math.min(23, +e.start_time.slice(0, 2) + 2)).padStart(2, "0") + e.start_time.slice(2));
     L.push(`DTSTART;TZID=America/New_York:${d(e.date, e.start_time)}`, `DTEND;TZID=America/New_York:${d(lastDay(e), endT)}`);
   } else L.push(`DTSTART;VALUE=DATE:${d(e.date)}`, `DTEND;VALUE=DATE:${d(addDays(lastDay(e), 1))}`);
   L.push("SUMMARY:" + icsText(e.title), "LOCATION:" + icsText([e.venue, e.address || e.town].filter(Boolean).join(", ")),
     "DESCRIPTION:" + icsText([e.dog_rule && "Dogs: " + e.dog_rule, e.cost && "Cost: " + e.cost, `${siteUrl()}/events/${id}/`].filter(Boolean).join("\n")),
-    `URL:${siteUrl()}/events/${id}/`, "END:VEVENT", "END:VCALENDAR");
-  return L.join("\r\n");
+    `URL:${siteUrl()}/events/${id}/`, "END:VEVENT");
+  return L;
+}
+function calendar(list, name) {
+  return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Lanier Leash//Events//EN", "CALSCALE:GREGORIAN", "METHOD:PUBLISH",
+    "X-WR-CALNAME:" + icsText(name), "X-WR-TIMEZONE:America/New_York", "REFRESH-INTERVAL;VALUE=DURATION:PT6H", "X-PUBLISHED-TTL:PT6H",
+    ...list.flatMap((e) => vevent(e, eventId(e))), "END:VCALENDAR"].join("\r\n") + "\r\n";
+}
+function sendIcs(res, body, filename) {
+  res.statusCode = 200;
+  res.setHeader("Content-Type", "text/calendar; charset=utf-8");
+  if (filename) res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Cache-Control", "public, s-maxage=1800, stale-while-revalidate=7200");
+  return res.end(body);
 }
 function gcal(e, id) {
   const d = (iso, hm) => iso.replace(/-/g, "") + (hm ? "T" + hm.replace(":", "") + "00" : "");
@@ -61,6 +72,16 @@ export function venuePlace(e, places) {
 
 export default async function handler(req, res) {
   const q = req.query || {};
+  // /events.ics (rewritten here with feed=1): every upcoming event, for calendar apps to subscribe to.
+  // ?type=dog or ?type=adopt narrows it.
+  if (q.feed) {
+    try {
+      const all = (await publishedEvents(etParts().date)).events;
+      const t = q.type === "dog" || q.type === "adopt" ? q.type : "";
+      const list = t ? all.filter((e) => (t === "dog" ? e.type === "dog" : e.type !== "dog")) : all;
+      return sendIcs(res, calendar(list, t === "adopt" ? "Lanier Leash: adoption events" : t === "dog" ? "Lanier Leash: dog events" : "Lanier Leash: dog events"), null);
+    } catch (e) { log("feed failed", e.message); res.statusCode = 503; return res.end("Try again in a minute."); }
+  }
   const id = String(q.id || "").toLowerCase().replace(/\/+$/, "");
   if (!/^[a-z0-9-]{1,140}$/.test(id)) return notFound(res);
   const today = etParts().date;
@@ -70,13 +91,7 @@ export default async function handler(req, res) {
   } catch (e) { log("event page failed", e.message); return sendHtml(res, 503, "<p>Please try again in a minute.</p>", "no-store"); }
   const e = events.find((x) => eventId(x) === id);
   if (!e) return notFound(res);
-  if (q.format === "ics") {
-    res.statusCode = 200;
-    res.setHeader("Content-Type", "text/calendar; charset=utf-8");
-    res.setHeader("Content-Disposition", `attachment; filename="${id}.ics"`);
-    res.setHeader("Cache-Control", "public, s-maxage=300");
-    return res.end(icsFile(e, id));
-  }
+  if (q.format === "ics") return sendIcs(res, calendar([e], e.title), `${id}.ics`);
 
   const T = TYPE[e.type] || TYPE.dog, multi = lastDay(e) !== e.date, past = lastDay(e) < today;
   const hasLL = e.lat !== "" && e.lng !== "" && !isNaN(+e.lat) && !isNaN(+e.lng);
@@ -86,7 +101,7 @@ export default async function handler(req, res) {
     .map((p) => ({ ...p, mi: miles({ lat: +e.lat, lng: +e.lng }, p.lat, p.lng) })).filter((p) => p.mi != null && p.mi <= 5).sort((a, b) => a.mi - b.mi).slice(0, 4) : [];
   const sameVenue = e.venue ? events.filter((x) => x !== e && x.venue && norm(x.venue) === norm(e.venue) && lastDay(x) >= today).slice(0, 4) : [];
   const evCard = (x) => `<a class="nearby" href="/events/${eventId(x)}/"><span class="cat">${ic("i-cal")}</span><span><b>${esc(x.title)}</b><small>${esc(longDate(x.date))} · ${esc(timeRange(x))}</small></span></a>`;
-  const plCard = (p) => `<a class="nearby" href="/places/${encodeURIComponent(p.id)}/"><span class="cat">${ic(ICON[p.category] || "i-park")}</span><span><b>${esc(p.name)}</b><small>${esc((CATS[p.category] || CATS.park).short)} · ${fmtMi(p.mi)} away</small></span></a>`;
+  const plCard = (p) => `<a class="nearby" href="/places/${encodeURIComponent(p.id)}/"><span class="cat">${ic(ICON[p.category] || "i-park")}</span><span><b>${esc(p.name)}</b><small>${esc((CATS[p.category] || CATS.park).short)} · ${p.mi < 0.1 ? "steps away" : fmtMi(p.mi) + " away"}</small></span></a>`;
   const where = [e.venue, e.town].filter(Boolean).join(", ");
   const title = `${e.title} · ${when.replace(/^\w+, /, "")}${e.town ? " · " + e.town : ""} · Lanier Leash`;
   const description = `${e.title}${where ? " at " + where : ""}, ${when}. ${e.dog_rule ? "Dogs: " + e.dog_rule + "." : ""}`.trim();

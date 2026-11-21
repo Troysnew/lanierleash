@@ -44,6 +44,42 @@
         store("ll-home", home); return home;
       });
   }
+  // "Use my location": the browser asks permission, then we look up the ZIP for those coordinates
+  // (OpenStreetMap). Distances use the exact spot; the ZIP is what shows and what signup uses.
+  function useLocation() {
+    if (!navigator.geolocation) return Promise.reject(new Error("Your browser can't share a location."));
+    return new Promise(function (ok, bad) {
+      navigator.geolocation.getCurrentPosition(ok, function (e) { bad(new Error(e.code === 1 ? "Location permission was blocked. You can type a ZIP instead." : "We couldn't get your location. Try typing a ZIP.")); }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+    }).then(function (pos) {
+      var lat = +pos.coords.latitude.toFixed(4), lng = +pos.coords.longitude.toFixed(4);
+      return fetch("https://nominatim.openstreetmap.org/reverse?format=json&zoom=14&addressdetails=1&lat=" + lat + "&lon=" + lng)
+        .then(function (r) { return r.ok ? r.json() : {}; }).catch(function () { return {}; })
+        .then(function (d) {
+          var a = d.address || {}, zip = String(a.postcode || "").slice(0, 5);
+          if (!/^\d{5}$/.test(zip)) zip = home.zip;
+          home = { zip: zip, lat: lat, lng: lng, town: a.city || a.town || a.village || a.hamlet || "your location", gps: true };
+          store("ll-home", home); return home;
+        });
+    });
+  }
+  // Adds a "Use my location" button after each ZIP box on the page.
+  function initLocate(ids) {
+    (ids || ["zip", "hZip"]).forEach(function (id) {
+      var inp = document.getElementById(id); if (!inp || inp.dataset.loc) return;
+      inp.dataset.loc = "1";
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "locbtn"; b.title = "Use my location"; b.setAttribute("aria-label", "Use my location");
+      b.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm8.94 3A8.99 8.99 0 0 0 13 3.06V1h-2v2.06A8.99 8.99 0 0 0 3.06 11H1v2h2.06A8.99 8.99 0 0 0 11 20.94V23h2v-2.06A8.99 8.99 0 0 0 20.94 13H23v-2h-2.06zM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14z"/></svg>';
+      inp.insertAdjacentElement("afterend", b);
+      b.addEventListener("click", function () {
+        b.disabled = true; b.classList.add("busy");
+        useLocation().then(function (h) {
+          inp.value = h.zip; inp.dispatchEvent(new Event("input", { bubbles: true }));
+          document.dispatchEvent(new CustomEvent("ll:home", { detail: h }));
+        }).catch(function (e) { alert(e.message); }).then(function () { b.disabled = false; b.classList.remove("busy"); });
+      });
+    });
+  }
   function miles(lat, lng) {
     if (lat === "" || lng === "" || lat == null || lng == null || isNaN(+lat) || isNaN(+lng)) return null;
     var R = 3958.8, toR = Math.PI / 180;
@@ -189,6 +225,23 @@
     document.body.appendChild(a); a.click();
     setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
   }
+  // Repeat events (same title at the same venue): keep the first one and list the other dates on it.
+  // Expects the list sorted by date. Adds e.more = [later events] and e.every = "Every Tuesday" when they share a weekday.
+  function groupRepeats(list) {
+    var first = {}, out = [];
+    list.forEach(function (e) {
+      if (e.multi) { out.push(e); return; }
+      var k = slug(e.title) + "|" + slug(e.venue || e.town || "");
+      if (first[k]) { first[k].more.push(e); return; }
+      e.more = []; first[k] = e; out.push(e);
+    });
+    out.forEach(function (e) {
+      if (!e.more || !e.more.length) return;
+      var d = dow(e.date), same = e.more.every(function (x) { return dow(x.date) === d; });
+      e.every = same ? "Every " + DOWL[d] : "";
+    });
+    return out;
+  }
   function mapsLink(p) { return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([p.name, p.address || p.town + ", GA"].join(", ")); }
 
   // ---------- shared page chrome: mobile menu + ZIP/radius controls ----------
@@ -201,11 +254,11 @@
 
   window.LL = {
     esc: esc, ic: ic, slug: slug, parseCSV: parseCSV,
-    get home() { return home; }, setZip: setZip, miles: miles, fmtMi: fmtMi,
+    get home() { return home; }, setZip: setZip, useLocation: useLocation, initLocate: initLocate, miles: miles, fmtMi: fmtMi,
     get radius() { return radius; }, setRadius: setRadius,
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
     BADGE: BADGE, CAT: CAT, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor,
-    load: load, withMiles: withMiles, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
+    load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

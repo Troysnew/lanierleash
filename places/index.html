@@ -87,6 +87,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="/assets/data.js"></script>
+<script src="/assets/hours.js"></script>
 <script>
 (function () {
   var L = window.LL, $ = function (s) { return document.querySelector(s); };
@@ -95,9 +96,11 @@
   function catLabel(k) { return k === "all" ? "Everything" : L.GROUP[k] ? L.GROUP[k] : L.CAT[k].label; }
   function catIcon(k) { return k === "all" ? "" : k === "food" ? L.ic("i-dine") : k === "outdoors" ? L.ic("i-trail") : L.ic(L.CAT[k].icon); }
   var STATS = ["all", "venue", "official", "readers", "unconfirmed", "nodogs"];
-  var st = { cat: "all", status: "all", q: "", sel: null };
+  var st = { cat: "all", status: "all", q: "", sel: null, open: false };
+  function openOf(p) { return p.hours && window.LLHours ? window.LLHours.state(p.hours) : null; }
   var DATA = null, map = null, layer = null, ring = null, homePin = null, markers = {};
   L.initMenu();
+  L.initLocate(["zip"]);
   $("#zip").value = L.home.zip;
 
   // badge explainer
@@ -120,6 +123,7 @@
   function matches(p) {
     if (!inCat(p, st.cat)) return false;
     if (st.status === "all" ? p.status === "nodogs" : p.status !== st.status) return false;
+    if (st.open) { var o = openOf(p); if (!o || !o.open) return false; }
     if (!st.q) return true;
     return [p.name, p.town, p.dog_rule, p.notes, L.CAT[p.category].label].join(" ").toLowerCase().indexOf(st.q) >= 0;
   }
@@ -137,6 +141,7 @@
       '<div style="min-width:0"><div class="top"><h3><a href="/places/' + encodeURIComponent(p.id) + '/">' + esc(p.name) + '</a></h3>' + (p.mi != null ? '<span class="mi">' + L.fmtMi(p.mi) + "</span>" : "") + "</div>" +
       '<p class="town"><button type="button" class="tl" data-cat="' + p.category + '" title="Show only ' + esc(c.label.toLowerCase()) + '">' + esc(c.short) + '</button> · <button type="button" class="tl" data-q="' + esc((p.town || "").split(" (")[0]) + '" title="Show places in ' + esc(p.town) + '">' + esc(p.town) + "</button></p>" +
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(p.dog_rule) + "</span></p>" +
+      (function () { var o = openOf(p); return o ? '<p class="meta"><span class="openst ' + (o.open ? "on" : "off") + '">' + esc(o.label) + "</span></p>" : ""; })() +
       (p.notes ? '<p class="meta">' + esc(p.notes) + "</p>" : "") +
       '<div class="st"><button type="button" class="badge ' + b.cls + '" data-status="' + p.status + '" title="Show only ' + esc(b.label.toLowerCase()) + ' places">' + ic(b.icon) + b.label + '</button><span class="chk">' + esc(L.fmtChecked(p.checked)) + (p.source_name ? " · " + esc(p.source_name) : "") + "</span></div>" +
       '<div class="acts">' + links.join("") + "</div></div></article>";
@@ -156,7 +161,12 @@
       var n = inR.filter(function (p) { return inCat(p, st.cat) && (k === "all" ? p.status !== "nodogs" : p.status === k); }).length;
       if (k !== "all" && !n) return "";
       return '<button class="chip" type="button" data-status="' + k + '" aria-pressed="' + (st.status === k) + '">' + (k === "all" ? "Any status" : L.BADGE[k].label) + " <small>" + n + "</small></button>";
-    }).join("");
+    }).join("") + (function () {
+      var withH = inR.filter(function (p) { return inCat(p, st.cat) && p.hours; });
+      if (!withH.length) return "";
+      var n = withH.filter(function (p) { var o = openOf(p); return o && o.open; }).length;
+      return '<button class="chip openchip" type="button" data-open="1" aria-pressed="' + st.open + '"><i></i>Open now <small>' + n + "</small></button>";
+    })();
     var list = inR.filter(matches).sort(function (a, b) { return (a.mi == null ? 999 : a.mi) - (b.mi == null ? 999 : b.mi); });
     $("#list").innerHTML = list.length ? list.map(card).join("") : '<p class="empty">Nothing matches within ' + r + " miles of " + esc(L.home.zip) + ". Try a wider radius or another category.</p>";
     syncURL();
@@ -167,9 +177,13 @@
       if (ring) map.removeLayer(ring); if (homePin) map.removeLayer(homePin);
       ring = window.L.circle([L.home.lat, L.home.lng], { radius: r * 1609.34, color: "#117A8B", weight: 1.5, dashArray: "6 6", fillColor: "#4CC9C6", fillOpacity: .06 }).addTo(map);
       homePin = window.L.marker([L.home.lat, L.home.lng], { icon: pinIcon("home"), title: "ZIP " + L.home.zip, zIndexOffset: 1000 }).addTo(map).bindPopup("<b>Your ZIP: " + esc(L.home.zip) + "</b>");
+      var used = {};
       list.forEach(function (p) {
         if (p.mi == null) return;
-        var m = window.L.marker([+p.lat, +p.lng], { icon: pinIcon(p.status === "nodogs" ? "nodogs" : p.category), title: p.name, alt: p.name }).addTo(layer);
+        // Neighbors at the same spot (same building, park and its dog park): fan the pins out so each can be clicked.
+        var key = (+p.lat).toFixed(4) + "," + (+p.lng).toFixed(4), n = used[key] = (used[key] || 0) + 1;
+        var ang = n * 2.4, off = n > 1 ? 0.00022 * Math.sqrt(n) : 0;
+        var m = window.L.marker([+p.lat + off * Math.sin(ang), +p.lng + off * Math.cos(ang)], { icon: pinIcon(p.status === "nodogs" ? "nodogs" : p.category), title: p.name, alt: p.name }).addTo(layer);
         m.bindPopup("<b>" + esc(p.name) + "</b><br>" + esc(p.dog_rule) + '<br><a href="/places/' + encodeURIComponent(p.id) + '/">See the place</a>');
         m.on("click", function () { select(p.id, false); });
         markers[p.id] = m;
@@ -187,7 +201,10 @@
 
   document.querySelectorAll(".seg button").forEach(function (b) { b.addEventListener("click", function () { L.setRadius(+b.dataset.r); render(true); }); });
   $("#cats").addEventListener("click", function (e) { var b = e.target.closest("[data-cat]"); if (!b) return; st.cat = b.dataset.cat; st.status = "all"; render(false); });
-  $("#stats").addEventListener("click", function (e) { var b = e.target.closest("[data-status]"); if (!b) return; st.status = b.dataset.status; render(false); });
+  $("#stats").addEventListener("click", function (e) {
+    if (e.target.closest("[data-open]")) { st.open = !st.open; render(false); return; }
+    var b = e.target.closest("[data-status]"); if (!b) return; st.status = b.dataset.status; render(false);
+  });
   $("#q").addEventListener("input", function (e) { st.q = e.target.value.trim().toLowerCase(); render(false); });
   function pick(e) {
     var c = e.target.closest("[data-cat]"), s2 = e.target.closest("[data-status]"), q = e.target.closest("[data-q]"), m = e.target.closest("[data-sel]");
@@ -210,6 +227,7 @@
   var qs = new URLSearchParams(location.search);
   if (qs.get("cat") && (L.CAT[qs.get("cat")] || L.GROUP[qs.get("cat")])) st.cat = qs.get("cat");
   if (STATS.indexOf(qs.get("status")) >= 0) st.status = qs.get("status");
+  if (qs.get("open") === "1") st.open = true;
   if (qs.get("q")) { st.q = qs.get("q").trim().toLowerCase().slice(0, 60); $("#q").value = qs.get("q").slice(0, 60); }
   if ([5, 10, 15, 25, 35].indexOf(+qs.get("r")) >= 0) L.setRadius(+qs.get("r"));
   function syncURL() {
@@ -217,6 +235,7 @@
     if (st.cat !== "all") p.set("cat", st.cat);
     if (st.status !== "all") p.set("status", st.status);
     if (st.q) p.set("q", st.q);
+    if (st.open) p.set("open", "1");
     if (qs.get("r") || L.radius !== 25) p.set("r", L.radius);
     try { history.replaceState(null, "", location.pathname + (p.toString() ? "?" + p : "") + location.hash); } catch (e) {}
   }

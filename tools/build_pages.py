@@ -95,7 +95,9 @@ def org_card(r, extra=""):
     if r.get("source_url") and r.get("source_url") != r.get("website"): links.append(f'<a class="lnk" href="{esc(r["source_url"])}" target="_blank" rel="noopener">{ic("u-check")}Source</a>')
     name = f'<a href="{esc(r["website"])}" target="_blank" rel="noopener">{esc(r["name"])}</a>' if r.get("website") else esc(r["name"])
     tags = " ".join(x for x, on in (("adopt", r.get("adopt") == "yes"), ("foster", r.get("foster") == "yes")) if on)
-    return (f'<article class="org" data-tags="{tags}"><div class="top"><h3>{name}</h3><span class="town">{esc(r.get("town"))}</span></div>'
+    ll = f' data-lat="{r["lat"]}" data-lng="{r["lng"]}"' if r.get("lat") and r.get("lng") else ""
+    town = "By phone, 24/7" if r.get("kind") == "poison line" else esc(r.get("town")) if ll else (esc(r.get("town")) + " · serves the whole area" if r.get("town") else "Serves the whole area")
+    return (f'<article class="org" data-tags="{tags}"{ll}><div class="top"><h3>{name}</h3><span class="town">{town}<b class="dist"></b></span></div>'
             f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}<div class="acts">{"".join(links)}</div></article>')
 
 
@@ -119,6 +121,14 @@ RELATED = {
 }
 
 
+# Distance from the visitor's ZIP on each org card, nearest first within each group.
+DIST_JS = """<script src="/assets/data.js"></script>
+<script>(function(){var L=window.LL;if(!L)return;function run(){
+document.querySelectorAll(".org[data-lat]").forEach(function(o){var m=L.miles(+o.dataset.lat,+o.dataset.lng);o.dataset.mi=m==null?"":m;var b=o.querySelector(".dist");if(b)b.textContent=m==null?"":" · "+L.fmtMi(m)+" from "+L.home.zip;});
+document.querySelectorAll(".orglist, .orgs").forEach(function(g){var c=[].slice.call(g.querySelectorAll(":scope > .org"));c.sort(function(a,b){var x=a.dataset.mi===undefined||a.dataset.mi===""?1e9:+a.dataset.mi,y=b.dataset.mi===undefined||b.dataset.mi===""?1e9:+b.dataset.mi;return x-y});c.forEach(function(n){g.appendChild(n)})});}
+run();document.addEventListener("ll:home",run);})();</script>"""
+
+
 def adopt():
     rows = list(csv.DictReader(open(ROOT / "data/rescues.csv", encoding="utf-8")))
     groups = [("county shelter", "County shelters", "Open-admission shelters run by the counties. Low fees, lots of dogs, and they need fosters."),
@@ -139,7 +149,26 @@ def adopt():
                 '<span class="orgf" role="group" aria-label="Show"><button type="button" data-of="" aria-pressed="true">All</button><button type="button" data-of="adopt" aria-pressed="false">Adopt</button><button type="button" data-of="foster" aria-pressed="false">Foster</button></span>') + "".join(out) + \
         f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Hours and programs change, so call or check the website before you go. Run a rescue we missed? <a href="/submit/?type=place&amp;category=rescue">Tell us about it</a>.</p></div></section>'
     return shell("/adopt/", "Adopt or foster a dog near Cumming and Lake Lanier · Lanier Leash",
-                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body, ADOPT_JS)
+                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body, DIST_JS + ADOPT_JS)
+
+
+def emergency_section():
+    """24/7 and after-hours emergency vets plus pet poison lines (data/emergency_vets.csv), at the top of /vet-care/."""
+    rows = list(csv.DictReader(open(ROOT / "data/emergency_vets.csv", encoding="utf-8")))
+    def card(r):
+        facts = [("Hours", r.get("hours"))]
+        dl = '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in facts if v) + "</dl>"
+        call = f'<p class="ercall"><a class="btn btn-coral btn-sm" href="tel:{esc(re.sub(r"[^0-9+]", "", r["phone"]))}">Call {esc(r["phone"])}</a></p>' if r.get("phone") else ""
+        return org_card(r, dl + call)
+    er = [r for r in rows if r["kind"] == "24/7 emergency"]
+    ah = [r for r in rows if r["kind"].startswith("after-hours")]
+    po = [r for r in rows if r["kind"] == "poison line"]
+    return (f'<section class="blk rblk erblk" id="emergency"><div class="wrap"><div class="sh"><div><span class="eyebrow">Emergency</span><h2>If it can&rsquo;t wait</h2></div>'
+            f'<p>Call ahead if you can so they&rsquo;re ready for you. Nearest first, from your ZIP.</p></div>'
+            f'<h3 class="h3s">Open 24/7</h3><div class="orgs">{"".join(card(r) for r in er)}</div>'
+            f'<h3 class="h3s">After hours and urgent care</h3><p class="fine">Evenings, weekends and holidays. Urgent care clinics send life-threatening cases to a 24/7 hospital.</p><div class="orgs">{"".join(card(r) for r in ah)}</div>'
+            f'<h3 class="h3s">Pet poison lines</h3><p class="fine">Open 24/7, with a consultation fee. Have the package or plant name ready.</p><div class="orgs">{"".join(card(r) for r in po)}</div>'
+            f'</div></section>')
 
 
 def vetcare():
@@ -155,10 +184,10 @@ def vetcare():
             return '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in dl) + "</dl>" if dl else ""
         out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(org_card(r, extra(r)) for r in g)}</div></div></section>')
     body = hero("Low-cost vet care", "Affordable vet care near Lake Lanier",
-                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta.") + "".join(out) + \
-        f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Prices are from each clinic\'s own price list and change often, so confirm when you book. For an emergency, call your vet or the nearest emergency animal hospital right away.</p></div></section>'
+                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + emergency_section() + "".join(out) + \
+        f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Prices are from each clinic\'s own price list and change often, so confirm when you book. For an emergency, call your vet or one of the <a href="#emergency">emergency hospitals above</a> right away.</p></div></section>'
     return shell("/vet-care/", "Low-cost vet care, spay and neuter near Cumming, GA · Lanier Leash",
-                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body)
+                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS)
 
 
 def rel_links(slug):
