@@ -11,7 +11,7 @@ COMMUNITY = [("/pack/", "The pack", "Local pups sent in by their people", "the-p
              ("/#conditions", "Walk conditions", "Weekend forecast and pavement check", "conditions-sun-good-walk-day"),
              ("/tips/", "Owner tips", "Ticks, heat, lake safety and more", "tips"),
              ("/issue/", "This week's email", "Read the latest Thursday email", "newsletter")]
-SECTION = {"events": "events", "places": "places", "vet-care": "services", "services": "services", "adopt": "services", "dog-services": "services",
+SECTION = {"events": "events", "my-events": "events", "places": "places", "vet-care": "services", "services": "services", "adopt": "services", "dog-services": "services",
            "lost-found": "lost", "pack": "community", "tips": "community", "dog-of-the-month": "community", "critter-of-the-month": "community", "issue": "community"}
 
 

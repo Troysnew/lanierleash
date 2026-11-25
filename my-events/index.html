@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>My dog events · Lanier Leash</title>
+<meta name="description" content="The dog events you marked Going or Maybe, on a monthly calendar.">
+<meta name="robots" content="noindex">
+<link rel="canonical" href="https://lanierleash.com/my-events/">
+<meta property="og:title" content="My dog events · Lanier Leash">
+<meta property="og:description" content="The dog events you marked Going or Maybe, on a monthly calendar.">
+<meta property="og:image" content="https://lanierleash.com/img/hero.jpg">
+<meta name="theme-color" content="#0B3A5B">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32"><link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Kaushan+Script&display=swap">
+<link rel="stylesheet" href="/assets/site.css">
+</head>
+<body>
+<script src="/assets/icons.js"></script>
+<div class="mesh" aria-hidden="true" style="height:420px"></div>
+<div class="wrap navwrap">
+  <nav class="nav glass" aria-label="Main">
+    <a class="brand" href="/" aria-label="Lanier Leash home"><img class="mark" src="/img/icons/lanier-leash-emblem-96.webp" alt="" width="46" height="46"><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+    <div class="links" id="links"><a href="/events/" aria-current="true">Events</a><a href="/places/">Places</a><div class="dd"><a class="ddt" href="/dog-services/">Services<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="ddm"><a href="/vet-care/"><img src="/img/icons/vet-care-96.webp" alt="" width="34" height="34"><span><b>Vet care</b><small>Low-cost clinics and emergency vets</small></span></a><a href="/services/"><img src="/img/icons/services-96.webp" alt="" width="34" height="34"><span><b>Groomers &amp; trainers</b><small>Grooming, training, walkers and sitters</small></span></a><a href="/adopt/"><img src="/img/icons/adopt-and-rescues-96.webp" alt="" width="34" height="34"><span><b>Adopt or foster</b><small>Shelters and rescues near the lake</small></span></a><a class="ddall" href="/dog-services/">All dog services →</a></div></div><a class="lfl" href="/lost-found/">Lost &amp; found</a><div class="dd"><a class="ddt" href="/pack/">Community<svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></a><div class="ddm"><a href="/pack/"><img src="/img/icons/the-pack-community-96.webp" alt="" width="34" height="34"><span><b>The pack</b><small>Local pups sent in by their people</small></span></a><a href="/dog-of-the-month/"><img src="/img/icons/lanier-leash-emblem-96.webp" alt="" width="34" height="34"><span><b>Dog of the Month</b><small>Vote for your favorite pup</small></span></a><a href="/#conditions"><img src="/img/icons/conditions-sun-good-walk-day-96.webp" alt="" width="34" height="34"><span><b>Walk conditions</b><small>Weekend forecast and pavement check</small></span></a><a href="/tips/"><img src="/img/icons/tips-96.webp" alt="" width="34" height="34"><span><b>Owner tips</b><small>Ticks, heat, lake safety and more</small></span></a><a href="/issue/"><img src="/img/icons/newsletter-96.webp" alt="" width="34" height="34"><span><b>This week's email</b><small>Read the latest Thursday email</small></span></a></div></div></div>
+    <a class="btn btn-coral btn-sm" href="/#top"><svg class="ic"><use href="#u-paw"/></svg>Join free</a>
+    <button class="burger" id="burger" type="button" aria-expanded="false" aria-controls="mnav"><span class="sr">Menu</span><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg></button>
+  </nav>
+  <nav class="mnav glass" id="mnav" hidden aria-label="Mobile"><a href="/events/">Events</a><a href="/places/">Places</a><a class="lfl" href="/lost-found/">Lost &amp; found</a><p class="mh">Services</p><a href="/vet-care/">Vet care</a><a href="/services/">Groomers &amp; trainers</a><a href="/adopt/">Adopt or foster</a><p class="mh">Community</p><a href="/pack/">The pack</a><a href="/dog-of-the-month/">Dog of the Month</a><a href="/#conditions">Walk conditions</a><a href="/tips/">Owner tips</a><a href="/issue/">This week's email</a><a class="btn btn-coral" href="/#top">Join free</a></nav>
+</div>
+<main id="top">
+<section class="page-hero"><div class="wrap"><span class="eyebrow">Your plans</span><h1>My dog events</h1><p class="lede">Events you marked <b>Going</b> or <b>Maybe</b>, by month. They're saved in this browser, so there's no account to make. Tap an event to open it.</p></div></section><section class="blk" style="padding-top:8px"><div class="wrap"><div class="mybar"><button class="navb" type="button" id="prev" aria-label="Previous month">‹</button><span class="mon" id="mon" aria-live="polite"></span><button class="navb" type="button" id="next" aria-label="Next month">›</button><button class="chip" type="button" id="thisMon">This month</button><span class="sp"></span><div class="chips" role="group" aria-label="Show" style="margin:0"><button class="chip" type="button" data-show="all">All</button><button class="chip" type="button" data-show="going">Going</button><button class="chip" type="button" data-show="maybe">Maybe</button></div></div><div class="calgrid" id="cal"></div><div class="calkey"><span><i class="g"></i>Going</span><span><i class="m"></i>Maybe</span></div><div class="countrow" style="margin-top:14px"><p class="count" id="sum" aria-live="polite"></p><span class="countacts"><button type="button" class="lnk" id="icsAll" hidden><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg><span>Add to my calendar</span></button><a class="lnk" href="/events/"><svg class="ic" aria-hidden="true"><use href="#u-arrow"/></svg>Browse events</a></span></div><p class="empty" id="empty" hidden>No plans yet. <a href="/events/">Browse dog events</a> and tap <b>Going</b> or <b>Maybe</b> on any event. It shows up here, and you can share it with your pack.</p><p class="empty" id="none" hidden>Nothing planned this month. Use the arrows to see other months, or <a href="/events/">find something to sniff out</a>.</p><div class="mylist"><h2 class="h2s" id="listH"></h2><div id="list"></div></div><p class="note">Your plans stay on this device and browser. Clearing your browser data removes them. Events change, so check the event page before you go.</p></div></section>
+</main>
+<footer>
+  <div class="lakeband" aria-hidden="true"></div>
+  <div class="wrap">
+    <div>
+      <a class="brand" href="/" aria-label="Lanier Leash home"><img class="mark" src="/img/icons/lanier-leash-emblem-96.webp" alt="" width="46" height="46"><span class="wm"><b>Lanier<i>Leash</i></b></span></a>
+      <p style="margin-top:14px;max-width:36ch">A free weekly email of dog events and dog-friendly places around Cumming, Lake Lanier and north metro Atlanta.</p>
+    </div>
+    <div><h4>Explore</h4><ul><li><a href="/events/">Events</a></li><li><a href="/places/">Places</a></li><li><a href="/pack/">The pack</a></li><li><a href="/dog-of-the-month/">Dog of the Month</a></li><li><a href="/lost-found/">Lost &amp; found</a></li><li><a href="/issue/">This week's email</a></li></ul></div>
+    <div><h4>Help</h4><ul><li><a href="/adopt/">Adopt or foster</a></li><li><a href="/vet-care/">Low-cost vet care</a></li><li><a href="/services/">Groomers &amp; trainers</a></li><li><a href="/tips/">Owner tips</a></li><li><a href="/places/#how-we-check">How we check</a></li></ul></div>
+    <div><h4>Lanier Leash</h4><ul><li><a href="/#top">Join free</a></li><li><a href="/about/">About</a></li><li><a href="/advertise/">Advertise</a></li><li><a href="/submit/">Send us something</a></li><li><a href="/manage/">Manage your email</a></li><li><a href="/privacy/">Privacy</a></li></ul></div>
+  </div>
+  <div class="wrap legal">© 2026 Lanier Leash · Cumming, GA · Rules change, so check before you go. Owner tips are general advice; ask your vet about your own dog.</div>
+</footer>
+<script src="/assets/data.js"></script>
+<script>window.LL && window.LL.initMenu();</script>
+<script src="/assets/share.js" defer></script>
+<script src="/assets/plans.js"></script>
+<script>
+(function () {
+  var L = window.LL, P = window.LLPlans, esc = P.esc, $ = function (s) { return document.querySelector(s); };
+  var MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  var t = L.todayISO(), QS = new URLSearchParams(location.search), show = "all";
+  var cur = /^\d{4}-\d{2}$/.test(QS.get("m") || "") ? QS.get("m") : t.slice(0, 7);
+  // Start on the month of the next plan if this month has none.
+  if (!QS.get("m")) { var up = P.upcoming(); if (up.length && !up.some(function (p) { return p.d.slice(0, 7) <= cur && p.l.slice(0, 7) >= cur; })) cur = up[0].d.slice(0, 7); }
+  function shift(m, n) { var y = +m.slice(0, 4), mo = +m.slice(5, 7) - 1 + n; y += Math.floor(mo / 12); mo = ((mo % 12) + 12) % 12; return y + "-" + ("0" + (mo + 1)).slice(-2); }
+  function list() { return P.all().filter(function (p) { return show === "all" || p.s === show; }); }
+  function onDay(p, iso) { return p.d <= iso && p.l >= iso; }
+  function evObj(p) { return { id: p.id, title: p.t, date: p.d, last: p.l, start_time: p.st, end_time: p.et, venue: p.v, town: p.w }; }
+  function render() {
+    var all = list(), y = +cur.slice(0, 4), m = +cur.slice(5, 7);
+    $("#mon").textContent = MON[m - 1] + " " + y;
+    document.querySelectorAll("[data-show]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.show === show)); });
+    var first = cur + "-01", start = L.addDays(first, -L.dow(first)), cells = "";
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(function (d) { cells += '<div class="dh">' + d + "</div>"; });
+    for (var i = 0; i < 42; i++) {
+      var iso = L.addDays(start, i);
+      if (i === 35 && iso.slice(0, 7) !== cur) break;
+      var evs = all.filter(function (p) { return onDay(p, iso); });
+      cells += '<div class="dc' + (iso.slice(0, 7) !== cur ? " out" : "") + (iso === t ? " today" : "") + (iso < t ? " past" : "") + '"><span class="dn">' + +iso.slice(8, 10) + "</span>" +
+        evs.map(function (p) { return '<a class="ce ' + p.s + '" href="/events/' + esc(p.id) + '/" title="' + esc((p.s === "going" ? "Going: " : "Maybe: ") + p.t) + '">' + esc(p.t) + "</a>"; }).join("") + "</div>";
+    }
+    $("#cal").innerHTML = cells;
+    var inMonth = all.filter(function (p) { return p.d.slice(0, 7) <= cur && p.l.slice(0, 7) >= cur; });
+    $("#listH").textContent = inMonth.length ? "Your plans in " + MON[m - 1] : "";
+    $("#list").innerHTML = inMonth.length ? inMonth.map(function (p) {
+      var past = p.l < t, where = [p.v, p.w].filter(Boolean).join(" · ");
+      return '<article class="myitem' + (past ? " past" : "") + '"><div class="d">' + esc(L.fmtDay(p.d)) + (p.l > p.d ? "<small>to " + esc(L.fmtDay(p.l)) + "</small>" : "") + (p.st ? "<small>" + esc(L.timeRange({ start_time: p.st, end_time: p.et })) + "</small>" : "") + "</div>" +
+        '<div><h3><a href="/events/' + esc(p.id) + '/">' + esc(p.t) + "</a></h3>" + (where ? '<p class="m">' + esc(where) + (past ? " · This one has passed" : "") + "</p>" : past ? '<p class="m">This one has passed</p>' : "") +
+        '<div class="acts">' + P.btns(evObj(p)).replace('class="planbar"', 'class="planbar" data-nonote') +
+        (past ? "" : '<button type="button" class="lnk" ' + P.shareAttrs(p, p.s) + '><svg class="ic" aria-hidden="true"><use href="#u-share"/></svg>' + (p.s === "going" ? "Tell your pack" : "Ask your pack") + "</button>") +
+        '<a class="lnk" href="/events/' + esc(p.id) + '/">Details</a></div></div></article>';
+    }).join("") : "";
+    var up = P.upcoming(), going = up.filter(function (p) { return p.s === "going"; });
+    $("#empty").hidden = P.all().length > 0;
+    $("#none").hidden = !(P.all().length && !inMonth.length);
+    $("#icsAll").hidden = !going.length;
+    $("#icsAll span").textContent = "Add " + going.length + " going to my calendar";
+    $("#sum").textContent = up.length ? up.length + (up.length === 1 ? " upcoming plan: " : " upcoming plans: ") + going.length + " going, " + (up.length - going.length) + " maybe." : "";
+    try { history.replaceState(null, "", location.pathname + (cur !== t.slice(0, 7) ? "?m=" + cur : "")); } catch (e) {}
+  }
+  $("#prev").addEventListener("click", function () { cur = shift(cur, -1); render(); });
+  $("#next").addEventListener("click", function () { cur = shift(cur, 1); render(); });
+  $("#thisMon").addEventListener("click", function () { cur = t.slice(0, 7); render(); });
+  document.querySelectorAll("[data-show]").forEach(function (b) { b.addEventListener("click", function () { show = b.dataset.show; render(); }); });
+  document.addEventListener("ll:plans", function () { setTimeout(render, 0); });
+  $("#icsAll").addEventListener("click", function () {
+    var going = P.upcoming().filter(function (p) { return p.s === "going"; }); if (!going.length) return;
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([P.icsAll(going)], { type: "text/calendar;charset=utf-8" }));
+    a.download = "my-dog-events.ics"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  render();
+})();
+</script>
+</body>
+</html>

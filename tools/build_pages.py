@@ -401,7 +401,86 @@ def dog_services():
                  "Vet care, emergency vets, groomers, trainers, shelters and lost and found help near Cumming, Gainesville and Lake Lanier.", body)
 
 
-PAGES = {"adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise, "services": services, "dog-services": dog_services}
+MY_JS = r"""<script src="/assets/share.js" defer></script>
+<script src="/assets/plans.js"></script>
+<script>
+(function () {
+  var L = window.LL, P = window.LLPlans, esc = P.esc, $ = function (s) { return document.querySelector(s); };
+  var MON = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  var t = L.todayISO(), QS = new URLSearchParams(location.search), show = "all";
+  var cur = /^\d{4}-\d{2}$/.test(QS.get("m") || "") ? QS.get("m") : t.slice(0, 7);
+  // Start on the month of the next plan if this month has none.
+  if (!QS.get("m")) { var up = P.upcoming(); if (up.length && !up.some(function (p) { return p.d.slice(0, 7) <= cur && p.l.slice(0, 7) >= cur; })) cur = up[0].d.slice(0, 7); }
+  function shift(m, n) { var y = +m.slice(0, 4), mo = +m.slice(5, 7) - 1 + n; y += Math.floor(mo / 12); mo = ((mo % 12) + 12) % 12; return y + "-" + ("0" + (mo + 1)).slice(-2); }
+  function list() { return P.all().filter(function (p) { return show === "all" || p.s === show; }); }
+  function onDay(p, iso) { return p.d <= iso && p.l >= iso; }
+  function evObj(p) { return { id: p.id, title: p.t, date: p.d, last: p.l, start_time: p.st, end_time: p.et, venue: p.v, town: p.w }; }
+  function render() {
+    var all = list(), y = +cur.slice(0, 4), m = +cur.slice(5, 7);
+    $("#mon").textContent = MON[m - 1] + " " + y;
+    document.querySelectorAll("[data-show]").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.show === show)); });
+    var first = cur + "-01", start = L.addDays(first, -L.dow(first)), cells = "";
+    ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(function (d) { cells += '<div class="dh">' + d + "</div>"; });
+    for (var i = 0; i < 42; i++) {
+      var iso = L.addDays(start, i);
+      if (i === 35 && iso.slice(0, 7) !== cur) break;
+      var evs = all.filter(function (p) { return onDay(p, iso); });
+      cells += '<div class="dc' + (iso.slice(0, 7) !== cur ? " out" : "") + (iso === t ? " today" : "") + (iso < t ? " past" : "") + '"><span class="dn">' + +iso.slice(8, 10) + "</span>" +
+        evs.map(function (p) { return '<a class="ce ' + p.s + '" href="/events/' + esc(p.id) + '/" title="' + esc((p.s === "going" ? "Going: " : "Maybe: ") + p.t) + '">' + esc(p.t) + "</a>"; }).join("") + "</div>";
+    }
+    $("#cal").innerHTML = cells;
+    var inMonth = all.filter(function (p) { return p.d.slice(0, 7) <= cur && p.l.slice(0, 7) >= cur; });
+    $("#listH").textContent = inMonth.length ? "Your plans in " + MON[m - 1] : "";
+    $("#list").innerHTML = inMonth.length ? inMonth.map(function (p) {
+      var past = p.l < t, where = [p.v, p.w].filter(Boolean).join(" · ");
+      return '<article class="myitem' + (past ? " past" : "") + '"><div class="d">' + esc(L.fmtDay(p.d)) + (p.l > p.d ? "<small>to " + esc(L.fmtDay(p.l)) + "</small>" : "") + (p.st ? "<small>" + esc(L.timeRange({ start_time: p.st, end_time: p.et })) + "</small>" : "") + "</div>" +
+        '<div><h3><a href="/events/' + esc(p.id) + '/">' + esc(p.t) + "</a></h3>" + (where ? '<p class="m">' + esc(where) + (past ? " · This one has passed" : "") + "</p>" : past ? '<p class="m">This one has passed</p>' : "") +
+        '<div class="acts">' + P.btns(evObj(p)).replace('class="planbar"', 'class="planbar" data-nonote') +
+        (past ? "" : '<button type="button" class="lnk" ' + P.shareAttrs(p, p.s) + '><svg class="ic" aria-hidden="true"><use href="#u-share"/></svg>' + (p.s === "going" ? "Tell your pack" : "Ask your pack") + "</button>") +
+        '<a class="lnk" href="/events/' + esc(p.id) + '/">Details</a></div></div></article>';
+    }).join("") : "";
+    var up = P.upcoming(), going = up.filter(function (p) { return p.s === "going"; });
+    $("#empty").hidden = P.all().length > 0;
+    $("#none").hidden = !(P.all().length && !inMonth.length);
+    $("#icsAll").hidden = !going.length;
+    $("#icsAll span").textContent = "Add " + going.length + " going to my calendar";
+    $("#sum").textContent = up.length ? up.length + (up.length === 1 ? " upcoming plan: " : " upcoming plans: ") + going.length + " going, " + (up.length - going.length) + " maybe." : "";
+    try { history.replaceState(null, "", location.pathname + (cur !== t.slice(0, 7) ? "?m=" + cur : "")); } catch (e) {}
+  }
+  $("#prev").addEventListener("click", function () { cur = shift(cur, -1); render(); });
+  $("#next").addEventListener("click", function () { cur = shift(cur, 1); render(); });
+  $("#thisMon").addEventListener("click", function () { cur = t.slice(0, 7); render(); });
+  document.querySelectorAll("[data-show]").forEach(function (b) { b.addEventListener("click", function () { show = b.dataset.show; render(); }); });
+  document.addEventListener("ll:plans", function () { setTimeout(render, 0); });
+  $("#icsAll").addEventListener("click", function () {
+    var going = P.upcoming().filter(function (p) { return p.s === "going"; }); if (!going.length) return;
+    var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([P.icsAll(going)], { type: "text/calendar;charset=utf-8" }));
+    a.download = "my-dog-events.ics"; document.body.appendChild(a); a.click(); setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  });
+  render();
+})();
+</script>"""
+
+
+def my_events():
+    body = hero("Your plans", "My dog events", "Events you marked <b>Going</b> or <b>Maybe</b>, by month. They're saved in this browser, so there's no account to make. Tap an event to open it.") + \
+        '<section class="blk" style="padding-top:8px"><div class="wrap">' \
+        '<div class="mybar"><button class="navb" type="button" id="prev" aria-label="Previous month">‹</button><span class="mon" id="mon" aria-live="polite"></span><button class="navb" type="button" id="next" aria-label="Next month">›</button>' \
+        '<button class="chip" type="button" id="thisMon">This month</button><span class="sp"></span>' \
+        '<div class="chips" role="group" aria-label="Show" style="margin:0"><button class="chip" type="button" data-show="all">All</button><button class="chip" type="button" data-show="going">Going</button><button class="chip" type="button" data-show="maybe">Maybe</button></div></div>' \
+        '<div class="calgrid" id="cal"></div>' \
+        '<div class="calkey"><span><i class="g"></i>Going</span><span><i class="m"></i>Maybe</span></div>' \
+        '<div class="countrow" style="margin-top:14px"><p class="count" id="sum" aria-live="polite"></p><span class="countacts"><button type="button" class="lnk" id="icsAll" hidden>' + ic("i-cal") + '<span>Add to my calendar</span></button><a class="lnk" href="/events/">' + ic("u-arrow") + 'Browse events</a></span></div>' \
+        '<p class="empty" id="empty" hidden>No plans yet. <a href="/events/">Browse dog events</a> and tap <b>Going</b> or <b>Maybe</b> on any event. It shows up here, and you can share it with your pack.</p>' \
+        '<p class="empty" id="none" hidden>Nothing planned this month. Use the arrows to see other months, or <a href="/events/">find something to sniff out</a>.</p>' \
+        '<div class="mylist"><h2 class="h2s" id="listH"></h2><div id="list"></div></div>' \
+        '<p class="note">Your plans stay on this device and browser. Clearing your browser data removes them. Events change, so check the event page before you go.</p>' \
+        '</div></section>'
+    return shell("/my-events/", "My dog events · Lanier Leash", "The dog events you marked Going or Maybe, on a monthly calendar.", body, MY_JS).replace(
+        '<link rel="canonical"', '<meta name="robots" content="noindex">\n<link rel="canonical"', 1)
+
+
+PAGES = {"my-events": my_events, "adopt": adopt, "vet-care": vetcare, "tips": tips, "pack": pack, "about": about, "advertise": advertise, "services": services, "dog-services": dog_services}
 
 if __name__ == "__main__":
     for name, fn in PAGES.items():

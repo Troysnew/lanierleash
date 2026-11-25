@@ -66,6 +66,12 @@ function gcal(e, id) {
 }
 const maps = (e) => "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent([e.venue, e.address || (e.town ? e.town + ", GA" : "")].filter(Boolean).join(", "));
 
+// Going / Maybe buttons (assets/plans.js fills in this browser's pick).
+function planBar(e, id) {
+  const snap = { id, t: e.title, d: e.date, l: lastDay(e), st: e.start_time || "", et: e.end_time || "", v: e.venue || "", w: e.town || "" };
+  return `<span class="planbar big" data-pe="${esc(JSON.stringify(snap))}" role="group" aria-label="Your plans"><button type="button" class="planbtn" data-plan="going" aria-pressed="false"><span class="ck" aria-hidden="true">✓</span>Going</button><button type="button" class="planbtn" data-plan="maybe" aria-pressed="false">Maybe</button></span>`;
+}
+
 function notFound(res) {
   return sendHtml(res, 404, shell({
     title: "Event not found · Lanier Leash", description: "That event may have already happened.", path: "/events/", current: "events", noindex: true,
@@ -144,6 +150,7 @@ export default async function handler(req, res) {
       ${e.url ? `<p class="why">Details from ${esc(e.source_name || host(e.url) || "the organizer")}. <a href="${esc(e.url)}" target="_blank" rel="noopener">See the event page${host(e.url) ? " (" + esc(host(e.url)) + ")" : ""}</a>.</p>` : ""}
     </div>
     ${e.notes ? `<p class="prose">${esc(e.notes)}</p>` : ""}
+    ${past ? "" : `<div class="planrow"><b>Are you going?</b>${planBar(e, id)}</div>`}
     <div class="acts big">
       ${where ? `<a class="btn btn-coral" href="${esc(maps(e))}" target="_blank" rel="noopener">${ic("u-pin")}Directions</a>` : ""}
       <a class="btn btn-out" href="/events/${id}/?format=ics" download>${ic("i-cal")}Add to calendar</a>
@@ -161,7 +168,7 @@ export default async function handler(req, res) {
   </aside>
 </div></section>`;
 
-  const share = `<script src="/assets/share.js" defer></script>`;
+  const share = `<script src="/assets/share.js" defer></script><script src="/assets/plans.js" defer></script>`;
   const map = hasLL ? `<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>(function(){if(!window.L||!window.L.map)return;var ll=[${+e.lat},${+e.lng}];var m=window.L.map("map",{scrollWheelZoom:false}).setView(ll,14);

@@ -62,7 +62,7 @@
         <button class="chip" type="button" data-an="cats">Cats</button>
         <button class="chip" type="button" data-an="critters">Other pets</button>
       </div>
-      <div class="countrow"><p class="count" id="count" aria-live="polite"></p><span class="countacts"><details class="subcal"><summary class="lnk"><svg class="ic"><use href="#i-cal"/></svg>Subscribe</summary><div class="subpop"><p><b>Get every new dog event in your calendar.</b> It updates by itself.</p><a class="btn btn-coral btn-sm" id="subApple" href="webcal://lanierleash.com/events.ics">Apple / Outlook</a><a class="btn btn-out btn-sm" id="subGoogle" href="https://calendar.google.com/calendar/r?cid=webcal://lanierleash.com/events.ics" target="_blank" rel="noopener">Google Calendar</a><small>Only adoption events? Use <a href="/events.ics?type=adopt">this feed</a>.</small></div></details><button type="button" class="lnk" id="mapBtn" aria-expanded="false" aria-controls="evmapbox"><svg class="ic"><use href="#u-pin"/></svg><span>Show map</span></button></span></div>
+      <div class="countrow"><p class="count" id="count" aria-live="polite"></p><span class="countacts"><details class="subcal"><summary class="lnk"><svg class="ic"><use href="#i-cal"/></svg>Subscribe</summary><div class="subpop"><p><b>Get every new dog event in your calendar.</b> It updates by itself.</p><a class="btn btn-coral btn-sm" id="subApple" href="webcal://lanierleash.com/events.ics">Apple / Outlook</a><a class="btn btn-out btn-sm" id="subGoogle" href="https://calendar.google.com/calendar/r?cid=webcal://lanierleash.com/events.ics" target="_blank" rel="noopener">Google Calendar</a><small>Only adoption events? Use <a href="/events.ics?type=adopt">this feed</a>.</small></div></details><a class="lnk" id="myEv" href="/my-events/"><svg class="ic"><use href="#u-check"/></svg><span>My events</span></a><button type="button" class="lnk" id="mapBtn" aria-expanded="false" aria-controls="evmapbox"><svg class="ic"><use href="#u-pin"/></svg><span>Show map</span></button></span></div>
     </div>
   </section>
 
@@ -91,6 +91,7 @@
 
 <script src="/assets/data.js"></script>
 <script src="/assets/share.js" defer></script>
+<script src="/assets/plans.js"></script>
 <script>
 (function () {
   var L = window.LL, $ = function (s) { return document.querySelector(s); };
@@ -190,7 +191,7 @@
       '<p class="rule">' + ic("u-leash") + "<span>" + esc(e.dog_rule || "Dog rule not stated, check with the host") + "</span></p>" +
       (e.notes ? '<p class="src">' + esc(e.notes) + "</p>" : "") +
       (e.more && e.more.length ? '<p class="repeat">' + ic("i-cal") + "<span><b>" + esc(e.every || "Also on") + "</b>" + (e.every ? " · also " : " ") + e.more.slice(0, 5).map(function (x) { return '<a href="/events/' + x.id + '/">' + esc(L.fmtShort(x.date)) + "</a>"; }).join(", ") + (e.more.length > 5 ? " and " + (e.more.length - 5) + " more" : "") + "</span></p>" : "") +
-      '<div class="acts"><a class="lnk" href="/events/' + e.id + '/">' + ic("u-arrow") + "Details</a>" + (e.venue || e.town ? '<a class="lnk" href="' + esc(dirs(e)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>" : "") + (e.url ? '<a class="lnk" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Organizer's page</a>" : "") +
+      '<div class="acts">' + (window.LLPlans ? LLPlans.btns(e) : "") + '<a class="lnk" href="/events/' + e.id + '/">' + ic("u-arrow") + "Details</a>" + (e.venue || e.town ? '<a class="lnk" href="' + esc(dirs(e)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>" : "") + (e.url ? '<a class="lnk" href="' + esc(e.url) + '" target="_blank" rel="noopener">' + ic("u-arrow") + "Organizer's page</a>" : "") +
       '<button class="lnk" type="button" data-ics="' + e.id + '">' + ic("i-cal") + "Add to calendar</button>" +
       L.shareBtn(e) +
       '<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(e.title + " (" + L.fmtShort(e.date) + ")") + '&amp;ref=event:' + encodeURIComponent(e.id) + '">Something wrong?</a></div>' +
@@ -243,6 +244,9 @@
     var ev = DATA.events.filter(function (x) { return x.id === b.dataset.ics; })[0]; if (ev) L.downloadICS(ev);
   });
 
+  // "My events (3)" counts upcoming Going / Maybe picks in this browser.
+  function myCount() { var n = window.LLPlans ? LLPlans.upcoming().length : 0; $("#myEv span").textContent = n ? "My events (" + n + ")" : "My events"; }
+  myCount(); document.addEventListener("ll:plans", myCount);
   L.load().then(function (d) { DATA = d; render(); }).catch(function () {
     $("#list").innerHTML = '<p class="empty">We couldn’t load events right now. Please try again in a minute.</p>';
   });
