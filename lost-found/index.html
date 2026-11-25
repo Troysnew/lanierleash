@@ -40,6 +40,7 @@
 <section class="blk" style="padding-top:20px"><div class="wrap">
   <div class="lfbar">
     <div class="seg" role="group" aria-label="Show"><button type="button" data-k="all" aria-pressed="true">All</button><button type="button" data-k="lost" aria-pressed="false">Lost</button><button type="button" data-k="found" aria-pressed="false">Found</button><button type="button" data-k="reunited" aria-pressed="false">Home safe</button></div>
+    <label class="search lfsearch"><svg class="ic" style="color:var(--muted)"><use href="#u-search"/></svg><span class="sr">Search lost and found</span><input id="lfQ" type="search" placeholder="Name, breed, color, town" autocomplete="off" enterkeyhint="search"></label>
     <label class="fld lfnear"><span>Near ZIP</span><input id="lfZip" inputmode="numeric" maxlength="5" placeholder="30041" autocomplete="postal-code"></label>
   </div>
   <p class="lfcount" id="lfCount" role="status">Loading…</p>
@@ -113,7 +114,8 @@
 <script>
 (function () {
   var L = window.LL, esc = L.esc, $ = function (id) { return document.getElementById(id); };
-  var q = new URLSearchParams(location.search), posts = [], kind = ["lost", "found", "reunited"].indexOf(q.get("kind")) >= 0 ? q.get("kind") : "all";
+  var q = new URLSearchParams(location.search), posts = [], words = [],
+    norm = function (s) { return String(s || "").toLowerCase().replace(/[’']/g, "").replace(/\s+/g, " ").trim(); }, kind = ["lost", "found", "reunited"].indexOf(q.get("kind")) >= 0 ? q.get("kind") : "all";
   if (q.get("e") === "link") { $("lfErr").hidden = false; $("lfErr").textContent = "That link isn't valid anymore. The post may have been taken down. You can post again below."; }
   var MON = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   var fmt = function (iso) { return iso ? MON[+iso.slice(5, 7) - 1] + " " + +iso.slice(8, 10) : ""; };
@@ -125,11 +127,15 @@
   function draw() {
     document.querySelectorAll(".lfbar .seg button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.k === kind)); });
     var h = L.home, list = posts.filter(function (p) { return kind === "all" ? p.status !== "reunited" : kind === "reunited" ? p.status === "reunited" : p.kind === kind && p.status !== "reunited"; });
+    if (words.length) list = list.filter(function (p) {
+      var t = norm([p.pet_name, p.headline, p.looks, p.breed, p.color, p.last_seen, p.town, p.species, p.kind === "lost" ? "lost" : "found"].join(" "));
+      return words.every(function (w) { return t.indexOf(w) >= 0; });
+    });
     list.forEach(function (p) { p.mi = p.lat != null ? L.miles(+p.lat, +p.lng) : null; });
     // Newest first, but anything over 25 miles away drops below the close ones.
     list.sort(function (a, b) { var fa = a.mi != null && a.mi > 25, fb = b.mi != null && b.mi > 25; if (fa !== fb) return fa ? 1 : -1; return Date.parse(b.posted) - Date.parse(a.posted); });
     var n = list.length, label = kind === "reunited" ? (n === 1 ? "happy ending" : "happy endings") : kind === "lost" ? "lost " + (n === 1 ? "pet" : "pets") : kind === "found" ? "found " + (n === 1 ? "pet" : "pets") : (n === 1 ? "pet" : "pets") + " waiting to get home";
-    $("lfCount").textContent = n ? n + " " + label + (kind === "reunited" ? " in the last 60 days" : "") + (h && h.zip ? " · distances from " + h.zip : "") : "";
+    $("lfCount").textContent = words.length ? (n ? n + (n === 1 ? " match" : " matches") + " for “" + $("lfQ").value.trim() + "”" : "") : n ? n + " " + label + (kind === "reunited" ? " in the last 60 days" : "") + (h && h.zip ? " · distances from " + h.zip : "") : "";
     $("lfList").innerHTML = n ? list.map(function (p) {
       var home = p.status === "reunited", tag = home ? "Home safe" : (p.kind === "lost" ? "Lost " : "Found ") + ({ dog: "dog", cat: "cat" }[p.species] || "pet");
       return '<a class="lfcard ' + (home ? "home" : p.kind) + '" href="/lost-found/' + encodeURIComponent(p.id) + '/">' +
@@ -139,10 +145,12 @@
         (p.looks ? '<small>' + esc(p.looks) + '</small>' : '') +
         '<span class="where"><svg class="ic" aria-hidden="true"><use href="#u-pin"/></svg>' + esc(p.last_seen) + ', ' + esc(p.town) + '</span>' +
         '<span class="when">' + (home ? "Reunited " + fmt((p.reunited_at || "").slice(0, 10)) : (p.kind === "lost" ? "Last seen " : "Found ") + fmt(p.date_seen)) + (p.mi != null ? " · " + esc(L.fmtMi(p.mi)) : "") + ' · posted ' + ago(p.posted) + '</span></span></a>';
-    }).join("") : '<p class="empty">' + (kind === "reunited" ? "No happy endings posted yet. Here's hoping for one soon." : "No " + (kind === "all" ? "" : kind + " ") + "pets posted right now. That's good news. <a href=\"#post\">Post one</a> if you need to.") + '</p>';
-    try { history.replaceState(null, "", kind === "all" ? location.pathname + location.hash : "?kind=" + kind + location.hash); } catch (e) {}
+    }).join("") : words.length ? '<p class="empty">No posts match “' + esc($("lfQ").value.trim()) + '”. Try one word, like the town or a color.</p>' : '<p class="empty">' + (kind === "reunited" ? "No happy endings posted yet. Here's hoping for one soon." : "No " + (kind === "all" ? "" : kind + " ") + "pets posted right now. That's good news. <a href=\"#post\">Post one</a> if you need to.") + '</p>';
+    try { var u = new URLSearchParams(); if (kind !== "all") u.set("kind", kind); if (words.length) u.set("q", $("lfQ").value.trim()); history.replaceState(null, "", location.pathname + (String(u) ? "?" + u : "") + location.hash); } catch (e) {}
   }
   document.querySelector(".lfbar .seg").addEventListener("click", function (e) { var b = e.target.closest("button"); if (b) { kind = b.dataset.k; draw(); } });
+  var qt; $("lfQ").value = q.get("q") || ""; words = norm($("lfQ").value) ? norm($("lfQ").value).split(" ") : [];
+  $("lfQ").addEventListener("input", function () { clearTimeout(qt); qt = setTimeout(function () { var v = norm($("lfQ").value); words = v ? v.split(" ") : []; draw(); }, 120); });
   $("lfZip").addEventListener("change", function () { var z = this.value.trim(); if (/^\d{5}$/.test(z)) L.setZip(z).then(draw); });
   document.addEventListener("ll:home", function () { $("lfZip").value = L.home.zip || ""; draw(); });
   fetch("/api/lostfound?list=1").then(function (r) { return r.json(); }).then(function (d) { posts = (d && d.posts) || []; draw(); })

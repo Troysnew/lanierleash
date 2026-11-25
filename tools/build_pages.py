@@ -109,9 +109,16 @@ def org_card(r, extra="", fb=False):
             f'{extra}{"<p>" + esc(r["notes"]) + "</p>" if r.get("notes") else ""}{"".join(bits)}{'<div class="ofb" hidden></div>' if fb else ""}<div class="acts">{"".join(links)}</div></article>')
 
 
-ADOPT_JS = """<script>(function(){function show(v){document.querySelectorAll(".org").forEach(function(o){o.hidden=!!v&&(" "+o.dataset.tags+" ").indexOf(" "+v+" ")<0});
-document.querySelectorAll(".orgf [data-of]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.of===v))});
-document.querySelectorAll("section.blk").forEach(function(sec){var c=sec.querySelectorAll(".org");if(c.length)sec.hidden=[].every.call(c,function(o){return o.hidden})})}
+def search_bar(placeholder, label, missing):
+    """Search box for a directory page. assets/orgsearch.js does the filtering."""
+    return (f'<div class="orgsearch"><label class="search"><svg class="ic" style="color:var(--muted)"><use href="#u-search"/></svg><span class="sr">{esc(label)}</span>'
+            f'<input id="orgQ" type="search" placeholder="{esc(placeholder)}" autocomplete="off" enterkeyhint="search"></label>'
+            f'<p class="count" id="orgCount" aria-live="polite" data-missing="{esc(missing)}"></p></div>')
+SEARCH_JS = '<script src="/assets/orgsearch.js"></script>'
+
+
+ADOPT_JS = """<script>(function(){function show(v){var S=window.LLOrgSearch;if(S){S.tag=v;S.apply();}
+document.querySelectorAll(".orgf [data-of]").forEach(function(b){b.setAttribute("aria-pressed",String(b.dataset.of===v))})}
 document.addEventListener("click",function(e){var b=e.target.closest("[data-of]");if(!b)return;show(b.dataset.of);if(b.closest(".org"))document.querySelector(".orgf").scrollIntoView({behavior:"smooth",block:"center"})})})();</script>"""
 
 # Where to go next from each tip, on this site.
@@ -160,10 +167,11 @@ def adopt():
     body = hero("Adopt or foster", "Shelters and rescues near Lake Lanier",
                 "County shelters, humane societies and foster-based rescues around Cumming, Gainesville and north metro Atlanta. Fostering, even for a weekend, frees up a kennel. "
                 '<a href="/events/?type=adopt&amp;when=weekend">See adoption events this weekend</a>.'
-                '<span class="orgf" role="group" aria-label="Show"><button type="button" data-of="" aria-pressed="true">All</button><button type="button" data-of="adopt" aria-pressed="false">Adopt</button><button type="button" data-of="foster" aria-pressed="false">Foster</button></span>') + "".join(out) + \
+                '<span class="orgf" role="group" aria-label="Show"><button type="button" data-of="" aria-pressed="true">All</button><button type="button" data-of="adopt" aria-pressed="false">Adopt</button><button type="button" data-of="foster" aria-pressed="false">Foster</button></span>') + \
+        '<section class="blk srchblk"><div class="wrap">' + search_bar("Search by name, town or breed", "Search shelters and rescues", "/submit/?type=place&category=rescue") + '</div></section>' + "".join(out) + \
         f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Hours and programs change, so call or check the website before you go. Run a rescue we missed? <a href="/submit/?type=place&amp;category=rescue">Tell us about it</a>.</p></div></section>'
     return shell("/adopt/", "Adopt or foster a dog near Cumming and Lake Lanier · Lanier Leash",
-                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body, DIST_JS + ADOPT_JS)
+                 "Animal shelters, humane societies and dog rescues near Cumming, Gainesville, Forsyth, Hall and north metro Atlanta, with adoption and foster info.", body, DIST_JS + SEARCH_JS + ADOPT_JS)
 
 
 def emergency_section():
@@ -209,10 +217,10 @@ def vetcare():
             return '<dl class="facts">' + "".join(f"<dt>{lbl}</dt><dd>{esc(v)}</dd>" for lbl, v in dl) + "</dl>" if dl else ""
         out.append(f'<section class="blk rblk"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(org_card(r, extra(r), fb=k in FB_KINDS) for r in g)}</div></div></section>')
     body = hero("Low-cost vet care", "Affordable vet care near Lake Lanier",
-                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + emergency_section() + '<section class="blk ptsec"><div class="wrap"><div class="ptwrap" id="partners" hidden></div></div></section>' + "".join(out) + \
+                "Nonprofit clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and help with vet bills around Cumming, Gainesville and north metro Atlanta. <a href='#emergency'>Emergency vets</a> are first.") + '<section class="blk srchblk"><div class="wrap">' + search_bar("Search clinics, towns, spay, vaccines", "Search vet care", "/submit/?type=place&category=other") + '</div></section>' + emergency_section() + '<section class="blk ptsec"><div class="wrap"><div class="ptwrap" id="partners" hidden></div></div></section>' + "".join(out) + \
         f'<section class="blk"><div class="wrap"><p class="note">Checked {CHECKED}. Prices are from each clinic\'s own price list and change often, so confirm when you book. For an emergency, call your vet or one of the <a href="#emergency">emergency hospitals above</a> right away.</p></div></section>'
     return shell("/vet-care/", "Low-cost vet care, spay and neuter near Cumming, GA · Lanier Leash",
-                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS + partner_js(["vet"]) + '<script src="/assets/orgfeedback.js" defer></script>')
+                 "Affordable vet clinics, low-cost spay and neuter, vaccine clinics, pet food pantries and vet bill help near Cumming, Gainesville and north metro Atlanta.", body, DIST_JS + SEARCH_JS + partner_js(["vet"]) + '<script src="/assets/orgfeedback.js" defer></script>')
 
 
 def rel_links(slug):
@@ -303,6 +311,7 @@ def services():
     body = hero("Dog services", "Groomers, trainers and daycare near Lake Lanier",
                 "Local businesses that look after dogs around Cumming, Gainesville and north metro Atlanta, nearest to you first. Looking for a vet? See <a href='/vet-care/'>vet care</a>, with <a href='/vet-care/#emergency'>emergency vets</a> first.") + \
         f"""<section class="blk" style="padding-top:20px"><div class="wrap">
+  {search_bar("Search groomers, trainers, towns, services", "Search dog services", "/submit/?type=place&category=other") if rows else ""}
   {navbar}
   <div class="ptwrap" id="partners" hidden></div>
   {empty}
@@ -324,7 +333,7 @@ def services():
   <div class="joincard" style="margin-top:30px;max-width:560px"><b>Run a dog business near the lake?</b><p>Featured partners get their own page here and a mention in the first Thursday email each month.</p><a class="btn btn-coral" href="/advertise/#partners">""" + ic("u-heart") + """Become a partner</a></div>
 </div></section>"""
     return shell("/services/", "Dog groomers, trainers and daycare near Cumming, GA · Lanier Leash",
-                 "Dog groomers, mobile groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta, with addresses, phones and services.", body, DIST_JS + partner_js(["groomer", "trainer", "daycare", "other"], 6))
+                 "Dog groomers, mobile groomers, trainers, daycare and boarding near Cumming, Lake Lanier and north metro Atlanta, with addresses, phones and services.", body, DIST_JS + SEARCH_JS + partner_js(["groomer", "trainer", "daycare", "other"], 6))
 
 
 def advertise():

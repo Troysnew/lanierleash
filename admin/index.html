@@ -90,6 +90,7 @@
         <button class="btn btn-sm btn-coral" id="evAdd" type="button" style="margin-left:0">+ Add event</button>
       </div>
       <p class="fine" id="evHelp"></p>
+      <div class="bulkbar" id="evBulk" hidden><label class="small"><input type="checkbox" id="evAll"> Select all</label><button class="btn btn-sm btn-coral" type="button" id="evPubAll">Publish all</button><button class="btn btn-sm btn-out" type="button" id="evHideSel" hidden>Hide selected</button><span class="small muted" id="evBulkMsg"></span></div>
       <div id="evList" class="list"><p class="empty">Loading…</p></div>
     </section>
 
@@ -654,11 +655,13 @@
   }
   var TY = { dog: "Dog event", adopt: "Adoption", foster: "Foster" };
   function renderEvents() {
-    $("#evList").innerHTML = ev.items.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr><th>When</th><th>Event</th><th>Where</th><th></th></tr></thead><tbody>' + ev.items.map(function (x) {
+    var bulk = ev.view === "suggested" && ev.items.length > 0;
+    $("#evBulk").hidden = !bulk; $("#evAll").checked = false; bulkLabel();
+    $("#evList").innerHTML = ev.items.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr>' + (bulk ? '<th class="ck"></th>' : "") + '<th>When</th><th>Event</th><th>Where</th><th></th></tr></thead><tbody>' + ev.items.map(function (x) {
       var when = fmtD(x.date) + (x.end_date ? " – " + fmtD(x.end_date) : "") + (x.start_time ? "<br><small>" + fmtT(x.start_time) + (x.end_time ? "–" + fmtT(x.end_time) : "") + "</small>" : "");
       var flags = (x.lat == null ? '<span class="sb sb-pending" title="No map location, so it won\'t show in distance searches or the email">No location</span> ' : "") +
         (x.origin === "research" ? '<span class="sb sb-feed">Weekly research</span> ' : "") + (x.origin === "feed" ? '<span class="sb sb-feed">From ' + esc(x.source_name || "a calendar") + "</span> " : "");
-      return '<tr data-id="' + x.id + '"><td class="nw">' + when + '</td><td><b>' + esc(x.title) + '</b> <span class="ty ty-' + (x.type === "dog" ? "event" : "pup") + '">' + TY[x.type] + "</span><br>" + flags +
+      return '<tr data-id="' + x.id + '">' + (bulk ? '<td class="ck"><input type="checkbox" class="evck" aria-label="Select ' + esc(x.title) + '"></td>' : "") + '<td class="nw">' + when + '</td><td><b>' + esc(x.title) + '</b> <span class="ty ty-' + (x.type === "dog" ? "event" : "pup") + '">' + TY[x.type] + "</span><br>" + flags +
         (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" class="small">Event page</a>' : "") + "</td><td>" + esc([x.venue, x.town].filter(Boolean).join(", ")) + (x.mi != null ? '<br><small class="muted">' + x.mi + " mi from Cumming</small>" : "") + '</td><td class="nw acts2">' +
         '<button class="btn btn-sm btn-out" data-ev="edit">Edit</button>' +
         (x.status !== "published" ? '<button class="btn btn-sm btn-coral" data-ev="published">Publish</button>' : "") +
@@ -673,6 +676,31 @@
     b.disabled = true;
     api("event_status", { body: { id: id, status: b.dataset.ev } }).then(function (d) { if (!d.ok) { b.disabled = false; return alert(d.error); } loadEvents(); }).catch(function () {});
   });
+  // Bulk publish / hide on the Suggested tab. With nothing ticked, the button publishes every suggestion.
+  function picked() { return [].map.call(document.querySelectorAll("#evList .evck:checked"), function (c) { return c.closest("tr").dataset.id; }); }
+  function bulkLabel() {
+    var n = picked().length;
+    $("#evPubAll").textContent = n ? "Publish " + n + " selected" : "Publish all " + ev.items.length;
+    $("#evHideSel").hidden = !n; $("#evHideSel").textContent = "Hide " + n + " selected";
+  }
+  $("#evList").addEventListener("change", function (e) { if (e.target.classList.contains("evck")) { var all = document.querySelectorAll("#evList .evck"); $("#evAll").checked = picked().length === all.length; bulkLabel(); } });
+  $("#evAll").addEventListener("change", function () { var on = this.checked; document.querySelectorAll("#evList .evck").forEach(function (c) { c.checked = on; }); bulkLabel(); });
+  function bulk(status) {
+    var ids = picked(), all = !ids.length;
+    if (all) ids = ev.items.map(function (x) { return x.id; });
+    if (!ids.length) return;
+    if (all && !confirm("Publish all " + ids.length + " suggested events? They'll show on the site and can go in Thursday's email.")) return;
+    $("#evPubAll").disabled = $("#evHideSel").disabled = true; $("#evBulkMsg").textContent = "Working…";
+    api("event_status_bulk", { body: { ids: ids, status: status } }).then(function (d) {
+      $("#evPubAll").disabled = $("#evHideSel").disabled = false; $("#evBulkMsg").textContent = "";
+      if (!d.ok) return alert(d.error);
+      $("#evBulkMsg").textContent = (status === "published" ? "Published " : "Hid ") + d.count + (d.count === 1 ? " event." : " events.");
+      loadEvents();
+    }).catch(function () { $("#evPubAll").disabled = $("#evHideSel").disabled = false; $("#evBulkMsg").textContent = ""; });
+  }
+  $("#evPubAll").addEventListener("click", function () { bulk("published"); });
+  $("#evHideSel").addEventListener("click", function () { bulk("hidden"); });
+
   $("#evImport").addEventListener("click", function () {
     var b = this; b.disabled = true;
     api("events_import", { body: {} }).then(function (d) { if (!d.ok) { b.disabled = false; return alert(d.error); } alert("Imported " + d.count + " events."); loadEvents(); }).catch(function () {});

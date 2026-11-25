@@ -2,7 +2,7 @@
 //   POST {action:"login", password} · POST {action:"logout"} · GET ?action=me
 //   GET  ?action=overview | submissions&status=&type= | subscribers[&format=csv] | sends | preview&type=&zip=&radius=
 //   GET  ?action=events&view=upcoming|suggested|past|hidden
-//   POST {action:"event_save", id?, ...fields, from_submission?} | {action:"event_status", id, status} | {action:"event_delete", id} | {action:"events_import"}
+//   POST {action:"event_save", id?, ...fields, from_submission?} | {action:"event_status", id, status} | {action:"event_status_bulk", ids[], status} | {action:"event_delete", id} | {action:"events_import"}
 //   GET  ?action=places&view=published|draft|hidden · GET ?action=sponsor
 //   POST {action:"place_save", id?, ...fields, publish?, from_submission?} | {action:"place_status", id, status} | {action:"place_delete", id} | {action:"places_import"}
 //   POST {action:"sponsor_save", name, text, url, until, on}
@@ -192,6 +192,17 @@ export default async function handler(req, res) {
         if (!["published", "draft", "hidden"].includes(b.status)) return json(res, 400, { ok: false, error: "Bad status" });
         const row = await updateEvent(String(b.id || ""), { status: b.status });
         return row ? json(res, 200, { ok: true, item: row }) : json(res, 404, { ok: false, error: "Not found" });
+      }
+      case "event_status_bulk": {
+        if (!["published", "draft", "hidden"].includes(b.status)) return json(res, 400, { ok: false, error: "Bad status" });
+        const ids = [...new Set((Array.isArray(b.ids) ? b.ids : []).map(String).filter(Boolean))].slice(0, 200);
+        if (!ids.length) return json(res, 400, { ok: false, error: "Nothing selected" });
+        let count = 0;
+        for (let i = 0; i < ids.length; i += 10) {
+          const rows = await Promise.all(ids.slice(i, i + 10).map((id) => updateEvent(id, { status: b.status }).catch(() => null)));
+          count += rows.filter(Boolean).length;
+        }
+        return json(res, 200, { ok: true, count });
       }
       case "event_delete": {
         await deleteEvent(String(b.id || ""));

@@ -30,6 +30,7 @@
 </div>
 <main id="top">
 <section class="page-hero"><div class="wrap"><span class="eyebrow">Dog services</span><h1>Groomers, trainers and daycare near Lake Lanier</h1><p class="lede">Local businesses that look after dogs around Cumming, Gainesville and north metro Atlanta, nearest to you first. Looking for a vet? See <a href='/vet-care/'>vet care</a>, with <a href='/vet-care/#emergency'>emergency vets</a> first.</p></div></section><section class="blk" style="padding-top:20px"><div class="wrap">
+  <div class="orgsearch"><label class="search"><svg class="ic" style="color:var(--muted)"><use href="#u-search"/></svg><span class="sr">Search dog services</span><input id="orgQ" type="search" placeholder="Search groomers, trainers, towns, services" autocomplete="off" enterkeyhint="search"></label><p class="count" id="orgCount" aria-live="polite" data-missing="/submit/?type=place&amp;category=other"></p></div>
   <nav class="chips svcnav" aria-label="Jump to"><a class="chip" href="#groomers">Groomers <b>13</b></a><a class="chip" href="#trainers">Trainers <b>11</b></a><a class="chip" href="#daycare">Daycare and boarding <b>12</b></a></nav>
   <div class="ptwrap" id="partners" hidden></div>
   
@@ -69,7 +70,7 @@
 <script>(function(){var L=window.LL;if(!L)return;function run(){
 document.querySelectorAll(".org[data-lat]").forEach(function(o){var m=L.miles(+o.dataset.lat,+o.dataset.lng);o.dataset.mi=m==null?"":m;var b=o.querySelector(".dist");if(b)b.textContent=m==null?"":" · "+L.fmtMi(m)+" from "+L.home.zip;});
 document.querySelectorAll(".orglist, .orgs").forEach(function(g){var c=[].slice.call(g.querySelectorAll(":scope > .org"));c.sort(function(a,b){var x=a.dataset.mi===undefined||a.dataset.mi===""?1e9:+a.dataset.mi,y=b.dataset.mi===undefined||b.dataset.mi===""?1e9:+b.dataset.mi;return x-y});c.forEach(function(n){g.appendChild(n)})});}
-run();document.addEventListener("ll:home",run);})();</script><script src="/assets/partners.js"></script>
+run();document.addEventListener("ll:home",run);})();</script><script src="/assets/orgsearch.js"></script><script src="/assets/partners.js"></script>
 <script>(function(){var el=document.getElementById("partners");function go(){window.LLPartners&&window.LLPartners.render(el,["groomer", "trainer", "daycare", "other"],{max:6}).then(function(n){var e=document.getElementById("ptEmpty");if(e)e.hidden=n>0;});}go();document.addEventListener("ll:home",go);})();</script>
 </body>
 </html>

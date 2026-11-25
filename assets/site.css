@@ -1064,3 +1064,12 @@ img.mark { object-fit: contain; }
 
 /* Animal tags on events (cats, critters) */
 .t-pet { background: #EEE8FB; color: #5B3FA0; }
+
+/* Search on the directory pages and the lost & found board */
+.srchblk { padding: 20px 0 0; }
+.orgsearch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 18px; }
+.orgsearch .search { max-width: 440px; flex: 1 1 280px; }
+.orgsearch .count { margin: 0; font-weight: 600; color: var(--muted); }
+.orgsearch .count:empty { display: none; }
+.lfsearch { flex: 1 1 220px; max-width: 320px; min-height: 44px; }
+@media (max-width: 520px) { .orgsearch .search, .lfsearch { max-width: none; } }
