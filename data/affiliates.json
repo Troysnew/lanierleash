@@ -1,0 +1,16 @@
+{
+ "_readme": "Booking and sitter links. 'url' is the search link ({q} = the hotel name and town). Paste your affiliate code into 'affiliate' as a query string (for example aid=1234567) once you're approved; then links are marked sponsored and a short disclosure shows. Leave 'url' empty to hide a link. After editing, run python tools/build_pages.py so the Services page picks it up.",
+ "hotel": {
+  "label": "Check rates",
+  "url": "https://www.booking.com/searchresults.html?ss={q}",
+  "affiliate": "",
+  "disclosure": "If you book through this link we may earn a small commission. It never changes a dog rule or a badge."
+ },
+ "sitter": {
+  "label": "Find a sitter or walker",
+  "url": "",
+  "affiliate": "",
+  "blurb": "Away for the weekend, or need a midday walk? Find a local sitter or walker with reviews and booking.",
+  "disclosure": "We may earn a small fee if you book through this link."
+ }
+}

@@ -1073,3 +1073,32 @@ img.mark { object-fit: contain; }
 .orgsearch .count:empty { display: none; }
 .lfsearch { flex: 1 1 220px; max-width: 320px; min-height: 44px; }
 @media (max-width: 520px) { .orgsearch .search, .lfsearch { max-width: none; } }
+
+/* Saved places (heart) */
+.savebtn svg.ic { fill: none; stroke: currentColor; stroke-width: 2.2; }
+.savebtn[aria-pressed="true"] { color: var(--coral); }
+.savebtn[aria-pressed="true"] svg.ic { fill: var(--coral); stroke: var(--coral); }
+.btn.savebtn[aria-pressed="true"] { border-color: var(--coral); }
+.savechip svg.ic { width: 14px; height: 14px; fill: var(--coral); stroke: var(--coral); vertical-align: -2px; margin-right: 4px; }
+/* Reader photos on place pages */
+.rphotos { margin: 22px 0 6px; padding: 20px 22px; border-radius: 22px; background: var(--white); box-shadow: var(--sh); display: grid; gap: 14px; }
+.rpgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.rpgrid figure { margin: 0; }
+.rpgrid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 14px; display: block; }
+.rpgrid figcaption { font-size: 13px; color: var(--muted); margin-top: 5px; }
+.rpgrid figcaption b { color: var(--navy); }
+.rpform { display: grid; gap: 12px; }
+.rpform label { display: grid; gap: 5px; font-weight: 700; font-size: 14px; color: var(--navy); }
+.rpform label small { font-weight: 500; color: var(--muted); }
+.rpform input:not([type=checkbox]):not([type=file]) { font: inherit; padding: 10px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+.rpform .chk { display: flex; gap: 8px; align-items: flex-start; font-weight: 500; }
+.rprow { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.rpform .drop { display: grid; place-items: center; text-align: center; min-height: 140px; border: 2px dashed var(--line); border-radius: 16px; padding: 14px; cursor: pointer; position: relative; }
+.rpform .drop input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.rpform .drop span { display: grid; gap: 4px; justify-items: center; font-weight: 500; color: var(--muted); }
+.rpform .drop b { color: var(--navy); }
+.rpform .drop img { max-height: 240px; border-radius: 12px; }
+.rpform .hp { position: absolute; left: -9999px; }
+@media (max-width: 520px) { .rprow { grid-template-columns: 1fr; } }
+.sittercard { margin-top: 30px; max-width: 560px; }
+.sittercard small { display: block; margin-top: 8px; color: var(--muted); }

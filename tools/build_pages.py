@@ -306,6 +306,13 @@ def services():
             html = org_card(r, extra(r))
             return html.replace(" · serves the whole area", "")
         out.append(f'<section class="blk rblk" id="{anchor}"><div class="wrap"><div class="sh"><div><h2>{title}</h2></div></div><div class="orgs">{"".join(card(r) for r in g)}</div></div></section>')
+    aff = json.load(open(ROOT / "data/affiliates.json", encoding="utf-8")).get("sitter") or {}
+    sitter = ""
+    if aff.get("url"):
+        u = aff["url"] + (("&" if "?" in aff["url"] else "?") + aff["affiliate"] if aff.get("affiliate") else "")
+        sitter = (f'<div class="joincard sittercard"><b>{esc(aff.get("label") or "Find a sitter or walker")}</b><p>{esc(aff.get("blurb", ""))}</p>'
+                  f'<a class="btn btn-out" href="{esc(u)}" target="_blank" rel="{"sponsored noopener" if aff.get("affiliate") else "noopener"}">{ic("u-arrow")}{esc(aff.get("label") or "Find a sitter")}</a>'
+                  f'{"<small>" + esc(aff.get("disclosure", "")) + "</small>" if aff.get("affiliate") else ""}</div>')
     empty = "" if rows else """<div class="empty" id="ptEmpty" style="text-align:left;max-width:680px">We're building this page now. Know a great groomer, trainer or daycare near the lake? <a href="/submit/?type=place&amp;category=other">Tell us about them</a>.</div>"""
     navbar = f'<nav class="chips svcnav" aria-label="Jump to">{"".join(nav)}</nav>' if nav else ""
     body = hero("Dog services", "Groomers, trainers and daycare near Lake Lanier",
@@ -317,6 +324,7 @@ def services():
   {empty}
 </div></section>""" + "".join(out) + \
         """<section class="blk"><div class="wrap">
+  """ + sitter + """
   <p class="note">Free listings, checked """ + CHECKED + """ from each business's own website. We don't rank or review them, and no one pays to be on this list. Featured partners are labeled Sponsored. Something wrong, or a business we missed? <a href="/submit/?type=place&amp;category=other">Tell us</a>.</p>
   <div class="lfhelp" style="margin-top:30px">
     <div><h2 class="h2s">Choosing a groomer or daycare</h2><ul class="ticks">

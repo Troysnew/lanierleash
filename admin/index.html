@@ -67,7 +67,7 @@
         </div>
         <select id="tyF" aria-label="Type">
           <option value="all">All types</option><option value="pup">Pups</option><option value="event">Events</option>
-          <option value="place">Places</option><option value="fix">Fixes</option><option value="claim">Business claims</option><option value="sponsor">Sponsors</option>
+          <option value="place">Places</option><option value="photo">Place photos</option><option value="fix">Fixes</option><option value="claim">Business claims</option><option value="sponsor">Sponsors</option>
         </select>
       </div>
       <div id="list" class="list"><p class="empty">Loading…</p></div>
@@ -507,6 +507,7 @@
   var STATUS_LABEL = { new: "To review", approved: "Approved", done: "Done", rejected: "Rejected" };
   var HINT = {
     pup: "Feature this pup to put it on the homepage right away.",
+    photo: "Approve to show this photo on the place's page. If it isn't a dog at this place, or you wouldn't want it on the site, delete it.",
     event: "Click Add to events to check the details and put it on the site.",
     place: "Click Add to places to check the details and put it on the site.",
     fix: "Check the listing, then mark Done once it's fixed.",
@@ -634,7 +635,7 @@
   var EVHELP = {
     upcoming: "Everything here shows on the site and in Thursday's email. Past events drop off on their own.",
     suggested: "Found automatically in local calendars, or saved without publishing. Check the details, then publish or hide.",
-    past: "Events that have already happened (last 100).",
+    past: "Events that have already happened (last 100), including old suggestions you never published.",
     hidden: "Kept but not shown anywhere. Publish to bring one back."
   };
   chips("#evF", function (v) { ev.view = v; loadEvents(); });
@@ -660,6 +661,7 @@
     $("#evList").innerHTML = ev.items.length ? '<div class="tablewrap"><table class="tbl evt"><thead><tr>' + (bulk ? '<th class="ck"></th>' : "") + '<th>When</th><th>Event</th><th>Where</th><th></th></tr></thead><tbody>' + ev.items.map(function (x) {
       var when = fmtD(x.date) + (x.end_date ? " – " + fmtD(x.end_date) : "") + (x.start_time ? "<br><small>" + fmtT(x.start_time) + (x.end_time ? "–" + fmtT(x.end_time) : "") + "</small>" : "");
       var flags = (x.lat == null ? '<span class="sb sb-pending" title="No map location, so it won\'t show in distance searches or the email">No location</span> ' : "") +
+(ev.view === "past" && x.status === "draft" ? '<span class="sb sb-pending">Never published</span> ' : "") +
         (x.origin === "research" ? '<span class="sb sb-feed">Weekly research</span> ' : "") + (x.origin === "feed" ? '<span class="sb sb-feed">From ' + esc(x.source_name || "a calendar") + "</span> " : "");
       return '<tr data-id="' + x.id + '">' + (bulk ? '<td class="ck"><input type="checkbox" class="evck" aria-label="Select ' + esc(x.title) + '"></td>' : "") + '<td class="nw">' + when + '</td><td><b>' + esc(x.title) + '</b> <span class="ty ty-' + (x.type === "dog" ? "event" : "pup") + '">' + TY[x.type] + "</span><br>" + flags +
         (x.url ? '<a href="' + esc(x.url) + '" target="_blank" rel="noopener" class="small">Event page</a>' : "") + "</td><td>" + esc([x.venue, x.town].filter(Boolean).join(", ")) + (x.mi != null ? '<br><small class="muted">' + x.mi + " mi from Cumming</small>" : "") + '</td><td class="nw acts2">' +

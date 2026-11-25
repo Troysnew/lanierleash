@@ -101,7 +101,7 @@
   function catLabel(k) { return k === "all" ? "Everything" : L.GROUP[k] ? L.GROUP[k] : L.CAT[k].label; }
   function catIcon(k) { return k === "all" ? "" : k === "food" ? L.ic("i-dine") : k === "outdoors" ? L.ic("i-trail") : L.ic(L.CAT[k].icon); }
   var STATS = ["all", "venue", "official", "readers", "unconfirmed", "nodogs"];
-  var st = { cat: "all", status: "all", q: "", sel: null, open: false };
+  var st = { cat: "all", status: "all", q: "", sel: null, open: false, saved: false };
   function openOf(p) { return p.hours && window.LLHours ? window.LLHours.state(p.hours) : null; }
   var DATA = null, map = null, layer = null, ring = null, homePin = null, markers = {};
   L.initMenu();
@@ -140,6 +140,8 @@
     links.push('<a class="lnk" href="' + esc(L.mapsLink(p)) + '" target="_blank" rel="noopener">' + ic("u-pin") + "Directions</a>");
     links.push('<a class="lnk" href="/places/' + encodeURIComponent(p.id) + '/">' + ic("u-arrow") + "Details</a>");
     if (map && p.mi != null) links.push('<button class="lnk" type="button" data-sel="' + p.id + '">' + ic("u-radius") + "Show on map</button>");
+    var sv = L.isSaved(p.id);
+    links.push('<button class="lnk savebtn" type="button" data-save="' + p.id + '" aria-pressed="' + sv + '" title="' + (sv ? "Remove from saved" : "Save this place") + '"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 20.5s-8-4.9-8-10.6A4.6 4.6 0 0112 7a4.6 4.6 0 018 2.9c0 5.7-8 10.6-8 10.6z"/></svg><span>' + (sv ? "Saved" : "Save") + '</span></button>');
     links.push('<a class="lnk fixl" href="/submit/?type=fix&amp;listing=' + encodeURIComponent(p.name + (p.town ? ", " + p.town : "")) + '&amp;ref=place:' + encodeURIComponent(p.id) + '">Something wrong?</a>');
     return '<article class="pl' + (st.sel === p.id ? " on" : "") + '" id="' + p.id + '">' +
       '<div class="th"><img src="' + L.photoFor(p, i) + '" alt="" loading="lazy">' + L.genTag(p) + '<span class="cat cb">' + L.catBadge(p.category, 34) + "</span></div>" +
@@ -171,13 +173,17 @@
       if (!withH.length) return "";
       var n = withH.filter(function (p) { var o = openOf(p); return o && o.open; }).length;
       return '<button class="chip openchip" type="button" data-open="1" aria-pressed="' + st.open + '"><i></i>Open now <small>' + n + "</small></button>";
+    })() + (function () {
+      var n = DATA.places.filter(function (p) { return L.isSaved(p.id); }).length;
+      return n || st.saved ? '<button class="chip savechip" type="button" data-saved="1" aria-pressed="' + st.saved + '"><svg class="ic" aria-hidden="true" viewBox="0 0 24 24"><path d="M12 20.5s-8-4.9-8-10.6A4.6 4.6 0 0112 7a4.6 4.6 0 018 2.9c0 5.7-8 10.6-8 10.6z"/></svg>Saved <small>' + n + "</small></button>" : "";
     })();
-    var list = inR.filter(matches).sort(function (a, b) { return (a.mi == null ? 999 : a.mi) - (b.mi == null ? 999 : b.mi); });
-    $("#list").innerHTML = list.length ? list.map(card).join("") : '<p class="empty">Nothing matches within ' + r + " miles of " + esc(L.home.zip) + ". Try a wider radius or another category.</p>";
+    // Saved shows every saved place, however far away.
+    var list = (st.saved ? DATA.places.filter(function (p) { return L.isSaved(p.id) && (!st.q || matches(p)); }) : inR.filter(matches)).sort(function (a, b) { return (a.mi == null ? 999 : a.mi) - (b.mi == null ? 999 : b.mi); });
+    $("#list").innerHTML = list.length ? list.map(card).join("") : st.saved ? '<p class="empty">No saved places yet. Tap Save on any place to keep it here.</p>' : '<p class="empty">Nothing matches within ' + r + " miles of " + esc(L.home.zip) + ". Try a wider radius or another category.</p>";
     syncURL();
     partners();
     var far = (st.cat === "all" && st.status === "all" && !st.q && !st.open) ? DATA.places.filter(function (p) { return p.status !== "nodogs" && p.mi != null && p.mi > r; }).length : 0;
-    $("#count").textContent = list.length + (list.length === 1 ? " place" : " places") + " within " + r + " miles of " + L.home.zip + (far ? " · " + far + " more farther out" : "");
+    $("#count").textContent = st.saved ? list.length + " saved " + (list.length === 1 ? "place" : "places") + " · saved in this browser" : list.length + (list.length === 1 ? " place" : " places") + " within " + r + " miles of " + L.home.zip + (far ? " · " + far + " more farther out" : "");
 
     if (map) {
       layer.clearLayers(); markers = {};
@@ -217,10 +223,13 @@
   $("#cats").addEventListener("click", function (e) { var b = e.target.closest("[data-cat]"); if (!b) return; st.cat = b.dataset.cat; st.status = "all"; render(false); });
   $("#stats").addEventListener("click", function (e) {
     if (e.target.closest("[data-open]")) { st.open = !st.open; render(false); return; }
+    if (e.target.closest("[data-saved]")) { st.saved = !st.saved; render(false); return; }
     var b = e.target.closest("[data-status]"); if (!b) return; st.status = b.dataset.status; render(false);
   });
   $("#q").addEventListener("input", function (e) { st.q = e.target.value.trim().toLowerCase(); render(false); });
   function pick(e) {
+    var sb = e.target.closest("[data-save]");
+    if (sb) { var on = L.toggleSaved(sb.dataset.save); sb.setAttribute("aria-pressed", String(on)); sb.title = on ? "Remove from saved" : "Save this place"; sb.querySelector("span").textContent = on ? "Saved" : "Save"; if (st.saved) render(false); else { var y = window.scrollY; render(false); window.scrollTo(0, y); } return; }
     var c = e.target.closest("[data-cat]"), s2 = e.target.closest("[data-status]"), q = e.target.closest("[data-q]"), m = e.target.closest("[data-sel]");
     if (c) { st.cat = c.dataset.cat; st.status = "all"; }
     else if (s2) st.status = s2.dataset.status;
@@ -242,12 +251,14 @@
   if (qs.get("cat") && (L.CAT[qs.get("cat")] || L.GROUP[qs.get("cat")])) st.cat = qs.get("cat");
   if (STATS.indexOf(qs.get("status")) >= 0) st.status = qs.get("status");
   if (qs.get("open") === "1") st.open = true;
+  if (qs.get("saved") === "1") st.saved = true;
   if (qs.get("q")) { st.q = qs.get("q").trim().toLowerCase().slice(0, 60); $("#q").value = qs.get("q").slice(0, 60); }
   if ([5, 10, 15, 25, 35].indexOf(+qs.get("r")) >= 0) L.setRadius(+qs.get("r"));
   function syncURL() {
     var p = new URLSearchParams();
     if (st.cat !== "all") p.set("cat", st.cat);
     if (st.status !== "all") p.set("status", st.status);
+    if (st.saved) p.set("saved", "1");
     if (st.q) p.set("q", st.q);
     if (st.open) p.set("open", "1");
     if (qs.get("r") || L.radius !== 25) p.set("r", L.radius);

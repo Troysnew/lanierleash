@@ -209,6 +209,13 @@ export const SUBMIT_TYPES = {
     { name: "consent", label: "Photo permission", kind: "check", required: true },
     { name: "dotm_opt", label: "Enter Dog or Critter of the Month", kind: "check" },
   ] },
+  photo: { label: "Place photo", fields: [
+    { name: "place_id", label: "Listing id", required: true, max: 90 },
+    { name: "place", label: "Place", required: true, max: 120 },
+    { name: "dog_name", label: "Dog's name", required: true, max: 60 },
+    { name: "owner", label: "Your first name", max: 60 },
+    { name: "consent", label: "Photo permission", kind: "check", required: true },
+  ] },
   event: { label: "Event suggestion", fields: [
     { name: "title", label: "Event name", required: true, max: 150 },
     { name: "date", label: "Date", kind: "date", required: true },
@@ -258,7 +265,7 @@ export function reviewEmail(row, photoUrl) {
   const rows = spec.fields.filter((f) => d[f.name] !== undefined && f.name !== "ref").map((f) =>
     `<tr><td style="padding:7px 12px 7px 0;font:700 13px ${FONT};color:${C.muted};vertical-align:top;white-space:nowrap">${esc(f.label)}</td>` +
     `<td style="padding:7px 0;font:14px/1.5 ${FONT};color:${C.slate}">${f.kind === "check" ? "Yes" : f.kind === "url" ? `<a href="${esc(d[f.name])}" style="color:${C.teal}">${esc(d[f.name])}</a>` : esc(d[f.name]).replace(/\n/g, "<br>")}</td></tr>`).join("");
-  const title = d.dog_name || d.title || d.name || d.listing || d.business || "New submission";
+  const title = row.type === "photo" ? `${d.dog_name || "A dog"} at ${d.place || "a place"}` : d.dog_name || d.title || d.name || d.listing || d.business || "New submission";
   const body = `<div style="font:700 12px ${FONT};color:${C.coral};text-transform:uppercase;letter-spacing:.05em">New ${esc(spec.label.toLowerCase())}</div>` +
     `<h1 style="margin:6px 0 16px;font:800 24px/1.2 ${FONT};color:${C.navy}">${esc(title)}</h1>` +
     (photoUrl ? `<p style="margin:0 0 16px"><a href="${esc(photoUrl)}"><img src="${esc(photoUrl)}" width="360" alt="Submitted photo" style="display:block;max-width:100%;height:auto;border-radius:14px;border:0"></a></p>` : "") +
@@ -274,6 +281,7 @@ export function thanksEmail(row) {
   const d = row.data || {}, s = siteUrl();
   const what = {
     pup: [`Thanks for sending ${esc(d.dog_name)}!`, `We look at every pup. If ${esc(d.dog_name)} is picked for Pup of the Week, we'll email you first, before anything goes on the site.` + (d.dotm_opt ? (d.species && d.species !== "dog" ? ` You also entered Critter of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/critter-of-the-month/">lanierleash.com/critter-of-the-month</a> with a page you can share to get votes.` : ` You also entered Dog of the Month: once we approve ${esc(d.dog_name)}, they'll show up at <a href="${s}/dog-of-the-month/">lanierleash.com/dog-of-the-month</a> with a page you can share to get votes.`) : "")],
+    photo: [`Thanks for the photo of ${esc(d.dog_name)}!`, `We look at every photo before it goes up. Once it's approved, it shows on the ${esc(d.place)} page for other dog people to see.`],
     event: ["Thanks for the event tip!", "We'll check the details and add it to the events page if it's a fit. Dog rules change, so we confirm with the host or the event page first."],
     place: ["Thanks for the place tip!", "We'll check the dog rule and add it to the places page if it's a fit."],
     fix: ["Thanks for the fix!", "We'll check it and update the listing. Corrections like this keep the guide honest."],

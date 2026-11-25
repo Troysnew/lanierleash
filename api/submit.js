@@ -6,6 +6,7 @@ import { insertSubmission, recentSubmissions, uploadPhoto, signedPhotoUrl } from
 import { send, message } from "./_lib/mail.js";
 import { reviewEmail, thanksEmail, SUBMIT_TYPES } from "./_lib/templates.js";
 import { body, json, cleanEmail, log } from "./_lib/util.js";
+import { publishedPlaces } from "./_lib/places.js";
 
 const LIMIT_PER_HOUR = 8;
 const MAX_PHOTO = 3.5 * 1024 * 1024;
@@ -31,6 +32,13 @@ export default async function handler(req, res) {
     if (v && f.kind === "date" && !/^\d{4}-\d{2}-\d{2}$/.test(v)) return json(res, 400, { ok: false, error: "Pick a date.", field: f.name });
     if (v !== "" && v !== false) data[f.name] = v;
   }
+  if (type === "photo") {
+    const pid = String(data.place_id || "").toLowerCase();
+    let place = null;
+    try { place = /^[a-z0-9-]{1,90}$/.test(pid) && (await publishedPlaces()).places.find((x) => x.id === pid); } catch (e) { log("photo place lookup failed", e.message); }
+    if (!place) return json(res, 400, { ok: false, error: "We couldn't find that place." });
+    data.place_id = place.id; data.place = place.name + (place.town ? ", " + place.town : "");
+  }
   if (type === "pup") data.species = ["dog", "cat", "bird", "reptile", "small", "other"].includes(data.species) ? data.species : "dog";
   let email = null;
   if (b.email || spec.emailRequired) {
@@ -39,9 +47,9 @@ export default async function handler(req, res) {
   }
 
   let photo = null;
-  if (type === "pup") {
+  if (type === "pup" || type === "photo") {
     const m = /^data:(image\/(jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.photo || ""));
-    if (!m) return json(res, 400, { ok: false, error: "Add a photo of your pup (JPG or PNG).", field: "photo" });
+    if (!m) return json(res, 400, { ok: false, error: type === "photo" ? "Add a photo (JPG or PNG)." : "Add a photo of your pup (JPG or PNG).", field: "photo" });
     const buf = Buffer.from(m[3], "base64");
     if (buf.length > MAX_PHOTO) return json(res, 400, { ok: false, error: "That photo is too big. Try a smaller one.", field: "photo" });
     photo = { buf, type: m[1], ext: m[2] === "jpeg" ? "jpg" : m[2] };
@@ -57,7 +65,7 @@ export default async function handler(req, res) {
     let photo_path = null;
     if (photo) {
       const d = new Date().toISOString();
-      photo_path = await uploadPhoto(`pups/${d.slice(0, 7)}/${crypto.randomUUID()}.${photo.ext}`, photo.buf, photo.type);
+      photo_path = await uploadPhoto(`${type === "photo" ? "places" : "pups"}/${d.slice(0, 7)}/${crypto.randomUUID()}.${photo.ext}`, photo.buf, photo.type);
     }
     const row = await insertSubmission({ type, email, data, photo_path, ip_hash: ipHash });
 

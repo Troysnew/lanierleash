@@ -299,6 +299,15 @@
     mnav.addEventListener("click", function (e) { if (e.target.closest("a")) { mnav.hidden = true; burger.setAttribute("aria-expanded", "false"); } });
   }
 
+  // Saved places live in this browser only (no account). Same key as the heart on place pages.
+  function savedList() { try { var a = JSON.parse(localStorage.getItem("ll_saved") || "[]"); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+  function isSaved(id) { return savedList().indexOf(id) >= 0; }
+  function toggleSaved(id) {
+    var a = savedList(), i = a.indexOf(id);
+    if (i >= 0) a.splice(i, 1); else a.unshift(id);
+    try { localStorage.setItem("ll_saved", JSON.stringify(a.slice(0, 300))); } catch (e) {}
+    return i < 0;
+  }
   window.LL = {
     esc: esc, ic: ic, slug: slug, parseCSV: parseCSV,
     get home() { return home; }, setZip: setZip, useLocation: useLocation, initLocate: initLocate, miles: miles, fmtMi: fmtMi,
@@ -306,6 +315,7 @@
     todayISO: todayISO, addDays: addDays, dow: dow, fmtDay: fmtDay, fmtLong: fmtLong, fmtShort: fmtShort, fmtChecked: fmtChecked,
     fmtTime: fmtTime, timeRange: timeRange, weekend: weekend,
     BADGE: BADGE, CAT: CAT, ANIMAL: ANIMAL, animalsOf: animalsOf, GROUP: GROUP, TYPE: TYPE, photoFor: photoFor, catBadge: catBadge, sharePost: sharePost, shareBtn: shareBtn, photoCredit: photoCredit, isGeneric: isGeneric, genTag: genTag,
+    saved: savedList, isSaved: isSaved, toggleSaved: toggleSaved,
     load: load, withMiles: withMiles, groupRepeats: groupRepeats, within: within, ics: ics, downloadICS: downloadICS, mapsLink: mapsLink, initMenu: initMenu
   };
 })();

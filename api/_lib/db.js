@@ -268,6 +268,11 @@ export function approvedPups(limit = 120) {
   return db(`submissions?type=eq.pup&status=in.(approved,done)&photo_path=not.is.null&select=id,data,photo_path,featured_at,created_at&order=created_at.desc&limit=${limit}`);
 }
 
+// Reader photos of dogs at places (submissions of type "photo"), only once approved in /admin/.
+export function approvedPlacePhotos(limit = 500) {
+  return db(`submissions?type=eq.photo&status=in.(approved,done)&photo_path=not.is.null&select=id,data,photo_path,created_at&order=created_at.desc&limit=${limit}`);
+}
+
 // ---------- Place feedback (thumbs + preset tags) ----------
 export function feedbackFor(placeId) {
   return db(`place_feedback?place_id=eq.${enc(placeId)}&select=vote,tags,voter&limit=5000`);

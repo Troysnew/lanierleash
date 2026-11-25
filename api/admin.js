@@ -42,7 +42,7 @@ function shape(row, photos) {
   return {
     id: row.id, type: row.type, typeLabel: spec.label, status: row.status, email: row.email,
     created_at: row.created_at, reviewed_at: row.reviewed_at || null, featured_at: row.featured_at || null, note: row.admin_note || "",
-    title: d.dog_name || d.title || d.name || d.listing || d.business || "Submission",
+    title: row.type === "photo" ? `${d.dog_name || "A dog"} at ${d.place || "a place"}` : d.dog_name || d.title || d.name || d.listing || d.business || "Submission",
     fields: spec.fields.filter((f) => d[f.name] !== undefined).map((f) => ({ label: f.label, value: f.kind === "check" ? "Yes" : String(d[f.name]), kind: f.kind || "text" })),
     data: d, photo: row.photo_path ? photos[row.photo_path] || null : null,
     dotm: row.type === "pup" ? { entered: d.dotm || "", open: openContest(undefined, kindOfData(d).key), openName: monthName(openContest()), enteredName: d.dotm ? monthName(d.dotm) : "", wants: !!d.dotm_opt, title: kindOfData(d).title, species: d.species || "dog" } : null,
@@ -158,9 +158,11 @@ export default async function handler(req, res) {
       case "events": {
         const today = etParts().date, view = q.view || "upcoming";
         let rows;
-        if (view === "suggested") rows = await listEvents({ status: "draft" });
+        // Suggestions whose date has passed leave Suggested (still saved; they show under Past).
+        if (view === "suggested") rows = (await listEvents({ status: "draft" })).filter((r) => (r.end_date || r.date) >= today);
         else if (view === "hidden") rows = await listEvents({ status: "hidden" });
-        else if (view === "past") rows = (await listEvents({ status: "published" })).filter((r) => (r.end_date || r.date) < today).reverse().slice(0, 100);
+        else if (view === "past") rows = [...await listEvents({ status: "published" }), ...await listEvents({ status: "draft" })].filter((r) => (r.end_date || r.date) < today)
+          .sort((a, z) => ((z.end_date || z.date) > (a.end_date || a.date) ? 1 : -1)).slice(0, 100);
         else rows = await listEvents({ status: "published", from: today });
         const total = await countEvents();
         return json(res, 200, { ok: true, empty: total === 0, items: rows.map((r) => ({ ...r, mi: r.lat != null ? Math.round(miles(DEFAULT_HOME, r.lat, r.lng) * 10) / 10 : null })) });

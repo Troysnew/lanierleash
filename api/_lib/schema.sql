@@ -109,7 +109,7 @@ alter table public.settings enable row level security;
 
 -- Sponsor inquiries come through the same form system.
 alter table public.submissions drop constraint if exists submissions_type_check;
-alter table public.submissions add constraint submissions_type_check check (type in ('pup', 'event', 'place', 'fix', 'claim', 'sponsor'));
+alter table public.submissions add constraint submissions_type_check check (type in ('pup', 'event', 'place', 'fix', 'claim', 'sponsor', 'photo'));
 
 -- Readers can pick 35 miles.
 alter table public.subscribers drop constraint if exists subscribers_radius_check;
