@@ -219,6 +219,7 @@
     var label = st.when === "weekend" ? "this weekend" : st.when === "30" ? "in the next 30 days" : "coming up";
     syncURL();
     LIST = list; drawMap();
+    if (window.LLPlans) LLPlans.counts($("#list"));
     var uniq = L.groupRepeats(list).length;
     var far = (st.type === "all" && st.an === "all" && !st.q) ? L.groupRepeats(DATA.events.filter(function (e) { return e.mi != null && e.mi > r && inWindow(e); })).length : 0;
     $("#count").textContent = uniq + (uniq === 1 ? " event " : " events ") + label + " within " + r + " miles of " + L.home.zip + (far ? " · " + far + " more farther out" : "");

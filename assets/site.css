@@ -1158,3 +1158,5 @@ img.mark { object-fit: contain; }
   .mybar .sp { display: none; }
   .myitem { grid-template-columns: 1fr; gap: 4px; }
 }
+.rsvpn { font: 700 13.5px var(--f); color: var(--teal); white-space: nowrap; }
+.planrow .rsvpn { font-size: 15px; }

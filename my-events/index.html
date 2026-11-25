@@ -86,6 +86,7 @@
         '<a class="lnk" href="/events/' + esc(p.id) + '/">Details</a></div></div></article>';
     }).join("") : "";
     var up = P.upcoming(), going = up.filter(function (p) { return p.s === "going"; });
+    P.counts($("#list"));
     $("#empty").hidden = P.all().length > 0;
     $("#none").hidden = !(P.all().length && !inMonth.length);
     $("#icsAll").hidden = !going.length;

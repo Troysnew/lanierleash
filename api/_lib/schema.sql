@@ -230,3 +230,20 @@ alter table public.dotm_votes enable row level security;
 -- Critter of the Month (run once on an existing database):
 alter table public.dotm_votes drop constraint if exists dotm_votes_contest_check;
 alter table public.dotm_votes add constraint dotm_votes_contest_check check (contest ~ '^\d{4}-\d{2}(-c)?$');
+
+-- ---------- Event Going / Maybe (added later; safe to run again) ----------
+-- One row per browser per event. "voter" is a salted hash of a random id the browser keeps;
+-- "ip_hash" is a salted hash of the network, used only to stop one person padding the count.
+create table if not exists public.event_rsvps (
+  id uuid primary key default gen_random_uuid(),
+  event_id text not null,
+  voter text not null,
+  ip_hash text,
+  status text not null check (status in ('going', 'maybe')),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (event_id, voter)
+);
+create index if not exists event_rsvps_event_idx on public.event_rsvps (event_id);
+create index if not exists event_rsvps_ip_idx on public.event_rsvps (ip_hash, updated_at);
+alter table public.event_rsvps enable row level security;

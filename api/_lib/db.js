@@ -355,3 +355,17 @@ export function logPartnerEvent(row) {
 export function partnerEventsSince(dayIso) {
   return pageAll(`partner_events?day=gte.${enc(dayIso)}&select=partner_id,kind,day&order=day.desc`);
 }
+
+// ---------- Event Going / Maybe ----------
+export function rsvpRows(ids) {
+  return db(`event_rsvps?event_id=in.(${ids.map(enc).join(",")})&select=event_id,status,voter,ip_hash&limit=50000`);
+}
+export function rsvpRecentByIp(ip, sinceIso) {
+  return db(`event_rsvps?ip_hash=eq.${enc(ip)}&updated_at=gte.${enc(sinceIso)}&select=event_id`);
+}
+export function saveRsvp(row) {
+  return db("event_rsvps?on_conflict=event_id,voter", { method: "POST", body: [{ ...row, updated_at: new Date().toISOString() }], prefer: "return=minimal,resolution=merge-duplicates" });
+}
+export function deleteRsvp(eventId, voter) {
+  return db(`event_rsvps?event_id=eq.${enc(eventId)}&voter=eq.${enc(voter)}`, { method: "DELETE" });
+}

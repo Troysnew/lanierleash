@@ -52,10 +52,55 @@
   function shareAttrs(p, s) {
     return 'data-share data-share-heading="' + (s === "going" ? "Tell your pack you're going" : "Ask who else is going") + '" data-share-url="/events/' + esc(p.id) + '/" data-share-title="' + esc(p.t) + '" data-share-text="' + esc(post(p, s)) + '"';
   }
+  // ---------- public counts ("12 going · 3 maybe") ----------
+  var COUNTS = {}, OFF = false;
+  function vid() {
+    var v = ""; try { v = localStorage.getItem("ll_vid") || ""; } catch (e) {}
+    if (!/^[A-Za-z0-9-]{16,64}$/.test(v)) {
+      v = window.crypto && crypto.randomUUID ? crypto.randomUUID() : Array.apply(null, Array(32)).map(function () { return "abcdefghijklmnopqrstuvwxyz0123456789"[Math.floor(Math.random() * 36)]; }).join("");
+      try { localStorage.setItem("ll_vid", v); } catch (e) {}
+    }
+    return v;
+  }
+  function idOf(bar) { try { return JSON.parse(bar.getAttribute("data-pe")).id; } catch (e) { return ""; } }
+  function countEl(bar) {
+    var n = bar.nextElementSibling;
+    if (n && n.classList.contains("rsvpn")) return n;
+    n = document.createElement("span"); n.className = "rsvpn"; n.hidden = true;
+    bar.parentNode.insertBefore(n, bar.nextSibling); return n;
+  }
+  function paint(root) {
+    (root || document).querySelectorAll("[data-pe]").forEach(function (bar) {
+      var c = COUNTS[idOf(bar)]; if (!c) return;
+      var el = countEl(bar), t = [c.going && c.going + " going", c.maybe && c.maybe + " maybe"].filter(Boolean).join(" · ");
+      el.textContent = t; el.hidden = !t;
+    });
+  }
+  function loadCounts(root) {
+    if (OFF) return;
+    var ids = [];
+    (root || document).querySelectorAll("[data-pe]").forEach(function (bar) { var id = idOf(bar); if (id && !COUNTS[id] && ids.indexOf(id) < 0) ids.push(id); });
+    paint(root);
+    for (var i = 0; i < ids.length; i += 80) {
+      fetch("/api/events?counts=" + ids.slice(i, i + 80).join(",")).then(function (r) { return r.json(); }).then(function (d) {
+        if (!d || !d.ok) { OFF = true; return; }
+        Object.keys(d.items || {}).forEach(function (id) { COUNTS[id] = d.items[id]; });
+        paint();
+      }).catch(function () {});
+    }
+  }
+  function send(id, prev, s) {
+    var c = COUNTS[id];
+    if (c) { if (prev) c[prev] = Math.max(0, c[prev] - 1); if (s) c[s]++; paint(); }
+    fetch("/api/events", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: id, s: s, t: vid() }) })
+      .then(function (r) { return r.json(); }).then(function (d) { if (d && d.ok) { COUNTS[id] = { going: d.going, maybe: d.maybe }; paint(); } }).catch(function () {});
+  }
+
   function note(bar, snap, s) {
-    var n = bar.nextElementSibling && bar.nextElementSibling.classList.contains("plannote") ? bar.nextElementSibling : null;
+    var a = bar.nextElementSibling && bar.nextElementSibling.classList.contains("rsvpn") ? bar.nextElementSibling : bar;
+    var n = a.nextElementSibling && a.nextElementSibling.classList.contains("plannote") ? a.nextElementSibling : null;
     if (!s) { if (n) n.remove(); return; }
-    if (!n) { n = document.createElement("span"); n.className = "plannote"; n.setAttribute("role", "status"); bar.parentNode.insertBefore(n, bar.nextSibling); }
+    if (!n) { n = document.createElement("span"); n.className = "plannote"; n.setAttribute("role", "status"); a.parentNode.insertBefore(n, a.nextSibling); }
     n.innerHTML = "<b>" + (s === "going" ? "You're going!" : "Marked maybe.") + "</b> " +
       '<button type="button" class="lnk sm" ' + shareAttrs(snap, s) + '><svg class="ic" aria-hidden="true"><use href="#u-share"/></svg>' + (s === "going" ? "Tell your pack" : "Ask your pack") + "</button>" +
       '<a class="lnk sm" href="/my-events/"><svg class="ic" aria-hidden="true"><use href="#i-cal"/></svg>My events</a>';
@@ -67,12 +112,12 @@
     var bar = b.closest("[data-pe]"); if (!bar) return;
     var snap; try { snap = JSON.parse(bar.getAttribute("data-pe")); } catch (e) { return; }
     if (!snap || !snap.id) return;
-    var want = b.getAttribute("data-plan"), s = get(snap.id) === want ? "" : want;
-    set(snap, s); sync(bar, s);
+    var want = b.getAttribute("data-plan"), prev = get(snap.id), s = prev === want ? "" : want;
+    set(snap, s); sync(bar, s); send(snap.id, prev, s);
     if (!bar.hasAttribute("data-nonote")) note(bar, snap, s);
   });
   // Pages rendered on the server: show what this browser already picked.
-  function init() { document.querySelectorAll("[data-pe]").forEach(function (bar) { try { sync(bar, get(JSON.parse(bar.getAttribute("data-pe")).id)); } catch (e) {} }); }
+  function init() { document.querySelectorAll("[data-pe]").forEach(function (bar) { try { sync(bar, get(JSON.parse(bar.getAttribute("data-pe")).id)); } catch (e) {} }); loadCounts(); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 
   // One calendar file with every upcoming "Going" event.
@@ -93,5 +138,5 @@
     return L.join("\r\n") + "\r\n";
   }
 
-  window.LLPlans = { all: all, upcoming: upcoming, get: get, set: set, btns: btns, snapOf: snapOf, when: when, post: post, shareAttrs: shareAttrs, icsAll: icsAll, esc: esc };
+  window.LLPlans = { counts: loadCounts, all: all, upcoming: upcoming, get: get, set: set, btns: btns, snapOf: snapOf, when: when, post: post, shareAttrs: shareAttrs, icsAll: icsAll, esc: esc };
 })();
